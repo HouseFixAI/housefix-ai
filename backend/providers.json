@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "name": "QuickFix Plumbing",
+    "category": "Plumbing",
+    "phone": "15551234501",
+    "rating": 4.5,
+    "city": "San Francisco"
+  },
+  {
+    "id": 2,
+    "name": "AquaPro Plumbers",
+    "category": "Plumbing",
+    "phone": "15551234502",
+    "rating": 4.2,
+    "city": "San Francisco"
+  },
+  {
+    "id": 3,
+    "name": "Bay Area Plumbing Co",
+    "category": "Plumbing",
+    "phone": "15551234503",
+    "rating": 4.7,
+    "city": "Oakland"
+  },
+  {
+    "id": 4,
+    "name": "BrightSpark Electric",
+    "category": "Electrical",
+    "phone": "15551234504",
+    "rating": 4.6,
+    "city": "San Francisco"
+  },
+  {
+    "id": 5,
+    "name": "Wired Right Electrical",
+    "category": "Electrical",
+    "phone": "15551234505",
+    "rating": 4.3,
+    "city": "Oakland"
+  },
+  {
+    "id": 6,
+    "name": "VoltMasters",
+    "category": "Electrical",
+    "phone": "15551234506",
+    "rating": 4.8,
+    "city": "San Jose"
+  },
+  {
+    "id": 7,
+    "name": "ColorCoat Painters",
+    "category": "Painting",
+    "phone": "15551234507",
+    "rating": 4.4,
+    "city": "San Francisco"
+  },
+  {
+    "id": 8,
+    "name": "FreshFinish Painting",
+    "category": "Painting",
+    "phone": "15551234508",
+    "rating": 4.1,
+    "city": "Oakland"
+  },
+  {
+    "id": 9,
+    "name": "GreenThumb Gardening",
+    "category": "Gardening",
+    "phone": "15551234509",
+    "rating": 4.9,
+    "city": "San Francisco"
+  },
+  {
+    "id": 10,
+    "name": "BloomScape Landscaping",
+    "category": "Gardening",
+    "phone": "15551234510",
+    "rating": 4.5,
+    "city": "San Jose"
+  },
+  {
+    "id": 11,
+    "name": "PatioPro Garden Services",
+    "category": "Gardening",
+    "phone": "15551234511",
+    "rating": 4.3,
+    "city": "Oakland"
+  },
+  {
+    "id": 12,
+    "name": "HandyHelp Repairs",
+    "category": "General Repairs",
+    "phone": "15551234512",
+    "rating": 4.2,
+    "city": "San Francisco"
+  },
+  {
+    "id": 13,
+    "name": "FixItAll Services",
+    "category": "General Repairs",
+    "phone": "15551234513",
+    "rating": 4.0,
+    "city": "Oakland"
+  },
+  {
+    "id": 14,
+    "name": "Mr. FixIt",
+    "category": "General Repairs",
+    "phone": "15551234514",
+    "rating": 4.6,
+    "city": "San Jose"
+  },
+  {
+    "id": 15,
+    "name": "WoodCraft Carpentry",
+    "category": "Carpentry",
+    "phone": "15551234515",
+    "rating": 4.7,
+    "city": "San Francisco"
+  },
+  {
+    "id": 16,
+    "name": "Precision Carpentry Co",
+    "category": "Carpentry",
+    "phone": "15551234516",
+    "rating": 4.4,
+    "city": "Oakland"
+  },
+  {
+    "id": 17,
+    "name": "BrickStrong Masonry",
+    "category": "Masonry",
+    "phone": "15551234517",
+    "rating": 4.5,
+    "city": "San Francisco"
+  },
+  {
+    "id": 18,
+    "name": "StoneCraft Masonry",
+    "category": "Masonry",
+    "phone": "15551234518",
+    "rating": 4.3,
+    "city": "San Jose"
+  },
+  {
+    "id": 19,
+    "name": "EliteMasters Handyman",
+    "category": "General Repairs",
+    "phone": "15551234519",
+    "rating": 4.8,
+    "city": "San Francisco"
+  },
+  {
+    "id": 20,
+    "name": "Apex Painting & Decor",
+    "category": "Painting",
+    "phone": "15551234520",
+    "rating": 4.6,
+    "city": "San Jose"
+  }
+]
