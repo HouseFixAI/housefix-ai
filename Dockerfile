@@ -1,21 +1,24 @@
+# Stage 1: Build frontend
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /build
+COPY frontend/ .
+RUN npm install && npm run build
+
+# Stage 2: Python backend
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install backend dependencies
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend
+# Copy backend code
 COPY backend/ .
 
-# Build frontend
-COPY frontend/ /tmp/frontend/
-RUN cd /tmp/frontend && \
-    npm install && \
-    npm run build && \
-    cp -r dist/* /app/static/ && \
-    rm -rf /tmp/frontend
+# Copy pre-built frontend from stage 1
+COPY --from=frontend-builder /build/dist/ /app/static/
 
 # Run
 EXPOSE 8000
