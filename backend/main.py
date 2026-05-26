@@ -148,12 +148,13 @@ async def _ai_analysis(image_bytes: bytes, content_type: str) -> dict:
 
     try:
         prompt = (
-            "You are a home repair expert. Examine this image of a home issue. "
-            "Identify the problem, explain it in plain English, and give a realistic "
-            "cost estimate for hiring a professional. "
+            "You are a Dutch home repair expert. Examine this image of a home issue. "
+            "Identify the problem, explain it in clear Dutch, and give a highly accurate "
+            "cost estimate in Euros (€) for hiring a professional in the Netherlands. "
+            "Keep the price range tight (maximum 30% margin between low and high estimate). "
             "Respond in valid JSON with exactly these keys: "
             "issue_type (short label), description (2-3 sentence explanation), "
-            "cost_range (string like '$150 - $400'), confidence (high/medium/low)."
+            "cost_range (string like '€150 - €200'), confidence (high/medium/low)."
         )
 
         async with httpx.AsyncClient(timeout=30) as client:
