@@ -26,8 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent
 PROVIDERS_PATH = BASE_DIR / "providers.json"
 STATIC_DIR = BASE_DIR / "static"
 
-VISION_API_URL = os.environ.get("VISION_API_URL", "")
-VISION_API_KEY = os.environ.get("VISION_API_KEY", "")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+VISION_API_URL = os.environ.get("VISION_API_URL", "https://api.openai.com/v1/chat/completions")
 
 # ---------------------------------------------------------------------------
 # Providers data (loaded once at import time)
@@ -147,7 +147,7 @@ async def _ai_analysis(image_bytes: bytes, content_type: str) -> dict:
 
     Falls back to mock data if VISION_API_URL is not set or the call fails.
     """
-    if not VISION_API_URL:
+    if not OPENAI_API_KEY:
         return _fallback_analysis()
 
     try:
@@ -195,7 +195,7 @@ async def _ai_analysis(image_bytes: bytes, content_type: str) -> dict:
             resp = await client.post(
                 VISION_API_URL,
                 headers={
-                    "Authorization": f"Bearer {VISION_API_KEY}",
+                    "Authorization": f"Bearer {OPENAI_API_KEY}",
                     "Content-Type": "application/json",
                 },
                 json=request_body,
