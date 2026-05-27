@@ -154,7 +154,7 @@ async def _ai_analysis(image_bytes: bytes, content_type: str) -> dict:
             "Keep the price range tight (maximum 30% margin between low and high estimate). "
             "Respond in valid JSON with exactly these keys: "
             "issue_type (short label), description (2-3 sentence explanation), "
-            "cost_range (string like '€150 - €200'), confidence (high/medium/low)."
+            "cost_range (string like €150 - €200), confidence (high/medium/low)."
         )
 
         async with httpx.AsyncClient(timeout=30) as client:
