@@ -112,11 +112,19 @@ def list_providers():
 @app.route("/api/analyze", methods=["POST"])
 def analyze_image():
     """Accept a base64 image, analyze with GPT-4o, return issue details."""
-    data = request.get_json()
+    import re as regex_module
+
+    try:
+        data = request.get_json()
+    except Exception:
+        return jsonify({"error": "Invalid JSON body"}), 400
+
     if not data or "image" not in data:
         return jsonify({"error": "No image provided"}), 400
 
     image_base64 = data["image"]
+    if not isinstance(image_base64, str) or len(image_base64) < 100:
+        return jsonify({"error": "Invalid image data"}), 400
 
     # If no API key, return fallback
     if not OPENAI_API_KEY:
@@ -150,8 +158,7 @@ def analyze_image():
         message = response.choices[0].message.content
 
         # Extract JSON from response (may be wrapped in markdown)
-        import re
-        json_match = re.search(r'\{.*\}', message, re.DOTALL)
+        json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group())
             if isinstance(parsed, dict) and "issue_type" in parsed:
@@ -160,6 +167,7 @@ def analyze_image():
         return jsonify(random.choice(FALLBACK_ISSUES))
 
     except Exception as e:
+        app.logger.error(f"Analyze error: {e}")
         return jsonify({"error": str(e), "fallback": random.choice(FALLBACK_ISSUES)}), 500
 
 
