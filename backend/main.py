@@ -71,62 +71,62 @@ async def serve_frontend():
 # ---------------------------------------------------------------------------
 FALLBACK_ISSUES = [
     {
-        "issue_type": "wall crack",
-        "description": "A visible crack in the drywall, likely caused by settling or minor structural movement. Typically superficial and repairable with spackle and paint.",
+        "issue_type": "scheur in muur",
+        "description": "Een zichtbare scheur in de gipsmuur, waarschijnlijk veroorzaakt door verzakking of kleine structurele beweging. Meestal oppervlakkig en te repareren met plamuur en verf.",
         "cost_range": "€50 - €150",
         "confidence": "medium",
     },
     {
-        "issue_type": "plumbing leak",
-        "description": "Water leaking from a pipe joint or fixture. Could be a loose connection, worn washer, or pipe corrosion requiring replacement.",
+        "issue_type": "lekkage loodgieter",
+        "description": "Water dat lekt uit een pijpverbinding of kraan. Dit kan komen door een losse verbinding, versleten rubbers of pijpcorrosie die vervanging nodig heeft.",
         "cost_range": "€120 - €500",
         "confidence": "medium",
     },
     {
-        "issue_type": "paint peeling",
-        "description": "Paint is bubbling and peeling from the wall surface, often due to moisture underneath or poor surface preparation before painting.",
+        "issue_type": "verfbladderen",
+        "description": "Verf die borrelt en bladdert van het muuroppervlak, vaak door vocht eronder of slechte voorbereiding van de ondergrond voor het schilderen.",
         "cost_range": "€80 - €400",
         "confidence": "high",
     },
     {
-        "issue_type": "clogged drain",
-        "description": "Slow or blocked drainage in sink, shower, or toilet. Likely caused by hair, grease, or debris buildup in the pipe.",
+        "issue_type": "verstopte afvoer",
+        "description": "Langzame of geblokkeerde afvoer in gootsteen, douche of toilet. Waarschijnlijk veroorzaakt door haar, vet of ophoping van vuil in de leiding.",
         "cost_range": "€60 - €280",
         "confidence": "high",
     },
     {
-        "issue_type": "electrical outlet not working",
-        "description": "The electrical outlet is dead or intermittently failing. May be a tripped breaker, loose wiring, or a faulty outlet that needs replacement.",
+        "issue_type": "defect stopcontact",
+        "description": "Het stopcontact werkt niet of valt uit. Dit kan een gesprongen zekering, losse bedrading of een defect stopcontact zijn dat vervangen moet worden.",
         "cost_range": "€80 - €200",
         "confidence": "medium",
     },
     {
-        "issue_type": "broken window",
-        "description": "A cracked or shattered window pane. Requires glass replacement and professional installation to ensure proper sealing and safety.",
+        "issue_type": "gebroken raam",
+        "description": "Een gebarsten of kapotte ruit. Vereist glasvervanging en professionele installatie voor een goede afdichting en veiligheid.",
         "cost_range": "€150 - €500",
         "confidence": "high",
     },
     {
-        "issue_type": "garden overgrowth",
-        "description": "Excessive weed growth, overgrown shrubs, or unkempt lawn requiring trimming, weeding, and general garden maintenance.",
+        "issue_type": "overwoekerde tuin",
+        "description": "Overmatige onkruidgroei, overwoekerde struiken of onverzorgd gazon dat gesnoeid, gewied en algemeen tuinonderhoud nodig heeft.",
         "cost_range": "€80 - €320",
         "confidence": "medium",
     },
     {
-        "issue_type": "wood rot",
-        "description": "Decayed or rotting wood on deck, fence, or window frame caused by prolonged moisture exposure. Affected sections need removal and replacement.",
+        "issue_type": "houtrot",
+        "description": "Aangetast of rottend hout op terras, schutting of raamkozijn door langdurige blootstelling aan vocht. Aangetaste delen moeten worden verwijderd en vervangen.",
         "cost_range": "€250 - €1,000",
         "confidence": "medium",
     },
     {
-        "issue_type": "cracked tile",
-        "description": "Broken or cracked ceramic or porcelain tile on floor or wall. Requires tile removal, adhesive prep, and new tile installation.",
+        "issue_type": "gebarsten tegel",
+        "description": "Gebroken of gebarsten keramische tegel op vloer of muur. Vereist verwijdering van de tegel, voorbereiding van de lijm en plaatsing van een nieuwe tegel.",
         "cost_range": "€120 - €400",
         "confidence": "high",
     },
     {
-        "issue_type": "leaky faucet",
-        "description": "A dripping faucet wasting water, usually caused by a worn-out washer, O-ring, or cartridge that needs replacement.",
+        "issue_type": "lekkende kraan",
+        "description": "Een druppelende kraan die water verspilt, meestal veroorzaakt door een versleten rubbers, O-ring of patroon die vervangen moet worden.",
         "cost_range": "€60 - €160",
         "confidence": "high",
     },
@@ -141,13 +141,17 @@ def _fallback_analysis() -> dict:
 async def _ai_analysis(image_bytes: bytes, content_type: str) -> dict:
     """Call the external vision AI API for image analysis.
 
+    Sends the prompt as a system message and the image as a user message
+    using the OpenAI-compatible chat completions format (works with OpenAI,
+    Gemini via OpenAI-compatible endpoint, Claude, etc.).
+
     Falls back to mock data if VISION_API_URL is not set or the call fails.
     """
     if not VISION_API_URL:
         return _fallback_analysis()
 
     try:
-        prompt = (
+        system_prompt = (
             "You are a Dutch home repair expert. Examine this image of a home issue. "
             "Identify the problem, explain it in clear Dutch, and give a highly accurate "
             "cost estimate in Euros (€) for hiring a professional in the Netherlands. "
@@ -157,29 +161,58 @@ async def _ai_analysis(image_bytes: bytes, content_type: str) -> dict:
             "cost_range (string like €150 - €200), confidence (high/medium/low)."
         )
 
-        async with httpx.AsyncClient(timeout=30) as client:
+        # Encode image as base64 for the API request
+        import base64
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+        data_uri = f"data:{content_type};base64,{image_base64}"
+
+        request_body = {
+            "model": os.environ.get("VISION_MODEL", "gpt-4o"),
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Analyze this home repair issue and return the JSON response as instructed.",
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": data_uri},
+                        },
+                    ],
+                },
+            ],
+            "max_tokens": 500,
+            "temperature": 0.2,
+        }
+
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
                 VISION_API_URL,
                 headers={
                     "Authorization": f"Bearer {VISION_API_KEY}",
-                    "Content-Type": content_type,
+                    "Content-Type": "application/json",
                 },
-                params={"prompt": prompt},
-                content=image_bytes,
+                json=request_body,
             )
             resp.raise_for_status()
             data = resp.json()
 
-        # Try to parse the response — various AI APIs return content differently
-        if isinstance(data, dict):
-            if "issue_type" in data:
-                return data
-            # Maybe nested under 'choices' (OpenAI-compatible)
-            choices = data.get("choices", [])
-            if choices:
-                message = choices[0].get("message", {}).get("content", "")
-                if message:
-                    parsed = json.loads(message)
+        # Parse OpenAI-compatible response
+        choices = data.get("choices", [])
+        if choices:
+            message = choices[0].get("message", {}).get("content", "")
+            if message:
+                # Try to extract JSON from the response (may be wrapped in markdown)
+                import re
+                json_match = re.search(r'\{.*\}', message, re.DOTALL)
+                if json_match:
+                    parsed = json.loads(json_match.group())
                     if isinstance(parsed, dict) and "issue_type" in parsed:
                         return parsed
 
