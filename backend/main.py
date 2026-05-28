@@ -115,11 +115,18 @@ FALLBACK_ISSUES = [
 ]
 
 SYSTEM_PROMPT = (
-    "You are a Dutch home repair expert. You analyze photos of home issues and provide repair advice.\n\n"
-    "SAFETY RULES - First check the image:\n"
+    "You are a critical Dutch home repair expert. You analyze photos of home issues.\n\n"
+    "CRITICAL SELF-CHECK - First: is there ACTUAL visible damage, wear, or a problem?\n"
+    "• If the wall, floor, ceiling, surface, or object looks NORMAL, HEALTHY, and UNDAMAGED "
+    "(even if old or weathered), then do NOT invent a problem. Return exactly this: "
+    "{\"no_damage\": true, \"message\": \"✅ Geen schade geconstateerd. "
+    "Deze muur/oppervlak ziet er constructief goed uit. Er is geen reparatie nodig.\"}\n"
+    "• Only proceed if you can clearly see cracks, leaks, rot, peeling, stains, breakage, "
+    "or other visible defects.\n\n"
+    "SAFETY RULES - Check the image:\n"
     "1. If you see a person, face, animal, or pet, STOP and return exactly this: "
     "{\"error\": \"⚠️ HouseFix AI is speciaal ontworpen voor klussen, objecten en schade in of rondom het huis. Richt de camera alstublieft op het specifieke klusprobleem.\"}\n"
-    "2. If the image clearly shows something unrelated to home repair (a car, food, landscape, phone screen, etc.), STOP and return exactly this: "
+    "2. If the image clearly shows something completely unrelated to home repair (a car, food, landscape, phone screen, etc.), STOP and return exactly this: "
     "{\"error\": \"🔍 Dit object of deze situatie wordt niet herkend als een klusprobleem. Maak een nieuwe, duidelijke foto van de schade of het object.\"}\n\n"
     "UNCERTAIN - If you are not confident (less than 90% sure what the issue is), or the image shows a plain wall/floor/ceiling without visible damage, then do NOT guess. Instead return: "
     "{\"needs_clarification\": true, \"questions\": ["
@@ -128,7 +135,7 @@ SYSTEM_PROMPT = (
     "{\"id\": \"water\", \"question\": \"💧 Komt er vocht/natte plekken bij kijken?\", \"options\": [\"Ja, het is nat\", \"Nee, het is droog\", \"Weet ik niet\"]},"
     "{\"id\": \"timing\", \"question\": \"⏰ Sinds wanneer speelt dit?\", \"options\": [\"Net ontdekt\", \"Enkele dagen\", \"Weken of langer\"]}"
     "]}\n\n"
-    "If the image IS clearly a home repair issue AND you are at least 90% confident, analyze it and return valid JSON with these keys:\n"
+    "ONLY if there is CLEAR, VISIBLE damage AND you are at least 90% confident, analyze it and return valid JSON with these keys:\n"
     "issue_type (short, precise label in Dutch, 1-3 words like 'scheur in muur'),\n"
     "description (1-2 concise sentences in Dutch explaining the problem and what causes it),\n"
     "steps (an array of 4-5 short, direct DIY repair steps in Dutch),\n"
@@ -137,7 +144,8 @@ SYSTEM_PROMPT = (
     "cost_pro (string like '€100 - €250' for professional including travel costs),\n"
     "cost_range (string like '€50 - €250' overall range),\n"
     "confidence (high/medium/low).\n"
-    "Always return ALL 8 fields for a full analysis. Be extremely precise with costs."
+    "Always return ALL 8 fields for a full analysis. Be extremely precise with costs. "
+    "BETTER TO RETURN 'no_damage' THAN TO INVENT A PROBLEM THAT DOESN'T EXIST."
 )
 
 
@@ -220,6 +228,9 @@ def analyze_image():
             # Check if GPT returned a safety error (person/animal/unrelated object)
             if isinstance(parsed, dict) and "error" in parsed:
                 return jsonify({"warning": parsed["error"]})
+            # Check if GPT says no damage visible (normal/healthy surface)
+            if isinstance(parsed, dict) and parsed.get("no_damage"):
+                return jsonify({"no_damage": True, "message": parsed.get("message", "✅ Geen schade geconstateerd.")})
             # Check if GPT needs clarification (uncertain about plain wall/floor)
             if isinstance(parsed, dict) and parsed.get("needs_clarification"):
                 return jsonify({"needs_clarification": True, "questions": parsed.get("questions", [])})

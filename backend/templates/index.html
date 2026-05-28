@@ -658,6 +658,20 @@ async function submitClarification() {
 
 /* ── Results ── */
 function showResults(r) {
+  // GPT says no damage visible (normal/healthy surface)
+  if (r.no_damage) {
+    document.getElementById("issueCard").style.display = "block";
+    document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+    document.getElementById("resultType").textContent = "✅ Geen schade";
+    document.getElementById("resultDesc").innerHTML = r.message || "✅ Geen schade geconstateerd. Deze muur/oppervlak ziet er constructief goed uit. Er is geen reparatie nodig.";
+    document.getElementById("resultBadge").innerHTML = "";
+    document.getElementById("costCard").style.display = "none";
+    document.getElementById("stepsCard").style.display = "none";
+    document.getElementById("materialsCard").style.display = "none";
+    document.getElementById("providersCard").style.display = "none";
+    return;
+  }
+
   // Safety warning from GPT (person, animal, or unrelated object)
   if (r.warning) {
     document.getElementById("issueCard").style.display = "block";
