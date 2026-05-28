@@ -1,162 +1,162 @@
 [
   {
     "id": 1,
-    "name": "QuickFix Plumbing",
-    "category": "Plumbing",
-    "phone": "15551234501",
-    "rating": 4.5,
-    "city": "San Francisco"
+    "name": "Rotterdam Klusservice",
+    "category": "Algemene Reparaties",
+    "phone": "31612345601",
+    "rating": 4.7,
+    "city": "Rotterdam"
   },
   {
     "id": 2,
-    "name": "AquaPro Plumbers",
-    "category": "Plumbing",
-    "phone": "15551234502",
-    "rating": 4.2,
-    "city": "San Francisco"
+    "name": "010 Loodgieters",
+    "category": "Loodgieter",
+    "phone": "31612345602",
+    "rating": 4.5,
+    "city": "Rotterdam"
   },
   {
     "id": 3,
-    "name": "Bay Area Plumbing Co",
-    "category": "Plumbing",
-    "phone": "15551234503",
-    "rating": 4.7,
-    "city": "Oakland"
+    "name": "Amsterdam KlusPro",
+    "category": "Algemene Reparaties",
+    "phone": "31612345603",
+    "rating": 4.8,
+    "city": "Amsterdam"
   },
   {
     "id": 4,
-    "name": "BrightSpark Electric",
-    "category": "Electrical",
-    "phone": "15551234504",
+    "name": "Grachtengordel Schilders",
+    "category": "Schilder",
+    "phone": "31612345604",
     "rating": 4.6,
-    "city": "San Francisco"
+    "city": "Amsterdam"
   },
   {
     "id": 5,
-    "name": "Wired Right Electrical",
-    "category": "Electrical",
-    "phone": "15551234505",
-    "rating": 4.3,
-    "city": "Oakland"
+    "name": "Den Haag Elektra",
+    "category": "Elektricien",
+    "phone": "31612345605",
+    "rating": 4.4,
+    "city": "Den Haag"
   },
   {
     "id": 6,
-    "name": "VoltMasters",
-    "category": "Electrical",
-    "phone": "15551234506",
-    "rating": 4.8,
-    "city": "San Jose"
+    "name": "Utrecht Loodgietersbedrijf",
+    "category": "Loodgieter",
+    "phone": "31612345606",
+    "rating": 4.9,
+    "city": "Utrecht"
   },
   {
     "id": 7,
-    "name": "ColorCoat Painters",
-    "category": "Painting",
-    "phone": "15551234507",
-    "rating": 4.4,
-    "city": "San Francisco"
+    "name": "Eindhoven Klusmannen",
+    "category": "Algemene Reparaties",
+    "phone": "31612345607",
+    "rating": 4.3,
+    "city": "Eindhoven"
   },
   {
     "id": 8,
-    "name": "FreshFinish Painting",
-    "category": "Painting",
-    "phone": "15551234508",
-    "rating": 4.1,
-    "city": "Oakland"
+    "name": "Groningen Bouw & Reparatie",
+    "category": "Algemene Reparaties",
+    "phone": "31612345608",
+    "rating": 4.5,
+    "city": "Groningen"
   },
   {
     "id": 9,
-    "name": "GreenThumb Gardening",
-    "category": "Gardening",
-    "phone": "15551234509",
-    "rating": 4.9,
-    "city": "San Francisco"
+    "name": "Maastricht KlusService",
+    "category": "Algemene Reparaties",
+    "phone": "31612345609",
+    "rating": 4.6,
+    "city": "Maastricht"
   },
   {
     "id": 10,
-    "name": "BloomScape Landscaping",
-    "category": "Gardening",
-    "phone": "15551234510",
-    "rating": 4.5,
-    "city": "San Jose"
+    "name": "Den Bosch Schildersbedrijf",
+    "category": "Schilder",
+    "phone": "31612345610",
+    "rating": 4.7,
+    "city": "Den Bosch"
   },
   {
     "id": 11,
-    "name": "PatioPro Garden Services",
-    "category": "Gardening",
-    "phone": "15551234511",
-    "rating": 4.3,
-    "city": "Oakland"
+    "name": "Haarlem Elektrotechniek",
+    "category": "Elektricien",
+    "phone": "31612345611",
+    "rating": 4.2,
+    "city": "Haarlem"
   },
   {
     "id": 12,
-    "name": "HandyHelp Repairs",
-    "category": "General Repairs",
-    "phone": "15551234512",
-    "rating": 4.2,
-    "city": "San Francisco"
+    "name": "Leiden Loodgieters",
+    "category": "Loodgieter",
+    "phone": "31612345612",
+    "rating": 4.8,
+    "city": "Leiden"
   },
   {
     "id": 13,
-    "name": "FixItAll Services",
-    "category": "General Repairs",
-    "phone": "15551234513",
-    "rating": 4.0,
-    "city": "Oakland"
+    "name": "Arnhem Klushulp",
+    "category": "Algemene Reparaties",
+    "phone": "31612345613",
+    "rating": 4.4,
+    "city": "Arnhem"
   },
   {
     "id": 14,
-    "name": "Mr. FixIt",
-    "category": "General Repairs",
-    "phone": "15551234514",
-    "rating": 4.6,
-    "city": "San Jose"
+    "name": "Nijmegen Tuinaannemers",
+    "category": "Tuinman",
+    "phone": "31612345614",
+    "rating": 4.5,
+    "city": "Nijmegen"
   },
   {
     "id": 15,
-    "name": "WoodCraft Carpentry",
-    "category": "Carpentry",
-    "phone": "15551234515",
-    "rating": 4.7,
-    "city": "San Francisco"
+    "name": "Almere Schildersploeg",
+    "category": "Schilder",
+    "phone": "31612345615",
+    "rating": 4.3,
+    "city": "Almere"
   },
   {
     "id": 16,
-    "name": "Precision Carpentry Co",
-    "category": "Carpentry",
-    "phone": "15551234516",
-    "rating": 4.4,
-    "city": "Oakland"
+    "name": "Apeldoorn ReparatieService",
+    "category": "Algemene Reparaties",
+    "phone": "31612345616",
+    "rating": 4.6,
+    "city": "Apeldoorn"
   },
   {
     "id": 17,
-    "name": "BrickStrong Masonry",
-    "category": "Masonry",
-    "phone": "15551234517",
-    "rating": 4.5,
-    "city": "San Francisco"
+    "name": "Delft Elektra Specialisten",
+    "category": "Elektricien",
+    "phone": "31612345617",
+    "rating": 4.7,
+    "city": "Delft"
   },
   {
     "id": 18,
-    "name": "StoneCraft Masonry",
-    "category": "Masonry",
-    "phone": "15551234518",
-    "rating": 4.3,
-    "city": "San Jose"
+    "name": "Amersfoort Loodgieters",
+    "category": "Loodgieter",
+    "phone": "31612345618",
+    "rating": 4.5,
+    "city": "Amersfoort"
   },
   {
     "id": 19,
-    "name": "EliteMasters Handyman",
-    "category": "General Repairs",
-    "phone": "15551234519",
+    "name": "Zaandam Klusbedrijf",
+    "category": "Algemene Reparaties",
+    "phone": "31612345619",
     "rating": 4.8,
-    "city": "San Francisco"
+    "city": "Zaandam"
   },
   {
     "id": 20,
-    "name": "Apex Painting & Decor",
-    "category": "Painting",
-    "phone": "15551234520",
-    "rating": 4.6,
-    "city": "San Jose"
+    "name": "Tilburg Hoveniers",
+    "category": "Tuinman",
+    "phone": "31612345620",
+    "rating": 4.4,
+    "city": "Tilburg"
   }
 ]

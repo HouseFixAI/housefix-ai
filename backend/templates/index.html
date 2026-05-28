@@ -3,99 +3,237 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>HouseFix AI</title>
+  <title>HouseFix AI — Klusadvies in 1 seconde</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
-    header { background: #1e293b; padding: 16px 20px; text-align: center; }
-    header h1 { font-size: 22px; font-weight: 700; } header h1 span { color: #f59e0b; } header h1 em { font-style: normal; color: #fff; }
-    .camera-wrap { flex: 1; display: flex; flex-direction: column; position: relative; overflow: hidden; background: #000; }
-    #video { width: 100%; flex: 1; object-fit: cover; display: block; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #2563eb; --primary-dark: #1d4ed8; --primary-light: #eff6ff; --accent: #f59e0b; --accent-dark: #d97706; --success: #059669; --danger: #dc2626; --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0; --gray-300: #cbd5e1; --gray-400: #94a3b8; --gray-500: #64748b; --gray-600: #475569; --gray-700: #334155; --gray-800: #1e293b; --gray-900: #0f172a; --radius: 16px; --radius-sm: 10px; --radius-xs: 8px; --shadow: 0 4px 24px rgba(0,0,0,0.08); --shadow-lg: 0 8px 40px rgba(0,0,0,0.12); --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; }
+    .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, var(--gray-900), var(--gray-800)); padding: 20px 24px; position: relative; overflow: hidden; }
+    .header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(37,99,235,0.15), transparent); border-radius: 50%; }
+    .header-content { position: relative; display: flex; align-items: center; justify-content: space-between; z-index: 1; }
+    .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    .logo-badge { background: rgba(255,255,255,0.1); color: var(--gray-300); font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.3px; }
+
+    /* Camera */
+    .camera-wrap { flex: 1; display: flex; flex-direction: column; background: var(--gray-900); position: relative; min-height: 400px; }
+    #video { width: 100%; flex: 1; object-fit: cover; display: block; min-height: 300px; background: var(--gray-900); }
     #canvas { display: none; }
-    #snapshot { width: 100%; flex: 1; object-fit: contain; display: none; background: #000; }
-    .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 24px; pointer-events: none; }
-    .overlay > * { pointer-events: auto; }
-    .viewfinder { border: 3px dashed rgba(255,255,255,0.5); border-radius: 16px; flex: 1; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; }
-    .viewfinder p { color: rgba(255,255,255,0.6); font-size: 16px; text-align: center; }
-    .btn-row { display: flex; gap: 12px; }
-    .btn-row button { flex: 1; padding: 16px; border: 2px solid transparent; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    .btn-photo { background: #2563eb; color: #fff; }
-    .btn-photo:active { background: #1d4ed8; transform: scale(0.97); }
-    .btn-photo:disabled { background: #475569; opacity: 0.5; }
-    .btn-analyze { background: #f59e0b; color: #1e293b; }
-    .btn-analyze:disabled { background: #475569; color: #94a3b8; }
-    .btn-retake { background: transparent; color: #94a3b8; border-color: #475569; }
-    .btn-retake:active { background: #334155; }
-    .results { display: none; padding: 24px; background: #1e293b; }
-    .results.active { display: block; }
-    .spinner { display: none; width: 48px; height: 48px; border: 4px solid #334155; border-top-color: #f59e0b; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    #snapshot { width: 100%; flex: 1; object-fit: contain; display: none; background: var(--gray-900); min-height: 300px; }
+    .camera-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; pointer-events: none; }
+    .camera-overlay > * { pointer-events: auto; }
+    .viewfinder { flex: 1; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 2px dashed rgba(255,255,255,0.2); border-radius: var(--radius); }
+    .viewfinder-content { text-align: center; color: rgba(255,255,255,0.5); }
+    .viewfinder-content .icon { font-size: 48px; margin-bottom: 12px; }
+    .viewfinder-content p { font-size: 14px; }
+    .camera-actions { display: flex; gap: 10px; }
+    .camera-actions button { flex: 1; padding: 16px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: var(--transition); }
+    .btn-capture { background: #fff; color: var(--gray-900); }
+    .btn-capture:active { transform: scale(0.97); }
+    .btn-capture:disabled { opacity: 0.4; }
+    .btn-analyze-go { background: var(--accent); color: #fff; }
+    .btn-analyze-go:active { transform: scale(0.97); }
+    .btn-analyze-go:disabled { opacity: 0.4; }
+    .btn-retake { background: rgba(255,255,255,0.15); color: #fff; flex: 0.5; }
+    .file-label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; transition: var(--transition); }
+
+    /* Loading */
+    .loading-wrap { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; background: #fff; flex: 1; }
+    .loading-wrap.active { display: flex; }
+    .spinner { width: 56px; height: 56px; border: 4px solid var(--gray-200); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; margin-bottom: 20px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner.active { display: block; }
-    .result-item { margin-bottom: 16px; }
-    .result-item label { font-size: 12px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
-    .result-item .val { font-size: 18px; color: #fff; font-weight: 600; margin-top: 4px; }
-    .result-item .cost { font-size: 28px; color: #f59e0b; font-weight: 900; }
-    .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-    .badge-high { background: #05966933; color: #34d399; }
-    .badge-medium { background: #d9770633; color: #fbbf24; }
-    .badge-low { background: #dc262633; color: #f87171; }
-    .error { color: #f87171; text-align: center; padding: 24px; }
-    .provider-section { padding: 0 24px 24px; background: #1e293b; }
-    .provider-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #fff; }
-    .provider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .provider-card { background: #334155; border-radius: 12px; padding: 14px; }
-    .provider-card .cat { font-size: 10px; color: #93c5fd; font-weight: 700; text-transform: uppercase; }
-    .provider-card .name { font-size: 14px; font-weight: 600; color: #fff; margin-top: 2px; }
-    .provider-card .stars { color: #facc15; font-size: 12px; }
-    .provider-card .city { color: #64748b; font-size: 11px; }
-    .provider-card .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-    .wa-btn { background: #25D366; color: #fff; padding: 8px; border-radius: 8px; border: none; font-size: 11px; font-weight: 700; text-align: center; text-decoration: none; }
-    .quote-btn { background: transparent; border: 1px solid #475569; color: #cbd5e1; padding: 8px; border-radius: 8px; font-size: 11px; font-weight: 700; }
-    .reset-btn { background: transparent; border: 1px solid #475569; color: #94a3b8; padding: 8px 16px; border-radius: 10px; font-size: 13px; cursor: pointer; margin-top: 8px; }
-    footer { text-align: center; padding: 16px; color: #64748b; font-size: 12px; background: #0f172a; }
-    @media (max-width: 480px) { .provider-grid { grid-template-columns: 1fr; } }
+    .loading-wrap p { color: var(--gray-500); font-size: 15px; }
+    .loading-wrap .sub { color: var(--gray-400); font-size: 13px; margin-top: 4px; }
+
+    /* Results */
+    .results-wrap { display: none; padding: 20px; gap: 16px; flex-direction: column; }
+    .results-wrap.active { display: flex; }
+
+    .card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; color: var(--gray-700); }
+    .card-header .emoji { font-size: 18px; }
+    .card-body { padding: 20px; }
+    .card-body.compact { padding: 16px 20px; }
+
+    /* Issue card */
+    .issue-row { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .issue-thumb { width: 80px; height: 80px; border-radius: var(--radius-sm); object-fit: cover; background: var(--gray-100); flex-shrink: 0; }
+    .issue-info { flex: 1; min-width: 150px; }
+    .issue-type { font-size: 20px; font-weight: 800; color: var(--gray-900); text-transform: capitalize; margin-bottom: 4px; letter-spacing: -0.3px; }
+    .issue-desc { font-size: 14px; color: var(--gray-500); line-height: 1.6; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+    .badge-high { background: #ecfdf5; color: var(--success); }
+    .badge-medium { background: #fffbeb; color: var(--accent-dark); }
+    .badge-low { background: #fef2f2; color: var(--danger); }
+
+    /* Steps */
+    .step-item { display: flex; gap: 12px; padding: 10px 0; align-items: flex-start; border-bottom: 1px solid var(--gray-100); }
+    .step-item:last-child { border-bottom: none; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-text { font-size: 14px; color: var(--gray-600); line-height: 1.5; padding-top: 3px; }
+
+    /* Materials */
+    .material-tag { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--gray-100); border-radius: var(--radius-xs); font-size: 13px; color: var(--gray-700); font-weight: 500; margin: 0 6px 6px 0; }
+    .material-tag::before { content: '🛒'; font-size: 14px; }
+
+    /* Cost comparison */
+    .cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .cost-box { padding: 16px; border-radius: var(--radius-sm); text-align: center; }
+    .cost-box.diy { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+    .cost-box.pro { background: linear-gradient(135deg, var(--primary-light), #dbeafe); }
+    .cost-label { font-size: 12px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .cost-amount { font-size: 24px; font-weight: 900; letter-spacing: -0.5px; }
+    .cost-box.diy .cost-amount { color: var(--success); }
+    .cost-box.pro .cost-amount { color: var(--primary); }
+    .cost-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+    /* Providers */
+    .prov-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .prov-filter button { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; transition: var(--transition); background: var(--gray-100); color: var(--gray-600); }
+    .prov-filter button.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+    .prov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .prov-card { background: var(--gray-50); border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--gray-100); transition: var(--transition); }
+    .prov-card:hover { border-color: var(--gray-200); }
+    .prov-cat { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 2px; }
+    .prov-name { font-size: 14px; font-weight: 700; color: var(--gray-800); }
+    .prov-meta { font-size: 12px; color: var(--gray-400); margin: 2px 0 8px; }
+    .prov-stars { color: #facc15; font-size: 13px; }
+    .prov-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .wa-link, .quote-btn { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 9px; border-radius: var(--radius-xs); font-size: 12px; font-weight: 700; text-decoration: none; cursor: pointer; transition: var(--transition); }
+    .wa-link { background: #25D366; color: #fff; }
+    .wa-link:active { background: #1da851; }
+    .quote-btn { background: #fff; border: 1px solid var(--gray-200); color: var(--gray-600); }
+    .quote-btn:active { background: var(--gray-100); }
+
+    /* Start over */
+    .btn-reset { display: block; width: 100%; padding: 16px; border-radius: var(--radius-sm); border: 2px dashed var(--gray-200); background: transparent; color: var(--gray-500); font-size: 15px; font-weight: 700; cursor: pointer; transition: var(--transition); margin-top: 4px; }
+    .btn-reset:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Footer */
+    .footer { text-align: center; padding: 24px 20px; color: var(--gray-400); font-size: 12px; }
+    .footer strong { color: var(--gray-600); }
+
+    @media (max-width: 380px) {
+      .prov-grid { grid-template-columns: 1fr; }
+      .cost-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
+<div class="app" id="app">
 
-<header>
-  <h1><span>HouseFix</span><em> AI</em></h1>
-</header>
-
-<div class="camera-wrap" id="cameraWrap">
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
-  <img id="snapshot" />
-
-  <div class="overlay">
-    <div class="viewfinder" id="viewfinder">
-      <p id="hintText">📸 Maak een foto van het probleem</p>
-    </div>
-
-    <div class="btn-row" id="buttonRow">
-      <button class="btn-photo" id="btnPhoto" onclick="takePhoto()">📸 Foto maken</button>
-      <button class="btn-analyze" id="btnAnalyze" onclick="analyze()" disabled>🔍 Analyseren</button>
-      <button class="btn-retake" id="btnRetake" onclick="resetView()" style="display:none">↩ Opnieuw</button>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo"><span>HouseFix</span> AI</div>
+      <span class="logo-badge">🇳🇱 Nederland</span>
     </div>
   </div>
-</div>
 
-<div id="loadingIndicator" style="display:none; text-align:center; padding:40px; background:#1e293b;">
-  <div class="spinner active"></div>
-  <p style="color:#94a3b8;">🛠️ Bezig met analyseren...</p>
-</div>
+  <!-- Camera View -->
+  <div class="camera-wrap" id="cameraWrap">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <img id="snapshot" />
 
-<div class="results" id="results">
-  <div id="resultContent"></div>
-  <div class="provider-section" id="providerSection" style="display:none; padding:0; margin-top:20px;">
-    <h3>🔧 Nabije serviceproviders</h3>
-    <div class="filters" id="filters" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;"></div>
-    <div class="provider-grid" id="providerGrid"></div>
+    <div class="camera-overlay">
+      <div class="viewfinder" id="viewfinder">
+        <div class="viewfinder-content">
+          <div class="icon">📸</div>
+          <p>Maak een foto van het probleem</p>
+        </div>
+      </div>
+
+      <div class="camera-actions" id="cameraActions">
+        <button class="btn-capture" id="btnCapture" onclick="capture()">📸 Foto maken</button>
+        <button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍 Analyseren</button>
+        <button class="btn-retake" id="btnRetake" onclick="retake()" style="display:none">↩</button>
+      </div>
+    </div>
+
+    <!-- File fallback -->
+    <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none" onchange="handleFile(event)" />
   </div>
-  <button class="reset-btn" onclick="resetAll()" style="display:block; margin:20px auto 0;">↩ Nieuw probleem</button>
-</div>
 
-<footer>HouseFix AI — Snel een schatting voor je klus</footer>
+  <!-- Loading -->
+  <div class="loading-wrap" id="loadingWrap">
+    <div class="spinner"></div>
+    <p>🛠️ Bezig met analyseren...</p>
+    <p class="sub">AI bekijkt uw foto en stelt een advies op</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results-wrap" id="resultsWrap">
+
+    <!-- Issue -->
+    <div class="card" id="issueCard" style="display:none">
+      <div class="card-header"><span class="emoji">🔍</span> Analyse</div>
+      <div class="card-body">
+        <div class="issue-row">
+          <img class="issue-thumb" id="resultThumb" />
+          <div class="issue-info">
+            <div class="issue-type" id="resultType"></div>
+            <div class="issue-desc" id="resultDesc"></div>
+            <div style="margin-top:8px"><span id="resultBadge"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cost Comparison -->
+    <div class="card" id="costCard" style="display:none">
+      <div class="card-header"><span class="emoji">💰</span> Kostenvergelijking</div>
+      <div class="card-body">
+        <div class="cost-grid">
+          <div class="cost-box diy">
+            <div class="cost-label">👨‍🔧 Zelf doen</div>
+            <div class="cost-amount" id="costDiy"></div>
+            <div class="cost-sub">alleen materiaal</div>
+          </div>
+          <div class="cost-box pro">
+            <div class="cost-label">👷 Laten doen</div>
+            <div class="cost-amount" id="costPro"></div>
+            <div class="cost-sub">inclusief voorrijkosten</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="card" id="stepsCard" style="display:none">
+      <div class="card-header"><span class="emoji">📋</span> Stappenplan</div>
+      <div class="card-body" id="stepsBody"></div>
+    </div>
+
+    <!-- Materials -->
+    <div class="card" id="materialsCard" style="display:none">
+      <div class="card-header"><span class="emoji">🛒</span> Boodschappenlijst</div>
+      <div class="card-body" id="materialsBody"></div>
+      <div style="padding:0 20px 16px"><a id="gammaLink" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#e60005;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">🛍️ Bestel bij Gamma</a></div>
+    </div>
+
+    <!-- Providers -->
+    <div class="card" id="providersCard" style="display:none">
+      <div class="card-header"><span class="emoji">🔧</span> Nabije klusbedrijven</div>
+      <div class="card-body">
+        <div class="prov-filter" id="provFilters"></div>
+        <div class="prov-grid" id="provGrid"></div>
+      </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetAll()">↩ Nieuw probleem fotograferen</button>
+  </div>
+
+  <div class="footer">
+    <strong>HouseFix AI</strong> — Klusadvies in 1 seconde<br />
+    <span style="font-size:11px">Gemaakt in Nederland 🇳🇱</span>
+  </div>
+</div>
 
 <script>
 let imageBase64 = null;
@@ -109,20 +247,15 @@ async function startCamera() {
     });
     document.getElementById("video").srcObject = stream;
   } catch (e) {
-    document.getElementById("hintText").innerHTML = "⚠️ Camera niet beschikbaar. Upload een foto via onderstaande knop.";
-
-    // Fallback: file upload
-    const btnRow = document.getElementById("buttonRow");
-    btnRow.innerHTML = `
-      <input type="file" accept="image/*" capture="environment" id="fileInput" style="display:none" />
-      <label for="fileInput" style="flex:1; padding:16px; border:2px solid #2563eb; border-radius:14px; font-size:16px; font-weight:700; background:#2563eb; color:#fff; text-align:center; cursor:pointer;">📁 Kies een foto</label>
-      <button class="btn-analyze" id="btnAnalyze" onclick="analyze()" disabled>🔍 Analyseren</button>
-    `;
-    document.getElementById("fileInput").onchange = handleFileUpload;
+    document.getElementById("viewfinder").innerHTML = '<div class="viewfinder-content"><div class="icon">📁</div><p>Camera niet beschikbaar<br/><span style="font-size:13px;color:rgba(255,255,255,0.3)">Klik om een foto te kiezen</span></p></div>';
+    document.getElementById("viewfinder").style.cursor = "pointer";
+    document.getElementById("viewfinder").onclick = () => document.getElementById("fileInput").click();
+    const actions = document.getElementById("cameraActions");
+    actions.innerHTML = '<label class="file-label">📁 Kies een foto<input type="file" accept="image/*" style="display:none" onchange="handleFile(event)" /></label><button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍</button>';
   }
 }
 
-function handleFileUpload(e) {
+function handleFile(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -134,7 +267,7 @@ function handleFileUpload(e) {
   reader.readAsDataURL(file);
 }
 
-function takePhoto() {
+function capture() {
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
   canvas.width = video.videoWidth || 1280;
@@ -145,22 +278,33 @@ function takePhoto() {
   document.getElementById("btnAnalyze").disabled = false;
 }
 
-function showPreview(dataUrl) {
+function showPreview(url) {
   document.getElementById("video").style.display = "none";
-  document.getElementById("snapshot").src = dataUrl;
+  document.getElementById("snapshot").src = url;
   document.getElementById("snapshot").style.display = "block";
   document.getElementById("viewfinder").style.display = "none";
-  document.getElementById("btnPhoto").style.display = "none";
+  document.getElementById("btnCapture") && (document.getElementById("btnCapture").style.display = "none");
   document.getElementById("btnAnalyze").textContent = "🔍 Analyseren";
   document.getElementById("btnRetake").style.display = "block";
+}
+
+function retake() {
+  imageBase64 = null;
+  document.getElementById("video").style.display = "block";
+  document.getElementById("snapshot").style.display = "none";
+  document.getElementById("viewfinder").style.display = "flex";
+  document.getElementById("btnCapture") && (document.getElementById("btnCapture").style.display = "block");
+  document.getElementById("btnRetake").style.display = "none";
+  document.getElementById("btnAnalyze").textContent = "🔍 Analyseren";
+  document.getElementById("btnAnalyze").disabled = true;
 }
 
 async function analyze() {
   if (!imageBase64) return;
 
-  // Show loading
   document.getElementById("cameraWrap").style.display = "none";
-  document.getElementById("loadingIndicator").style.display = "block";
+  document.getElementById("loadingWrap").classList.add("active");
+  document.getElementById("resultsWrap").classList.remove("active");
 
   try {
     const resp = await fetch("/api/analyze", {
@@ -169,108 +313,102 @@ async function analyze() {
       body: JSON.stringify({ image: imageBase64 })
     });
     const result = await resp.json();
-
-    if (result.error) {
-      showError(result.error);
-      return;
-    }
+    if (result.error) throw new Error(result.error);
 
     // Load providers
-    const provResp = await fetch("/api/providers");
-    providers = await provResp.json();
+    const pResp = await fetch("/api/providers");
+    providers = await pResp.json();
 
     showResults(result);
 
   } catch (e) {
-    showError("Er ging iets mis. Probeer opnieuw.");
+    alert("⚠️ " + e.message);
+    resetAll();
   }
 
-  document.getElementById("loadingIndicator").style.display = "none";
-  document.getElementById("results").classList.add("active");
+  document.getElementById("loadingWrap").classList.remove("active");
+  document.getElementById("resultsWrap").classList.add("active");
 }
 
-function showResults(analysis) {
-  const container = document.getElementById("resultContent");
+function showResults(r) {
+  // Issue card
+  document.getElementById("issueCard").style.display = "block";
+  document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+  document.getElementById("resultType").textContent = r.issue_type || "Onbekend";
+  document.getElementById("resultDesc").textContent = r.description || "";
 
-  const confClass = analysis.confidence === 'high' ? 'badge-high' : analysis.confidence === 'medium' ? 'badge-medium' : 'badge-low';
-  const confLabel = analysis.confidence === 'high' ? 'Hoog' : analysis.confidence === 'medium' ? 'Gemiddeld' : 'Laag';
+  const conf = r.confidence || "medium";
+  const badges = { high: { cls: "badge-high", label: "Hoog" }, medium: { cls: "badge-medium", label: "Gemiddeld" }, low: { cls: "badge-low", label: "Laag" } };
+  const b = badges[conf] || badges.medium;
+  document.getElementById("resultBadge").innerHTML = `<span class="badge ${b.cls}">${b.label} vertrouwen</span>`;
 
-  container.innerHTML = `
-    <div class="result-item">
-      <label>Probleem</label>
-      <div class="val" style="text-transform:capitalize">${analysis.issue_type}</div>
-    </div>
-    <div class="result-item">
-      <label>Beschrijving</label>
-      <div class="val" style="font-weight:400; color:#cbd5e1;">${analysis.description}</div>
-    </div>
-    <div class="result-item">
-      <label>Geschatte kosten</label>
-      <div class="cost">${analysis.cost_range}</div>
-    </div>
-    <div class="result-item">
-      <span class="badge ${confClass}">${confLabel} vertrouwen</span>
-    </div>
-  `;
+  // Cost comparison
+  document.getElementById("costCard").style.display = "block";
+  document.getElementById("costDiy").textContent = r.cost_diy || r.cost_range || "—";
+  document.getElementById("costPro").textContent = r.cost_pro || r.cost_range || "—";
 
-  // Show providers
-  const provSection = document.getElementById("providerSection");
-  const filterDiv = document.getElementById("filters");
-  const grid = document.getElementById("providerGrid");
-  provSection.style.display = "block";
+  // Steps
+  if (r.steps && r.steps.length) {
+    document.getElementById("stepsCard").style.display = "block";
+    document.getElementById("stepsBody").innerHTML = r.steps.map((s, i) =>
+      `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`
+    ).join("");
+  }
 
-  const categories = ['Alles', ...new Set(providers.map(p => p.category))];
-  filterDiv.innerHTML = categories.map(cat =>
-    `<button class="filter-btn" data-cat="${cat}" onclick="filterProviders('${cat}')" style="padding:6px 14px; border-radius:999px; font-size:12px; font-weight:600; border:none; cursor:pointer; ${cat === 'Alles' ? 'background:#2563eb; color:#fff;' : 'background:#334155; color:#94a3b8;'}">${cat}</button>`
+  // Materials
+  if (r.materials && r.materials.length) {
+    document.getElementById("materialsCard").style.display = "block";
+    document.getElementById("materialsBody").innerHTML = r.materials.map(m =>
+      `<span class="material-tag">${m}</span>`
+    ).join("");
+    // Encode materials for Gamma search
+    const search = encodeURIComponent(r.materials.join(", "));
+    document.getElementById("gammaLink").href = `https://www.gamma.nl/zoeken?q=${search}`;
+  }
+
+  // Providers
+  document.getElementById("providersCard").style.display = "block";
+  renderProviders();
+}
+
+function renderProviders(filter) {
+  const list = filter ? providers.filter(p => p.category === filter) : providers;
+  const cats = ["Alles", ...new Set(providers.map(p => p.category))];
+
+  document.getElementById("provFilters").innerHTML = cats.map(c =>
+    `<button class="${(c === (filter || 'Alles')) ? 'active' : ''}" onclick="renderProviders('${c === 'Alles' ? '' : c}')">${c}</button>`
   ).join("");
 
-  renderProviders(providers);
-}
-
-function renderProviders(list) {
-  const grid = document.getElementById("providerGrid");
-  grid.innerHTML = list.map(p => `
-    <div class="provider-card">
-      <div class="cat">${p.category}</div>
-      <div class="name">${p.name}</div>
-      <div><span class="stars">${'★'.repeat(Math.floor(p.rating))}${p.rating % 1 >= 0.5 ? '½' : ''}</span> <span class="city">${p.city}</span></div>
-      <div class="actions">
-        <a class="wa-btn" href="https://wa.me/${p.phone}?text=Hallo ${p.name}, ik heb een klus via HouseFix AI en wil graag meer informatie." target="_blank">💬 WhatsApp</a>
-        <button class="quote-btn" onclick="alert('Offerte aanvragen komt binnenkort!')">📋 Offertes</button>
+  document.getElementById("provGrid").innerHTML = list.map(p => {
+    const full = Math.floor(p.rating);
+    const half = p.rating % 1 >= 0.5;
+    const stars = "★".repeat(full) + (half ? "½" : "");
+    return `
+      <div class="prov-card">
+        <div class="prov-cat">${p.category}</div>
+        <div class="prov-name">${p.name}</div>
+        <div class="prov-meta"><span class="prov-stars">${stars}</span> ${p.city}</div>
+        <div class="prov-actions">
+          <a class="wa-link" href="https://wa.me/${p.phone}?text=Hallo ${p.name}, ik heb via HouseFix AI een klus en wil graag een offerte." target="_blank">💬 WhatsApp</a>
+          <button class="quote-btn" onclick="alert('Offerte aanvragen is binnenkort beschikbaar!')">📋 Offerte</button>
+        </div>
       </div>
-    </div>
-  `).join("");
-}
-
-function filterProviders(cat) {
-  document.querySelectorAll('.filter-btn').forEach(b => {
-    b.style.background = b.dataset.cat === cat ? '#2563eb' : '#334155';
-    b.style.color = b.dataset.cat === cat ? '#fff' : '#94a3b8';
-  });
-  if (cat === 'Alles') renderProviders(providers);
-  else renderProviders(providers.filter(p => p.category === cat));
-}
-
-function showError(msg) {
-  document.getElementById("resultContent").innerHTML = `<div class="error">⚠️ ${msg}</div>`;
-  document.getElementById("providerSection").style.display = "none";
-}
-
-function resetView() {
-  imageBase64 = null;
-  document.getElementById("video").style.display = "block";
-  document.getElementById("snapshot").style.display = "none";
-  document.getElementById("viewfinder").style.display = "flex";
-  document.getElementById("btnPhoto").style.display = "block";
-  document.getElementById("btnRetake").style.display = "none";
-  document.getElementById("btnAnalyze").textContent = "🔍 Analyseren";
-  document.getElementById("btnAnalyze").disabled = true;
+    `;
+  }).join("");
 }
 
 function resetAll() {
-  resetView();
+  imageBase64 = null;
+  document.getElementById("issueCard").style.display = "none";
+  document.getElementById("costCard").style.display = "none";
+  document.getElementById("stepsCard").style.display = "none";
+  document.getElementById("materialsCard").style.display = "none";
+  document.getElementById("providersCard").style.display = "none";
+  document.getElementById("resultsWrap").classList.remove("active");
   document.getElementById("cameraWrap").style.display = "flex";
-  document.getElementById("results").classList.remove("active");
+  document.getElementById("cameraWrap").style.display = "flex";
+  document.getElementById("loadingWrap").classList.remove("active");
+  retake();
 }
 
 startCamera();
