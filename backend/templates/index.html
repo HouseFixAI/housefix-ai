@@ -562,6 +562,21 @@ async function analyze() {
 
 /* ── Results ── */
 function showResults(r) {
+  // Safety warning from GPT (person, animal, or unrelated object)
+  if (r.warning) {
+    document.getElementById("issueCard").style.display = "block";
+    document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+    document.getElementById("resultType").textContent = "⚠️ Niet herkend";
+    document.getElementById("resultDesc").innerHTML = r.warning;
+    document.getElementById("resultBadge").innerHTML = "";
+    document.getElementById("costCard").style.display = "none";
+    document.getElementById("stepsCard").style.display = "none";
+    document.getElementById("materialsCard").style.display = "none";
+    document.getElementById("providersCard").style.display = "none";
+    return;
+  }
+
+  // Normal repair analysis
   document.getElementById("issueCard").style.display = "block";
   document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
   document.getElementById("resultType").textContent = r.issue_type || "Onbekend";

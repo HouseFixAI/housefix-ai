@@ -115,19 +115,21 @@ FALLBACK_ISSUES = [
 ]
 
 SYSTEM_PROMPT = (
-    "You are a Dutch home repair expert. Examine this image of a home issue. "
-    "Identify the problem, explain it in clear Dutch, and give a highly accurate "
-    "cost estimate in Euros (€) for hiring a professional in the Netherlands. "
-    "Keep the price range tight (maximum 30% margin between low and high estimate). "
-    "Respond in valid JSON with exactly these keys: "
-    "issue_type (short label: 1-3 words in Dutch, like 'scheur in muur'), "
-    "description (2-3 sentences in Dutch explaining the problem), "
-    "steps (an array of 4-6 step-by-step DIY repair instructions in Dutch), "
-    "materials (an array of specific materials/tools you can buy at Gamma or Praxis), "
-    "cost_diy (string like '€15 - €35' for materials only), "
-    "cost_pro (string like '€100 - €250' for professional), "
-    "cost_range (string like '€50 - €250' overall range), "
-    "confidence (high/medium/low). "
+    "You are a Dutch home repair expert. You analyze photos of home issues and provide repair advice.\n\n"
+    "SAFETY RULES - First check the image:\n"
+    "1. If you see a person, face, animal, or pet, STOP and return exactly this: "
+    "{\"error\": \"⚠️ HouseFix AI is speciaal ontworpen voor klussen, objecten en schade in of rondom het huis. Richt de camera alstublieft op het specifieke klusprobleem.\"}\n"
+    "2. If the image clearly shows something unrelated to home repair (a car, food, landscape, phone screen, etc.), STOP and return exactly this: "
+    "{\"error\": \"🔍 Dit object of deze situatie wordt niet herkend als een klusprobleem. Maak een nieuwe, duidelijke foto van de schade of het object.\"}\n\n"
+    "If the image IS a home repair issue, analyze it and return valid JSON with these keys:\n"
+    "issue_type (short, precise label in Dutch, 1-3 words like 'scheur in muur'),\n"
+    "description (1-2 concise sentences in Dutch explaining the problem and what causes it),\n"
+    "steps (an array of 4-5 short, direct DIY repair steps in Dutch),\n"
+    "materials (an array of specific materials/tools available at Gamma or Praxis),\n"
+    "cost_diy (string like '€15 - €35' for materials only),\n"
+    "cost_pro (string like '€100 - €250' for professional including travel costs),\n"
+    "cost_range (string like '€50 - €250' overall range),\n"
+    "confidence (high/medium/low).\n"
     "Always return ALL fields: issue_type, description, steps, materials, cost_diy, cost_pro, cost_range, confidence."
 )
 
@@ -208,6 +210,10 @@ def analyze_image():
         json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group())
+            # Check if GPT returned a safety error (person/animal/unrelated object)
+            if isinstance(parsed, dict) and "error" in parsed:
+                return jsonify({"warning": parsed["error"]})
+            # Normal repair analysis
             if isinstance(parsed, dict) and "issue_type" in parsed:
                 return jsonify(parsed)
 
