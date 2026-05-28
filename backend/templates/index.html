@@ -239,6 +239,15 @@
     .wa-link { background: #25D366; color: #fff; }
     .quote-btn-sm { background: rgba(255,255,255,0.06); color: var(--text-secondary); border: none; cursor: pointer; }
 
+    /* ── Accordion toggle for providers ── */
+    .accordion-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 18px 24px; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.3s ease; background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(59,130,246,0.08)); border: 1px solid rgba(139,92,246,0.15); color: var(--text-primary); }
+    .accordion-btn:hover { background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(59,130,246,0.14)); border-color: rgba(139,92,246,0.3); box-shadow: 0 0 20px rgba(139,92,246,0.1); }
+    .accordion-btn .arrow { display: inline-block; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); font-size: 14px; }
+    .accordion-btn .arrow.open { transform: rotate(180deg); }
+    .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease, margin 0.4s ease; opacity: 0; margin-top: 0; }
+    .accordion-body.open { max-height: 2000px; opacity: 1; margin-top: 12px; }
+    .accordion-inner { padding: 0; }
+
     .btn-reset-app { display: block; width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px dashed rgba(255,255,255,0.1); background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: all 0.3s; }
     .btn-reset-app:hover { border-color: var(--purple); color: var(--purple); }
 
@@ -412,10 +421,14 @@
     </div>
 
     <div class="card" id="providersCard" style="display:none">
-      <div class="card-header"><span class="emoji">🔧</span> Nabije klusbedrijven</div>
-      <div class="card-body">
-        <div class="filter-bar" id="provFilters"></div>
-        <div class="prov-grid" id="provGrid"></div>
+      <button class="accordion-btn" id="accordionToggle" onclick="toggleProviders()">
+        💼 Professionele vakman nodig? Bekijk lokale experts <span class="arrow" id="accordionArrow">▼</span>
+      </button>
+      <div class="accordion-body" id="accordionBody">
+        <div class="accordion-inner">
+          <div class="filter-bar" id="provFilters" style="padding:0 0 12px 0"></div>
+          <div class="prov-grid" id="provGrid"></div>
+        </div>
       </div>
     </div>
 
@@ -581,6 +594,13 @@ function showResults(r) {
   renderProviders();
 }
 
+function toggleProviders() {
+  const body = document.getElementById("accordionBody");
+  const arrow = document.getElementById("accordionArrow");
+  body.classList.toggle("open");
+  arrow.classList.toggle("open");
+}
+
 function renderProviders(filter) {
   const list = filter ? providers.filter(p => p.category === filter) : providers;
   const cats = ["Alles", ...new Set(providers.map(p => p.category))];
@@ -611,6 +631,9 @@ function goHome() {
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
     document.getElementById(id).style.display = "none"
   );
+  // Reset accordion
+  document.getElementById("accordionBody").classList.remove("open");
+  document.getElementById("accordionArrow").classList.remove("open");
 }
 </script>
 </body>
