@@ -121,7 +121,14 @@ SYSTEM_PROMPT = (
     "{\"error\": \"⚠️ HouseFix AI is speciaal ontworpen voor klussen, objecten en schade in of rondom het huis. Richt de camera alstublieft op het specifieke klusprobleem.\"}\n"
     "2. If the image clearly shows something unrelated to home repair (a car, food, landscape, phone screen, etc.), STOP and return exactly this: "
     "{\"error\": \"🔍 Dit object of deze situatie wordt niet herkend als een klusprobleem. Maak een nieuwe, duidelijke foto van de schade of het object.\"}\n\n"
-    "If the image IS a home repair issue, analyze it and return valid JSON with these keys:\n"
+    "UNCERTAIN - If you are not confident (less than 90% sure what the issue is), or the image shows a plain wall/floor/ceiling without visible damage, then do NOT guess. Instead return: "
+    "{\"needs_clarification\": true, \"questions\": ["
+    "{\"id\": \"size\", \"question\": \"📏 Hoe groot is het probleem ongeveer?\", \"options\": [\"Klein (pleisterformaat)\", \"Middel (handformaat)\", \"Groot (groter dan 50 cm)\"]},"
+    "{\"id\": \"location\", \"question\": \"🏠 Is het binnen of buiten?\", \"options\": [\"Binnen\", \"Buiten\"]},"
+    "{\"id\": \"water\", \"question\": \"💧 Komt er vocht/natte plekken bij kijken?\", \"options\": [\"Ja, het is nat\", \"Nee, het is droog\", \"Weet ik niet\"]},"
+    "{\"id\": \"timing\", \"question\": \"⏰ Sinds wanneer speelt dit?\", \"options\": [\"Net ontdekt\", \"Enkele dagen\", \"Weken of langer\"]}"
+    "]}\n\n"
+    "If the image IS clearly a home repair issue AND you are at least 90% confident, analyze it and return valid JSON with these keys:\n"
     "issue_type (short, precise label in Dutch, 1-3 words like 'scheur in muur'),\n"
     "description (1-2 concise sentences in Dutch explaining the problem and what causes it),\n"
     "steps (an array of 4-5 short, direct DIY repair steps in Dutch),\n"
@@ -130,7 +137,7 @@ SYSTEM_PROMPT = (
     "cost_pro (string like '€100 - €250' for professional including travel costs),\n"
     "cost_range (string like '€50 - €250' overall range),\n"
     "confidence (high/medium/low).\n"
-    "Always return ALL fields: issue_type, description, steps, materials, cost_diy, cost_pro, cost_range, confidence."
+    "Always return ALL 8 fields for a full analysis. Be extremely precise with costs."
 )
 
 
@@ -213,6 +220,9 @@ def analyze_image():
             # Check if GPT returned a safety error (person/animal/unrelated object)
             if isinstance(parsed, dict) and "error" in parsed:
                 return jsonify({"warning": parsed["error"]})
+            # Check if GPT needs clarification (uncertain about plain wall/floor)
+            if isinstance(parsed, dict) and parsed.get("needs_clarification"):
+                return jsonify({"needs_clarification": True, "questions": parsed.get("questions", [])})
             # Normal repair analysis
             if isinstance(parsed, dict) and "issue_type" in parsed:
                 return jsonify(parsed)
@@ -221,6 +231,71 @@ def analyze_image():
 
     except Exception as e:
         app.logger.error(f"Analyze error: {e}")
+        return jsonify({"error": str(e), "fallback": random.choice(FALLBACK_ISSUES)}), 500
+
+
+@app.route("/api/analyze-with-context", methods=["POST"])
+def analyze_with_context():
+    """Second step: image + clarification answers → full analysis."""
+    import re as regex_module
+
+    try:
+        data = request.get_json()
+    except Exception:
+        return jsonify({"error": "Invalid JSON body"}), 400
+
+    if not data or "image" not in data or "answers" not in data:
+        return jsonify({"error": "Missing image or answers"}), 400
+
+    image_base64 = data["image"]
+    answers = data["answers"]
+    if not isinstance(image_base64, str) or len(image_base64) < 100:
+        return jsonify({"error": "Invalid image data"}), 400
+
+    if not OPENAI_API_KEY:
+        return jsonify(random.choice(FALLBACK_ISSUES))
+
+    # Build context string from answers
+    context_lines = []
+    for q in answers:
+        context_lines.append(f"{q['question']} → {q['answer']}")
+    user_context = "\n".join(context_lines)
+
+    try:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        prompt_with_context = SYSTEM_PROMPT + (
+            f"\n\nThe user provided these details about their issue:\n{user_context}\n"
+            "Now give your best, most accurate repair analysis based on the photo AND these details."
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": prompt_with_context},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Analyze this home repair issue with the context provided."},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}},
+                    ],
+                },
+            ],
+            max_tokens=500,
+            temperature=0.2,
+        )
+
+        message = response.choices[0].message.content
+        json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
+        if json_match:
+            parsed = json.loads(json_match.group())
+            if isinstance(parsed, dict) and "issue_type" in parsed:
+                return jsonify(parsed)
+
+        return jsonify(random.choice(FALLBACK_ISSUES))
+
+    except Exception as e:
+        app.logger.error(f"Analyze-with-context error: {e}")
         return jsonify({"error": str(e), "fallback": random.choice(FALLBACK_ISSUES)}), 500
 
 

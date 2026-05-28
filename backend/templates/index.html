@@ -381,6 +381,8 @@
   <!-- ═══ RESULTS ═══ -->
   <div class="results-wrap" id="resultsWrap">
 
+    <div id="resultContent"></div>
+
     <div class="card" id="issueCard" style="display:none">
       <div class="card-header"><span class="emoji">🔍</span> Analyse</div>
       <div class="card-body">
@@ -546,6 +548,15 @@ async function analyze() {
     const result = await resp.json();
     if (result.error) throw new Error(result.error);
 
+    // GPT needs clarification (plain wall, uncertain)
+    if (result.needs_clarification && result.questions) {
+      document.getElementById("loadingWrap").classList.remove("active");
+      document.getElementById("resultsWrap").classList.add("active");
+      document.getElementById("footer").style.display = "none";
+      showClarification(result.questions);
+      return;
+    }
+
     const pResp = await fetch("/api/providers");
     providers = await pResp.json();
     showResults(result);
@@ -558,6 +569,91 @@ async function analyze() {
   document.getElementById("loadingWrap").classList.remove("active");
   document.getElementById("resultsWrap").classList.add("active");
   document.getElementById("footer").style.display = "none";
+}
+
+/* ── Clarification Questions ── */
+let clarificationAnswers = [];
+
+function showClarification(questions) {
+  clarificationAnswers = [];
+  const container = document.getElementById("resultContent");
+  if (!container) return;
+
+  let html = `<div class="card" style="margin-bottom:14px">
+    <div class="card-header"><span class="emoji">🤔</span> Kleine vraag voor u</div>
+    <div class="card-body" id="clarificationBody">`;
+
+  questions.forEach((q, qi) => {
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px">${q.question}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="q-${qi}">`;
+    q.options.forEach((opt, oi) => {
+      html += `<button class="clarify-btn" data-qi="${qi}" data-oi="${oi}" data-q="${q.question}" data-answer="${opt}" style="padding:10px 16px;border-radius:12px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.06);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" onclick="selectClarify(this)">${opt}</button>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `<button class="cta-btn" id="clarifySubmit" onclick="submitClarification()" disabled style="margin-top:8px;padding:16px;font-size:16px">🔍 Analyseer met deze antwoorden</button>
+    </div></div>`;
+
+  container.innerHTML = html;
+}
+
+function selectClarify(btn) {
+  // Deselect siblings
+  const parent = btn.parentElement;
+  parent.querySelectorAll(".clarify-btn").forEach(b => {
+    b.style.background = "rgba(139,92,246,0.06)";
+    b.style.borderColor = "rgba(139,92,246,0.2)";
+    b.style.color = "var(--text-secondary)";
+  });
+  // Select this one
+  btn.style.background = "rgba(139,92,246,0.2)";
+  btn.style.borderColor = "var(--purple)";
+  btn.style.color = "#fff";
+
+  // Track answer
+  const qi = parseInt(btn.dataset.qi);
+  clarificationAnswers[qi] = {
+    question: btn.dataset.q,
+    answer: btn.dataset.answer
+  };
+
+  // Enable button when all answered
+  const submitBtn = document.getElementById("clarifySubmit");
+  if (submitBtn) {
+    const qCount = document.querySelectorAll("[id^='q-']").length;
+    submitBtn.disabled = clarificationAnswers.filter(a => a).length !== qCount;
+  }
+}
+
+async function submitClarification() {
+  const submitBtn = document.getElementById("clarifySubmit");
+  if (submitBtn) submitBtn.disabled = true;
+
+  document.getElementById("loadingWrap").classList.add("active");
+  document.getElementById("resultsWrap").classList.remove("active");
+
+  try {
+    const resp = await fetch("/api/analyze-with-context", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: imageBase64, answers: clarificationAnswers.filter(a => a) })
+    });
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+
+    const pResp = await fetch("/api/providers");
+    providers = await pResp.json();
+    showResults(result);
+
+  } catch (e) {
+    alert("⚠️ " + e.message);
+    goHome();
+  }
+
+  document.getElementById("loadingWrap").classList.remove("active");
+  document.getElementById("resultsWrap").classList.add("active");
 }
 
 /* ── Results ── */
