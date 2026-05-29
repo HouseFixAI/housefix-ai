@@ -148,6 +148,31 @@ SYSTEM_PROMPT = (
     "BETTER TO RETURN 'no_damage' THAN TO INVENT A PROBLEM THAT DOESN'T EXIST."
 )
 
+INSPIRATION_PROMPT = (
+    "You are a Dutch interior design and DIY inspiration expert. Analyze the photo for style, materials, and design ideas.\n\n"
+    "IMPORTANT: This is NOT a damage inspection. Do NOT look for cracks, leaks, or repairs.\n"
+    "• Clean concrete, brick, industrial materials, rough surfaces are DESIGN CHOICES, not damage.\n"
+    "• Only describe what you see: style, colors, textures, materials, furniture.\n"
+    "• If you see a person, face, animal, or pet, STOP and return exactly this: "
+    "{\"error\": \"⚠️ HouseFix AI Interieur kan geen gezichten of dieren analyseren. Richt op het interieur.\"}\n"
+    "• If the image is completely unrelated (car, food, landscape, screen), STOP and return: "
+    "{\"error\": \"🔍 Dit is niet herkend als interieur- of designfoto. Probeer een foto van een ruimte, meubel of materiaal.\"}\n\n"
+    "If you are uncertain about what you see, return: "
+    "{\"needs_clarification\": true, \"questions\": ["
+    "{\"id\": \"room\", \"question\": \"🏠 Welke ruimte is dit?\", \"options\": [\"Woonkamer\", \"Slaapkamer\", \"Keuken\", \"Badkamer\", \"Entree/gang\"]},"
+    "{\"id\": \"goal\", \"question\": \"🎯 Wat is je doel?\", \"options\": [\"Inspiratie opdoen\", \"Stijl benoemen\", \"Materiaal herkennen\", \"Zelf iets namaken\"]}"
+    "]}\n\n"
+    "OTHERWISE, return valid JSON with these keys:\n"
+    "style (short description of the interior style in Dutch, e.g. 'Industrieel met Scandinavische invloeden'),\n"
+    "description (2-3 sentences in Dutch describing materials, colors, textures, atmosphere),\n"
+    "colors (an array of 3-5 dominant color names in Dutch),\n"
+    "materials (an array of visible materials in Dutch),\n"
+    "diy_tips (an array of 2-3 simple DIY inspiration ideas in Dutch),\n"
+    "gamma_tips (an array of 2-3 specific products from Gamma/Praxis that match this style),\n"
+    "confidence (high/medium/low).\n"
+    "Always return ALL 7 fields. Be specific and helpful."
+)
+
 
 @app.route("/")
 def index():
@@ -175,7 +200,7 @@ def list_providers():
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze_image():
-    """Accept a base64 image, analyze with GPT-4o, return issue details."""
+    """Accept a base64 image + mode, analyze with GPT-4o, return results."""
     import re as regex_module
 
     try:
@@ -187,6 +212,7 @@ def analyze_image():
         return jsonify({"error": "No image provided"}), 400
 
     image_base64 = data["image"]
+    mode = data.get("mode", "damage")  # "damage" or "inspiration"
     if not isinstance(image_base64, str) or len(image_base64) < 100:
         return jsonify({"error": "Invalid image data"}), 400
 
@@ -194,28 +220,30 @@ def analyze_image():
     if not OPENAI_API_KEY:
         return jsonify(random.choice(FALLBACK_ISSUES))
 
+    # Choose the right prompt based on mode
+    if mode == "inspiration":
+        system_prompt = INSPIRATION_PROMPT
+        user_text = "Analyze this interior/design photo and return the JSON as instructed."
+    else:
+        system_prompt = SYSTEM_PROMPT
+        user_text = "Analyze this home repair issue and return the JSON as instructed."
+
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
 
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": "Analyze this home repair issue and return the JSON response as instructed.",
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"},
-                        },
+                        {"type": "text", "text": user_text},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}},
                     ],
                 },
             ],
-            max_tokens=500,
+            max_tokens=600,
             temperature=0.2,
         )
 

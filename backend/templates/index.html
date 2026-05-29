@@ -147,6 +147,25 @@
       0% { transform: translateX(-100%) rotate(25deg); }
       30%, 100% { transform: translateX(200%) rotate(25deg); }
     }
+    /* ── Mode Selector ── */
+    .mode-selector { display: flex; gap: 10px; margin: 20px 0 24px; }
+    .mode-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 14px 12px; border-radius: var(--radius-sm);
+      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary);
+    }
+    .mode-btn:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-card-hover); }
+    .mode-btn.mode-active {
+      border-color: var(--purple); background: rgba(139,92,246,0.1);
+      box-shadow: 0 0 20px var(--purple-glow), inset 0 0 20px rgba(139,92,246,0.05);
+      color: var(--text-primary);
+    }
+    .mode-btn .mode-icon { font-size: 28px; }
+    .mode-btn .mode-label { font-size: 14px; font-weight: 700; }
+    .mode-btn .mode-sub { font-size: 10px; color: var(--text-muted); }
+    .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
+
     .cta-sub { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
 
     /* ── Trust bar bottom ── */
@@ -295,13 +314,27 @@
         <div class="trust-text">⚡ Al €14.250,- aan kluskosten bespaard <span>door onze gebruikers!</span></div>
       </div>
 
+      <!-- Mode Selector -->
+      <div class="mode-selector">
+        <button class="mode-btn mode-active" id="modeDamage" onclick="setMode('damage')">
+          <span class="mode-icon">🚨</span>
+          <span class="mode-label">Klus Hulp</span>
+          <span class="mode-sub">Schade & reparatie</span>
+        </button>
+        <button class="mode-btn" id="modeInspiration" onclick="setMode('inspiration')">
+          <span class="mode-icon">✨</span>
+          <span class="mode-label">Interieur</span>
+          <span class="mode-sub">Stijl & inspiratie</span>
+        </button>
+      </div>
+
       <!-- Steps -->
-      <div class="steps">
+      <div class="steps" id="stepsContainer">
         <div class="step-card fade-slide-up stagger-1">
           <div class="step-icon s1">📷</div>
           <div class="step-content">
-            <div class="step-title">1. Scan de schade</div>
-            <div class="step-desc">Maak een foto van het probleem — wij doen de rest</div>
+            <div class="step-title" id="step1Title">1. Scan de schade</div>
+            <div class="step-desc" id="step1Desc">Maak een foto van het probleem — wij doen de rest</div>
           </div>
           <div class="step-arrow">→</div>
         </div>
@@ -309,8 +342,8 @@
         <div class="step-card fade-slide-up stagger-2">
           <div class="step-icon s2">💰</div>
           <div class="step-content">
-            <div class="step-title">2. Vergelijk de kosten</div>
-            <div class="step-desc">Zelf doen vs. laten doen — ontdek wat je bespaart</div>
+            <div class="step-title" id="step2Title">2. Vergelijk de kosten</div>
+            <div class="step-desc" id="step2Desc">Zelf doen vs. laten doen — ontdek wat je bespaart</div>
           </div>
           <div class="step-arrow">→</div>
         </div>
@@ -318,8 +351,8 @@
         <div class="step-card fade-slide-up stagger-3">
           <div class="step-icon s3">🛠️</div>
           <div class="step-content">
-            <div class="step-title">3. Fix het zelf</div>
-            <div class="step-desc">Ontvang je Gamma/Praxis boodschappenlijst + stappenplan</div>
+            <div class="step-title" id="step3Title">3. Fix het zelf</div>
+            <div class="step-desc" id="step3Desc">Ontvang je Gamma/Praxis boodschappenlijst + stappenplan</div>
           </div>
           <div class="step-arrow">→</div>
         </div>
@@ -328,7 +361,7 @@
 
     <!-- CTA -->
     <div class="cta-wrap fade-slide-up stagger-4">
-      <button class="cta-btn" onclick="openCamera()">📷 START SCHADE SCAN</button>
+      <button class="cta-btn" id="ctaButton" onclick="openCamera()">📷 START SCHADE SCAN</button>
       <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
     </div>
 
@@ -446,6 +479,40 @@
 let imageBase64 = null;
 let providers = [];
 let stream = null;
+let currentMode = "damage"; // "damage" or "inspiration"
+
+/* ── Mode Selector ── */
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
+  document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
+
+  const cta = document.getElementById("ctaButton");
+  const s1t = document.getElementById("step1Title");
+  const s1d = document.getElementById("step1Desc");
+  const s2t = document.getElementById("step2Title");
+  const s2d = document.getElementById("step2Desc");
+  const s3t = document.getElementById("step3Title");
+  const s3d = document.getElementById("step3Desc");
+
+  if (mode === "inspiration") {
+    cta.innerHTML = "✨ START INTERIEUR SCAN";
+    s1t.textContent = "1. Fotografeer je interieur";
+    s1d.textContent = "Leg je favoriete hoek, meubel of materiaal vast";
+    s2t.textContent = "2. Ontdek je stijl";
+    s2d.textContent = "AI herkent kleuren, materialen en design";
+    s3t.textContent = "3. Krijg DIY inspiratie";
+    s3d.textContent = "Gamma-tips om de look zelf na te maken";
+  } else {
+    cta.innerHTML = "📷 START SCHADE SCAN";
+    s1t.textContent = "1. Scan de schade";
+    s1d.textContent = "Maak een foto van het probleem — wij doen de rest";
+    s2t.textContent = "2. Vergelijk de kosten";
+    s2d.textContent = "Zelf doen vs. laten doen — ontdek wat je bespaart";
+    s3t.textContent = "3. Fix het zelf";
+    s3d.textContent = "Ontvang je Gamma/Praxis boodschappenlijst + stappenplan";
+  }
+}
 
 /* ── Dashboard → Camera ── */
 function openCamera() {
@@ -543,7 +610,7 @@ async function analyze() {
     const resp = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: imageBase64 })
+      body: JSON.stringify({ image: imageBase64, mode: currentMode })
     });
     const result = await resp.json();
     if (result.error) throw new Error(result.error);
@@ -686,7 +753,62 @@ function showResults(r) {
     return;
   }
 
-  // Normal repair analysis
+  // Inspiration mode results
+  if (currentMode === "inspiration" && r.style) {
+    document.getElementById("issueCard").style.display = "block";
+    document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+    document.getElementById("resultType").textContent = r.style;
+    document.getElementById("resultDesc").textContent = r.description || "";
+    const conf = r.confidence || "medium";
+    const b = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } }[conf] || { c: "badge-medium", l: "Gemiddeld" };
+    document.getElementById("resultBadge").innerHTML = `<span class="badge ${b.c}">${b.l}</span>`;
+
+    // Colors
+    if (r.colors && r.colors.length) {
+      document.getElementById("costCard").style.display = "block";
+      document.getElementById("costCard").querySelector(".card-header").innerHTML = '<span class="emoji">🎨</span> Kleurenpalet';
+      document.getElementById("costDiy").textContent = r.colors.join(" • ");
+      document.getElementById("costPro").textContent = "";
+      document.getElementById("costPro").parentElement.style.display = "none";
+    } else {
+      document.getElementById("costCard").style.display = "none";
+    }
+
+    // Materials
+    if (r.materials && r.materials.length) {
+      document.getElementById("materialsCard").style.display = "block";
+      document.getElementById("materialsCard").querySelector(".card-header").innerHTML = '<span class="emoji">🧱</span> Materialen';
+      document.getElementById("materialsBody").innerHTML = r.materials.map(m => `<span class="material-tag">${m}</span>`).join("");
+      document.getElementById("gammaLink").parentElement.style.display = "block";
+      if (r.gamma_tips && r.gamma_tips.length) {
+        document.getElementById("gammaLink").href = `https://www.gamma.nl/zoeken?q=${encodeURIComponent(r.gamma_tips.join(", "))}`;
+      }
+    } else {
+      document.getElementById("materialsCard").style.display = "none";
+    }
+
+    // DIY tips
+    if (r.diy_tips && r.diy_tips.length) {
+      document.getElementById("stepsCard").style.display = "block";
+      document.getElementById("stepsCard").querySelector(".card-header").innerHTML = '<span class="emoji">💡</span> DIY Inspiratie';
+      document.getElementById("stepsBody").innerHTML = r.diy_tips.map((s, i) =>
+        `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`
+      ).join("");
+    } else {
+      document.getElementById("stepsCard").style.display = "none";
+    }
+
+    document.getElementById("providersCard").style.display = "none";
+    return;
+  }
+
+  // Damage mode: normal repair analysis
+  // Reset card headers in case inspiration mode changed them
+  document.getElementById("costCard").querySelector(".card-header").innerHTML = '<span class="emoji">💰</span> Kostenvergelijking';
+  document.getElementById("stepsCard").querySelector(".card-header").innerHTML = '<span class="emoji">📋</span> Stappenplan';
+  document.getElementById("materialsCard").querySelector(".card-header").innerHTML = '<span class="emoji">🛒</span> Boodschappenlijst';
+  document.getElementById("costPro").parentElement.style.display = "block";
+
   document.getElementById("issueCard").style.display = "block";
   document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
   document.getElementById("resultType").textContent = r.issue_type || "Onbekend";
