@@ -123,6 +123,10 @@ SYSTEM_PROMPT = (
     "Deze muur/oppervlak ziet er constructief goed uit. Er is geen reparatie nodig.\"}\n"
     "• Only proceed if you can clearly see cracks, leaks, rot, peeling, stains, breakage, "
     "or other visible defects.\n\n"
+    "CRITICAL RULE — If the image shows a CHAIR, TABLE, BED, SOFA, or any FURNITURE, "
+    "or a CLEAN FLOOR without visible damage, you MUST return {\"no_damage\": true}. "
+    "Do NOT invent 'verfbladderen' or 'scheur' or any damage on furniture or clean floors. "
+    "Only real cracks, water damage, rot, or broken structures qualify as damage.\n\n"
     "SAFETY RULES - Check the image:\n"
     "1. If you see a person, face, animal, or pet, STOP and return exactly this: "
     "{\"error\": \"⚠️ HouseFix AI is speciaal ontworpen voor klussen, objecten en schade in of rondom het huis. Richt de camera alstublieft op het specifieke klusprobleem.\"}\n"
@@ -149,10 +153,11 @@ SYSTEM_PROMPT = (
 )
 
 INSPIRATION_PROMPT = (
-    "You are a Dutch interior design and DIY inspiration expert. Analyze the photo for style, materials, and design ideas.\n\n"
-    "IMPORTANT: This is NOT a damage inspection. Do NOT look for cracks, leaks, or repairs.\n"
-    "• Clean concrete, brick, industrial materials, rough surfaces are DESIGN CHOICES, not damage.\n"
-    "• Only describe what you see: style, colors, textures, materials, furniture.\n"
+    "You are a Dutch interior design and DIY inspiration expert. Look at the photo and describe what you see.\n\n"
+    "ABSOLUTELY FORBIDDEN: You MUST NOT look for damage, cracks, leaks, rot, peeling paint, or repairs. "
+    "This is an INSPIRATION mode. The user wants to know about style, not find problems.\n"
+    "• Chairs, tables, sofas, beds, carpets, curtains, lamps are INTERIOR OBJECTS — not damage.\n"
+    "• Clean concrete, brick, rough wood, worn surfaces are DESIGN CHOICES — not damage.\n"
     "• If you see a person, face, animal, or pet, STOP and return exactly this: "
     "{\"error\": \"⚠️ HouseFix AI Interieur kan geen gezichten of dieren analyseren. Richt op het interieur.\"}\n"
     "• If the image is completely unrelated (car, food, landscape, screen), STOP and return: "
@@ -170,7 +175,7 @@ INSPIRATION_PROMPT = (
     "diy_tips (an array of 2-3 simple DIY inspiration ideas in Dutch),\n"
     "gamma_tips (an array of 2-3 specific products from Gamma/Praxis that match this style),\n"
     "confidence (high/medium/low).\n"
-    "Always return ALL 7 fields. Be specific and helpful."
+    "Always return ALL 7 fields. Be specific and helpful. Never mention damage, repair, or problems."
 )
 
 
@@ -288,6 +293,7 @@ def analyze_with_context():
 
     image_base64 = data["image"]
     answers = data["answers"]
+    mode = data.get("mode", "damage")
     if not isinstance(image_base64, str) or len(image_base64) < 100:
         return jsonify({"error": "Invalid image data"}), 400
 
@@ -300,12 +306,15 @@ def analyze_with_context():
         context_lines.append(f"{q['question']} → {q['answer']}")
     user_context = "\n".join(context_lines)
 
+    # Choose the right base prompt based on mode
+    base_prompt = INSPIRATION_PROMPT if mode == "inspiration" else SYSTEM_PROMPT
+
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
 
-        prompt_with_context = SYSTEM_PROMPT + (
+        prompt_with_context = base_prompt + (
             f"\n\nThe user provided these details about their issue:\n{user_context}\n"
-            "Now give your best, most accurate repair analysis based on the photo AND these details."
+            "Now give your best, most accurate analysis based on the photo AND these details."
         )
 
         response = client.chat.completions.create(

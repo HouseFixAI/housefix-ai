@@ -705,7 +705,7 @@ async function submitClarification() {
     const resp = await fetch("/api/analyze-with-context", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: imageBase64, answers: clarificationAnswers.filter(a => a) })
+      body: JSON.stringify({ image: imageBase64, answers: clarificationAnswers.filter(a => a), mode: currentMode })
     });
     const result = await resp.json();
     if (result.error) throw new Error(result.error);
