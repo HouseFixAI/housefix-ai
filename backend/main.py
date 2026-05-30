@@ -253,8 +253,7 @@ def analyze_image():
         )
 
         message = response.choices[0].message.content
-app.logger.info(f"RAW GPT RESPONSE:
-{message}")
+
         # Extract JSON from response (may be wrapped in markdown)
         json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
         if json_match:
@@ -340,7 +339,7 @@ def analyze_with_context():
             parsed = json.loads(json_match.group())
             if isinstance(parsed, dict) and "issue_type" in parsed:
                 return jsonify(parsed)
-app.logger.info("FALLBACK TRIGGERED")
+
         return jsonify(random.choice(FALLBACK_ISSUES))
 
     except Exception as e:
