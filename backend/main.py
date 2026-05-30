@@ -238,6 +238,7 @@ def analyze_image():
 
         response = client.chat.completions.create(
             model="gpt-4o",
+            response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
                 {
