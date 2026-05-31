@@ -223,8 +223,7 @@ def analyze_image():
 
     # If no API key, return fallback
     if not OPENAI_API_KEY:
-        return jsonify(random.choice(FALLBACK_ISSUES))
-
+        return jsonify({"error": "Analyse mislukt, probeer opnieuw"}), 400))
     # Choose the right prompt based on mode
     if mode == "inspiration":
         system_prompt = INSPIRATION_PROMPT
