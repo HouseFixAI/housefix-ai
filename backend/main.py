@@ -205,7 +205,16 @@ def list_providers():
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze_image():
-    """Accept a base64 image + mode, analyze with GPT-4o, return results."""
+    """Single unified endpoint for all analysis.
+    
+    Accepts:
+      - image (base64)
+      - mode: "damage" | "inspiration"
+      - answers (optional): list of {question, answer} from clarification step
+    
+    Returns repair analysis (damage mode), style analysis (inspiration mode),
+    clarification questions, or safety warnings.
+    """
     import re as regex_module
 
     try:
@@ -217,20 +226,31 @@ def analyze_image():
         return jsonify({"error": "No image provided"}), 400
 
     image_base64 = data["image"]
-    mode = data.get("mode", "damage")  # "damage" or "inspiration"
+    mode = data.get("mode", "damage")
+    answers = data.get("answers", None)
+
     if not isinstance(image_base64, str) or len(image_base64) < 100:
         return jsonify({"error": "Invalid image data"}), 400
 
     # If no API key, return fallback
     if not OPENAI_API_KEY:
         return jsonify(random.choice(FALLBACK_ISSUES))
-    # Choose the right prompt based on mode
-    if mode == "inspiration":
-        system_prompt = INSPIRATION_PROMPT
-        user_text = "Analyze this interior/design photo and return the JSON as instructed."
+
+    # Choose prompt based on mode
+    base_prompt = INSPIRATION_PROMPT if mode == "inspiration" else SYSTEM_PROMPT
+
+    # If clarification answers provided, append context
+    if answers and len(answers) > 0:
+        context_lines = [f"{a['question']} → {a['answer']}" for a in answers]
+        user_context = "\n".join(context_lines)
+        full_prompt = base_prompt + (
+            f"\n\nThe user provided these details:\n{user_context}\n"
+            "Now give your best, most accurate analysis based on the photo AND these details."
+        )
+        user_text = "Analyze with the context provided above."
     else:
-        system_prompt = SYSTEM_PROMPT
-        user_text = "Analyze this home repair issue and return the JSON as instructed."
+        full_prompt = base_prompt
+        user_text = "Analyze this image and return the JSON as instructed."
 
     try:
         client = OpenAI(api_key=OPENAI_API_KEY)
@@ -239,7 +259,7 @@ def analyze_image():
             model="gpt-4o",
             response_format={"type": "json_object"},
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": full_prompt},
                 {
                     "role": "user",
                     "content": [
@@ -254,96 +274,24 @@ def analyze_image():
 
         message = response.choices[0].message.content
 
-        # Extract JSON from response (may be wrapped in markdown)
+        # Extract JSON from response
         json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group())
-            # Check if GPT returned a safety error (person/animal/unrelated object)
             if isinstance(parsed, dict) and "error" in parsed:
                 return jsonify({"warning": parsed["error"]})
-            # Check if GPT says no damage visible (normal/healthy surface)
             if isinstance(parsed, dict) and parsed.get("no_damage"):
                 return jsonify({"no_damage": True, "message": parsed.get("message", "✅ Geen schade geconstateerd.")})
-            # Check if GPT needs clarification (uncertain about plain wall/floor)
             if isinstance(parsed, dict) and parsed.get("needs_clarification"):
                 return jsonify({"needs_clarification": True, "questions": parsed.get("questions", [])})
-            # Normal repair analysis
-            if isinstance(parsed, dict) and "issue_type" in parsed:
+            # Normal analysis result (damage: issue_type keys, inspiration: style key)
+            if isinstance(parsed, dict) and ("issue_type" in parsed or "style" in parsed):
                 return jsonify(parsed)
 
         return jsonify(random.choice(FALLBACK_ISSUES))
 
     except Exception as e:
         app.logger.error(f"Analyze error: {e}")
-        return jsonify({"error": str(e), "fallback": random.choice(FALLBACK_ISSUES)}), 500
-
-
-@app.route("/api/analyze-with-context", methods=["POST"])
-def analyze_with_context():
-    """Second step: image + clarification answers → full analysis."""
-    import re as regex_module
-
-    try:
-        data = request.get_json()
-    except Exception:
-        return jsonify({"error": "Invalid JSON body"}), 400
-
-    if not data or "image" not in data or "answers" not in data:
-        return jsonify({"error": "Missing image or answers"}), 400
-
-    image_base64 = data["image"]
-    answers = data["answers"]
-    mode = data.get("mode", "damage")
-    if not isinstance(image_base64, str) or len(image_base64) < 100:
-        return jsonify({"error": "Invalid image data"}), 400
-
-    if not OPENAI_API_KEY:
-        return jsonify(random.choice(FALLBACK_ISSUES))
-
-    # Build context string from answers
-    context_lines = []
-    for q in answers:
-        context_lines.append(f"{q['question']} → {q['answer']}")
-    user_context = "\n".join(context_lines)
-
-    # Choose the right base prompt based on mode
-    base_prompt = INSPIRATION_PROMPT if mode == "inspiration" else SYSTEM_PROMPT
-
-    try:
-        client = OpenAI(api_key=OPENAI_API_KEY)
-
-        prompt_with_context = base_prompt + (
-            f"\n\nThe user provided these details about their issue:\n{user_context}\n"
-            "Now give your best, most accurate analysis based on the photo AND these details."
-        )
-
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": prompt_with_context},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "Analyze this home repair issue with the context provided."},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}},
-                    ],
-                },
-            ],
-            max_tokens=500,
-            temperature=0.2,
-        )
-
-        message = response.choices[0].message.content
-        json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
-        if json_match:
-            parsed = json.loads(json_match.group())
-            if isinstance(parsed, dict) and "issue_type" in parsed:
-                return jsonify(parsed)
-
-        return jsonify(random.choice(FALLBACK_ISSUES))
-
-    except Exception as e:
-        app.logger.error(f"Analyze-with-context error: {e}")
         return jsonify({"error": str(e), "fallback": random.choice(FALLBACK_ISSUES)}), 500
 
 

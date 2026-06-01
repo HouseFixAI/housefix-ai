@@ -702,7 +702,7 @@ async function submitClarification() {
   document.getElementById("resultsWrap").classList.remove("active");
 
   try {
-    const resp = await fetch("/api/analyze-with-context", {
+    const resp = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ image: imageBase64, answers: clarificationAnswers.filter(a => a), mode: currentMode })
