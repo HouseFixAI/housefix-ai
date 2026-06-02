@@ -201,6 +201,8 @@
     .btn-analyze-go:disabled { opacity: 0.4; }
     .btn-back { background: rgba(255,255,255,0.1); color: #fff; flex: 0.4; font-size: 20px; }
     .btn-retake { background: rgba(255,255,255,0.12); color: #fff; flex: 0.4; }
+    .btn-gallery { background: rgba(255,255,255,0.15); color: #fff; flex: 0.6; }
+    .btn-gallery:active { background: rgba(255,255,255,0.25); }
     .file-label { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); color: #fff; }
 
     /* ── Loading ── */
@@ -395,6 +397,7 @@
 
         <div class="cam-actions" id="camActions">
           <button class="btn-capture" id="btnCapture" onclick="capture()">📸 Foto maken</button>
+          <button class="btn-gallery" id="btnGallery" onclick="openGallery()">📁 Kies foto</button>
           <button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍 Analyseren</button>
           <button class="btn-back" onclick="closeCamera()">✕</button>
         </div>
@@ -541,14 +544,18 @@ async function startCamera() {
     document.getElementById("video").srcObject = stream;
   } catch (e) {
     document.getElementById("viewfinder").innerHTML =
-      '<div class="viewfinder-content"><span class="big-icon">📁</span><p>Camera niet beschikbaar<br/><span style="font-size:12px;color:rgba(255,255,255,0.3)">Klik om een foto te kiezen</span></p></div>';
+      '<div class="viewfinder-content"><span class="big-icon">📁</span><p>Camera niet beschikbaar<br/><span style="font-size:12px;color:rgba(255,255,255,0.3)">Kies een foto uit je galerij</span></p></div>';
     document.getElementById("viewfinder").style.cursor = "pointer";
     document.getElementById("viewfinder").onclick = () => document.getElementById("fileInput").click();
     document.getElementById("camActions").innerHTML =
-      '<label class="file-label">📁 Kies een foto<input type="file" accept="image/*" style="display:none" onchange="handleFile(event)" /></label>' +
+      '<button class="btn-gallery" onclick="document.getElementById(\'fileInput\').click()" style="flex:2">📁 Kies foto</button>' +
       '<button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍</button>' +
       '<button class="btn-back" onclick="closeCamera()">✕</button>';
   }
+}
+
+function openGallery() {
+  document.getElementById("fileInput").click();
 }
 
 function handleFile(e) {
