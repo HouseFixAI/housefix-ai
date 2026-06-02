@@ -167,6 +167,14 @@
     .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
 
     .cta-sub { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+    .gallery-btn {
+      display: block; width: 100%; margin-top: 10px; padding: 14px 20px;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm);
+      background: var(--bg-card); color: var(--text-secondary); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s ease;
+    }
+    .gallery-btn:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
+    .gallery-btn:active { transform: scale(0.98); }
 
     /* ── Trust bar bottom ── */
     .dash-bottom { text-align: center; padding-top: 8px; }
@@ -364,8 +372,11 @@
     <!-- CTA -->
     <div class="cta-wrap fade-slide-up stagger-4">
       <button class="cta-btn" id="ctaButton" onclick="openCamera()">📷 START SCHADE SCAN</button>
+      <button class="gallery-btn" id="galleryBtn" onclick="openGalleryPicker()">📁 Kies foto uit galerij</button>
       <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
     </div>
+    
+    <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
 
     <!-- Bottom trust -->
     <div class="dash-bottom">
@@ -397,7 +408,6 @@
 
         <div class="cam-actions" id="camActions">
           <button class="btn-capture" id="btnCapture" onclick="capture()">📸 Foto maken</button>
-          <button class="btn-gallery" id="btnGallery" onclick="openGallery()">📁 Kies foto</button>
           <button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍 Analyseren</button>
           <button class="btn-back" onclick="closeCamera()">✕</button>
         </div>
@@ -544,18 +554,37 @@ async function startCamera() {
     document.getElementById("video").srcObject = stream;
   } catch (e) {
     document.getElementById("viewfinder").innerHTML =
-      '<div class="viewfinder-content"><span class="big-icon">📁</span><p>Camera niet beschikbaar<br/><span style="font-size:12px;color:rgba(255,255,255,0.3)">Kies een foto uit je galerij</span></p></div>';
-    document.getElementById("viewfinder").style.cursor = "pointer";
-    document.getElementById("viewfinder").onclick = () => document.getElementById("fileInput").click();
+      '<div class="viewfinder-content"><span class="big-icon">📸</span><p>Camera niet beschikbaar<br/><span style="font-size:12px;color:rgba(255,255,255,0.3)">Gebruik de knop op het startscherm om een foto te kiezen</span></p></div>';
     document.getElementById("camActions").innerHTML =
-      '<button class="btn-gallery" onclick="document.getElementById(\'fileInput\').click()" style="flex:2">📁 Kies foto</button>' +
-      '<button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍</button>' +
-      '<button class="btn-back" onclick="closeCamera()">✕</button>';
+      '<button class="btn-back" onclick="closeCamera()">✕ Terug</button>';
   }
 }
 
 function openGallery() {
   document.getElementById("fileInput").click();
+}
+
+/* ── Standalone gallery picker from dashboard ── */
+function openGalleryPicker() {
+  document.getElementById("galleryInput").click();
+}
+
+function handleGalleryFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    imageBase64 = ev.target.result.split(",")[1];
+    // Open camera screen in preview mode with the selected photo
+    document.getElementById("screenDashboard").classList.add("hidden");
+    document.getElementById("screenCamera").classList.remove("hidden");
+    stopStream();
+    showPreview(ev.target.result);
+    document.getElementById("btnAnalyze").disabled = false;
+  };
+  reader.readAsDataURL(file);
+  // Reset so the same file can be picked again
+  e.target.value = "";
 }
 
 function handleFile(e) {
