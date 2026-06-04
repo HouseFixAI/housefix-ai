@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>HouseFix AI — Jouw Digitale Klusexpert</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/static/manifest.json" />
+  
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="HouseFix" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -1083,7 +1092,17 @@ function deleteHistoryItem(idx) {
 }
 
 // Render history on page load
-document.addEventListener("DOMContentLoaded", renderHistory);
+document.addEventListener("DOMContentLoaded", () => {
+  renderHistory();
+  // Register Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/static/sw.js").then(() => {
+      console.log("HouseFix AI PWA registered");
+    }).catch(() => {
+      // Silent fail - PWA is optional
+    });
+  }
+});
 </script>
 </body>
 </html>

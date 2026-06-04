@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import json
 import random
@@ -7,6 +7,11 @@ from openai import OpenAI
 app = Flask(__name__)
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+# Serve static files (PWA manifest, icons, service worker)
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'static'), filename)
 
 # ---------------------------------------------------------------------------
 # Fallback data (used when no API key is configured)
