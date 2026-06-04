@@ -68,124 +68,41 @@
     .screen-dashboard { padding: 40px 24px 32px; flex: 1; justify-content: space-between; }
     .screen-camera { background: #000; }
 
-    /* ── Dashboard Header ── */
-    .dash-top { text-align: center; padding-top: 16px; }
-    .logo-icon { font-size: 56px; margin-bottom: 8px; display: block; animation: pulse-logo 3s ease-in-out infinite; }
-    @keyframes pulse-logo {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(139,92,246,0.3)); }
-      50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(139,92,246,0.6)); }
-    }
-    .logo-title {
-      font-size: 32px; font-weight: 900; letter-spacing: -1px;
-      background: linear-gradient(135deg, var(--neon-green), #a78bfa, var(--purple));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .logo-sub {
-      font-size: 14px; font-weight: 500; color: var(--text-secondary);
-      letter-spacing: 2px; text-transform: uppercase; margin-top: 6px;
-    }
-
-    /* ── Trust Banner ── */
-    .trust-banner {
-      margin: 28px 0; padding: 14px 20px;
-      background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(139,92,246,0.1));
-      border: 1px solid rgba(139,92,246,0.2);
-      border-radius: var(--radius-sm);
-      text-align: center;
-      position: relative; overflow: hidden;
-    }
-    .trust-banner::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(34,197,94,0.05), transparent);
-      animation: shimmer 3s infinite;
-    }
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    .trust-text { font-size: 13px; font-weight: 700; color: var(--neon-green); position: relative; z-index: 1; }
-    .trust-text span { color: var(--text-secondary); font-weight: 400; }
-
-    /* ── Steps ── */
-    .steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
-    .step-card {
-      display: flex; align-items: center; gap: 16px;
-      padding: 18px 20px; border-radius: var(--radius-sm);
-      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.04);
-      backdrop-filter: blur(8px); transition: all 0.3s ease; cursor: default;
-    }
-    .step-card:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.08); transform: translateX(4px); }
-    .step-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
-    .step-icon.s1 { background: linear-gradient(135deg, #3b82f633, #2563eb33); }
-    .step-icon.s2 { background: linear-gradient(135deg, #22c55e33, #16a34a33); }
-    .step-icon.s3 { background: linear-gradient(135deg, #8b5cf633, #7c3aed33); }
-    .step-content { flex: 1; }
-    .step-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
-    .step-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
-    .step-arrow { font-size: 14px; color: var(--text-muted); }
-
-    /* ── CTA Button ── */
-    .cta-wrap { text-align: center; padding-bottom: 8px; }
-    .cta-btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-      width: 100%; padding: 20px 32px; border: none; border-radius: var(--radius);
-      font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px;
-      cursor: pointer; position: relative; overflow: hidden;
-      background: linear-gradient(135deg, var(--purple), #3b82f6, var(--neon-green));
-      background-size: 200% 200%;
-      animation: gradient-shift 4s ease infinite, glow-pulse 2s ease-in-out infinite;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    @keyframes gradient-shift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(139,92,246,0.3), 0 0 40px rgba(34,197,94,0.1); }
-      50% { box-shadow: 0 0 30px rgba(139,92,246,0.5), 0 0 60px rgba(34,197,94,0.2); }
-    }
-    .cta-btn:active { transform: scale(0.97); }
-    .cta-btn::after {
-      content: ''; position: absolute; inset: 0; border-radius: var(--radius);
-      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
-      animation: shine 3s ease-in-out infinite;
-    }
-    @keyframes shine {
-      0% { transform: translateX(-100%) rotate(25deg); }
-      30%, 100% { transform: translateX(200%) rotate(25deg); }
-    }
-    /* ── Mode Selector ── */
-    .mode-selector { display: flex; gap: 10px; margin: 20px 0 24px; }
-    .mode-btn {
-      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
-      padding: 14px 12px; border-radius: var(--radius-sm);
-      background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
-      cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary);
-    }
+    /* ── Dashboard Header + Steps + Trust + CTA + Mode Selector (replaced) ── */
+    .steps, .trust-banner, .dash-top { display: none; }
+    .dash-inner { max-width: 480px; margin: 0 auto; padding: 18px 20px 12px; display: flex; flex-direction: column; gap: 14px; min-height: 100vh; }
+    .screen-dashboard { flex: 1; background: var(--bg-primary); position: relative; z-index: 1; }
+    .dash-header { display: flex; align-items: center; gap: 12px; }
+    .logo-icon-sm { font-size: 32px; line-height: 1; }
+    .logo-title-sm { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: var(--text-primary); }
+    .logo-sub-sm { font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 1px; }
+    .stats-strip { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 8px 0; font-size: 11px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .mode-selector { display: flex; gap: 8px; }
+    .mode-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); }
     .mode-btn:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-card-hover); }
-    .mode-btn.mode-active {
-      border-color: var(--purple); background: rgba(139,92,246,0.1);
-      box-shadow: 0 0 20px var(--purple-glow), inset 0 0 20px rgba(139,92,246,0.05);
-      color: var(--text-primary);
-    }
-    .mode-btn .mode-icon { font-size: 28px; }
-    .mode-btn .mode-label { font-size: 14px; font-weight: 700; }
+    .mode-btn.mode-active { border-color: var(--purple); background: rgba(139,92,246,0.1); box-shadow: 0 0 20px var(--purple-glow), inset 0 0 20px rgba(139,92,246,0.05); color: var(--text-primary); }
+    .mode-btn .mode-icon { font-size: 24px; }
+    .mode-btn .mode-label { font-size: 13px; font-weight: 700; }
     .mode-btn .mode-sub { font-size: 10px; color: var(--text-muted); }
     .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
-
-    .cta-sub { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
-    .gallery-btn {
-      display: block; width: 100%; margin-top: 10px; padding: 14px 20px;
-      border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm);
-      background: var(--bg-card); color: var(--text-secondary); font-size: 14px; font-weight: 600;
-      cursor: pointer; transition: all 0.3s ease;
-    }
+    .cta-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .cta-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 18px 24px; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 800; color: #fff; cursor: pointer; position: relative; overflow: hidden; background: linear-gradient(135deg, var(--purple), #3b82f6, var(--neon-green)); background-size: 200% 200%; animation: gradient-shift 4s ease infinite, glow-pulse 2s ease-in-out infinite; transition: transform 0.2s ease, box-shadow 0.2s ease; letter-spacing: 0.3px; }
+    .cta-btn:active { transform: scale(0.97); }
+    @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 20px rgba(139,92,246,0.3), 0 0 40px rgba(34,197,94,0.1); } 50% { box-shadow: 0 0 30px rgba(139,92,246,0.5), 0 0 60px rgba(34,197,94,0.2); } }
+    .cta-btn::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius); background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%); animation: shine 3s ease-in-out infinite; }
+    @keyframes shine { 0% { transform: translateX(-100%) rotate(25deg); } 30%, 100% { transform: translateX(200%) rotate(25deg); } }
+    .cta-icon { font-size: 22px; position: relative; z-index: 1; }
+    .cta-text { position: relative; z-index: 1; }
+    .gallery-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 20px; border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-secondary); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
     .gallery-btn:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
     .gallery-btn:active { transform: scale(0.98); }
-
-    /* ── History Section ── */
+    .gallery-icon { font-size: 18px; }
+    .cta-sub { text-align: center; font-size: 11px; color: var(--text-muted); }
+    .dash-bottom { text-align: center; padding-top: 8px; }
+    .trust-bar { display: flex; justify-content: center; gap: 24px; padding: 12px 0; font-size: 11px; color: var(--text-muted); }
+    .trust-bar span { display: flex; align-items: center; gap: 4px; }
+/* ── History Section ── */
     .history-section { margin: 20px 0; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
     .history-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; }
     .history-header:hover { background: var(--bg-card-hover); }
@@ -347,96 +264,68 @@
 <div class="app" id="app">
 
   <!-- ═══ DASHBOARD SCREEN ═══ -->
-  <div class="screen screen-dashboard" id="screenDashboard">
+    <div class="screen screen-dashboard" id="screenDashboard">
+      <div class="dash-inner">
 
-    <div class="dash-top fade-slide-up">
-
-      <!-- Logo -->
-      <div class="logo-icon">🛠️</div>
-      <div class="logo-title">HouseFix AI</div>
-      <div class="logo-sub">— Jouw Digitale Klusexpert —</div>
-
-      <!-- Trust banner -->
-      <div class="trust-banner">
-        <div class="trust-text">⚡ Al €14.250,- aan kluskosten bespaard <span>door onze gebruikers!</span></div>
-      </div>
-
-      <!-- Mode Selector -->
-      <div class="mode-selector">
-        <button class="mode-btn mode-active" id="modeDamage" onclick="setMode('damage')">
-          <span class="mode-icon">🚨</span>
-          <span class="mode-label">Klus Hulp</span>
-          <span class="mode-sub">Schade & reparatie</span>
-        </button>
-        <button class="mode-btn" id="modeInspiration" onclick="setMode('inspiration')">
-          <span class="mode-icon">✨</span>
-          <span class="mode-label">Interieur</span>
-          <span class="mode-sub">Stijl & inspiratie</span>
-        </button>
-      </div>
-
-      <!-- Steps -->
-      <div class="steps" id="stepsContainer">
-        <div class="step-card fade-slide-up stagger-1">
-          <div class="step-icon s1">📷</div>
-          <div class="step-content">
-            <div class="step-title" id="step1Title">1. Scan de schade</div>
-            <div class="step-desc" id="step1Desc">Maak een foto van het probleem — wij doen de rest</div>
+        <!-- Logo compact -->
+        <div class="dash-header fade-slide-up">
+          <div class="logo-icon-sm">🛠️</div>
+          <div>
+            <div class="logo-title-sm">HouseFix AI</div>
+            <div class="logo-sub-sm">Jouw Digitale Klusexpert</div>
           </div>
-          <div class="step-arrow">→</div>
         </div>
 
-        <div class="step-card fade-slide-up stagger-2">
-          <div class="step-icon s2">💰</div>
-          <div class="step-content">
-            <div class="step-title" id="step2Title">2. Vergelijk de kosten</div>
-            <div class="step-desc" id="step2Desc">Zelf doen vs. laten doen — ontdek wat je bespaart</div>
-          </div>
-          <div class="step-arrow">→</div>
+        <!-- Mode Selector -->
+        <div class="mode-selector fade-slide-up stagger-1">
+          <button class="mode-btn mode-active" id="modeDamage" onclick="setMode('damage')">
+            <span class="mode-icon">🚨</span>
+            <span class="mode-label">Klus Hulp</span>
+            <span class="mode-sub">Schade & reparatie</span>
+          </button>
+          <button class="mode-btn" id="modeInspiration" onclick="setMode('inspiration')">
+            <span class="mode-icon">✨</span>
+            <span class="mode-label">Interieur</span>
+            <span class="mode-sub">Stijl & inspiratie</span>
+          </button>
         </div>
 
-        <div class="step-card fade-slide-up stagger-3">
-          <div class="step-icon s3">🛠️</div>
-          <div class="step-content">
-            <div class="step-title" id="step3Title">3. Fix het zelf</div>
-            <div class="step-desc" id="step3Desc">Ontvang je Gamma/Praxis boodschappenlijst + stappenplan</div>
-          </div>
-          <div class="step-arrow">→</div>
+        <!-- Primary actions -->
+        <div class="cta-wrap fade-slide-up stagger-2">
+          <button class="cta-btn" id="ctaButton" onclick="openCamera()">
+            <span class="cta-icon">📸</span>
+            <span class="cta-text" id="ctaText">Scan met camera</span>
+          </button>
+          <button class="gallery-btn" id="galleryBtn" onclick="openGalleryPicker()">
+            <span class="gallery-icon">📁</span>
+            <span class="gallery-text">Kies uit galerij</span>
+          </button>
+          <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
         </div>
+
+        <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
+
+        <!-- Stats strip -->
+        <div class="stats-strip fade-slide-up stagger-3">
+          <span>⚡ €14.250 bespaard</span>
+          <span>🔒 Privacy first</span>
+          <span>🇳🇱 Nederlands</span>
+        </div>
+
+        <!-- History accordion -->
+        <div class="history-section" id="historySection">
+          <div class="history-header" onclick="toggleHistory()">
+            <span>📜 Opgeslagen scans</span>
+            <span class="history-arrow" id="historyArrow">▼</span>
+          </div>
+          <div class="history-body" id="historyBody">
+            <div class="history-empty" id="historyEmpty">Nog geen scans opgeslagen</div>
+            <div id="historyList"></div>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- History -->
-    <div class="history-section" id="historySection">
-      <div class="history-header" onclick="toggleHistory()">
-        <span>📜 Mijn Opgeslagen Scans</span>
-        <span class="history-arrow" id="historyArrow">▼</span>
-      </div>
-      <div class="history-body" id="historyBody">
-        <div class="history-empty" id="historyEmpty">Nog geen opgeslagen scans</div>
-        <div id="historyList"></div>
-      </div>
-    </div>
-
-    <!-- CTA -->
-    <div class="cta-wrap fade-slide-up stagger-4">
-      <button class="cta-btn" id="ctaButton" onclick="openCamera()">📷 START SCHADE SCAN</button>
-      <button class="gallery-btn" id="galleryBtn" onclick="openGalleryPicker()">📁 Kies foto uit galerij</button>
-      <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
-    </div>
-    
-    <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
-
-    <!-- Bottom trust -->
-    <div class="dash-bottom">
-      <div class="trust-bar">
-        <span>🔒 Privacy first</span>
-        <span>🇳🇱 Nederlandse prijzen</span>
-        <span>⚡ AI-gestuurd</span>
-      </div>
-    </div>
-
-  </div>
 
   <!-- ═══ CAMERA SCREEN ═══ -->
   <div class="screen screen-camera hidden" id="screenCamera">
@@ -555,30 +444,15 @@ function setMode(mode) {
   document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
   document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
 
-  const cta = document.getElementById("ctaButton");
-  const s1t = document.getElementById("step1Title");
-  const s1d = document.getElementById("step1Desc");
-  const s2t = document.getElementById("step2Title");
-  const s2d = document.getElementById("step2Desc");
-  const s3t = document.getElementById("step3Title");
-  const s3d = document.getElementById("step3Desc");
+  const ctaText = document.getElementById("ctaText");
+  const ctaIcon = document.querySelector("#ctaButton .cta-icon");
 
   if (mode === "inspiration") {
-    cta.innerHTML = "✨ START INTERIEUR SCAN";
-    s1t.textContent = "1. Fotografeer je interieur";
-    s1d.textContent = "Leg je favoriete hoek, meubel of materiaal vast";
-    s2t.textContent = "2. Ontdek je stijl";
-    s2d.textContent = "AI herkent kleuren, materialen en design";
-    s3t.textContent = "3. Krijg DIY inspiratie";
-    s3d.textContent = "Gamma-tips om de look zelf na te maken";
+    ctaText.textContent = "Scan je interieur";
+    if (ctaIcon) ctaIcon.textContent = "✨";
   } else {
-    cta.innerHTML = "📷 START SCHADE SCAN";
-    s1t.textContent = "1. Scan de schade";
-    s1d.textContent = "Maak een foto van het probleem — wij doen de rest";
-    s2t.textContent = "2. Vergelijk de kosten";
-    s2d.textContent = "Zelf doen vs. laten doen — ontdek wat je bespaart";
-    s3t.textContent = "3. Fix het zelf";
-    s3d.textContent = "Ontvang je Gamma/Praxis boodschappenlijst + stappenplan";
+    ctaText.textContent = "Scan met camera";
+    if (ctaIcon) ctaIcon.textContent = "📸";
   }
 }
 
