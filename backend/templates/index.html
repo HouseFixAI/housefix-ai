@@ -35,6 +35,7 @@
       --gray-400: #94a3b8;
       --radius: 16px;
       --radius-sm: 12px;
+      --radius-xs: 8px;
     }
 
     body {
@@ -42,7 +43,8 @@
       background: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
     .app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
@@ -69,71 +71,74 @@
     .screen-dashboard { flex: 1; background: var(--bg-primary); position: relative; z-index: 1; }
     .screen-camera { background: #000; }
 
-    /* ── Dashboard Header + CTA + Mode Selector ── */
-    .steps, .trust-banner, .dash-top { display: none; }
-    .dash-inner { max-width: 480px; margin: 0 auto; padding: 10px 16px 0; display: flex; flex-direction: column; gap: 0; min-height: 100vh; width: 100%; overflow-x: hidden; }
+    /* ── Dashboard ── */
+    .steps, .trust-banner, .dash-top, .stats-strip, .dash-bottom, .trust-bar { display: none; }
+    .dash-inner { max-width: 480px; margin: 0 auto; padding: 6px 16px 0; display: flex; flex-direction: column; min-height: 100vh; width: 100%; overflow: hidden; justify-content: space-between; }
     .screen-dashboard { flex: 1; background: var(--bg-primary); position: relative; z-index: 1; }
-    .dash-header { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-    .logo-icon-sm { font-size: 28px; line-height: 1; flex-shrink: 0; }
-    .logo-title-sm { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: var(--text-primary); }
-    .logo-sub-sm { font-size: 10px; color: var(--text-muted); letter-spacing: 0.3px; margin-top: 1px; }
+    .dash-top-group { display: flex; flex-direction: column; gap: 4px; }
+    .dash-bottom-group { display: flex; flex-direction: column; gap: 2px; }
 
-    /* ── Mode Selector ── */
-    .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 6px; padding: 6px 0; }
-    .mode-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px 4px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); width: 100%; min-height: 62px; }
+    .dash-header { display: flex; align-items: center; gap: 10px; padding: 2px 0; }
+    .logo-icon-sm { font-size: 26px; line-height: 1; flex-shrink: 0; }
+    .logo-title-sm { font-size: 19px; font-weight: 900; letter-spacing: -0.3px; color: var(--text-primary); }
+    .logo-sub-sm { font-size: 10px; color: var(--text-muted); letter-spacing: 0.2px; margin-top: 1px; }
+
+    .trust-capsule { display: inline-flex; align-self: flex-start; align-items: center; gap: 4px; padding: 3px 12px; border-radius: 20px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #34d399; font-weight: 700; font-size: 10px; margin: 0; }
+
+    .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+    .mode-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 8px 4px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); width: 100%; min-height: 54px; }
     .mode-btn:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-card-hover); }
     .mode-btn.mode-active { border-color: var(--purple); background: rgba(139,92,246,0.1); box-shadow: 0 0 16px var(--purple-glow), inset 0 0 16px rgba(139,92,246,0.05); color: var(--text-primary); }
-    .mode-btn .mode-icon { font-size: 22px; }
+    .mode-btn .mode-icon { font-size: 20px; }
     .mode-btn .mode-label { font-size: 12px; font-weight: 700; }
     .mode-btn .mode-sub { font-size: 9px; color: var(--text-muted); white-space: nowrap; }
     .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
 
-    /* ── CTA Buttons ── */
-    .cta-wrap { display: flex; flex-direction: column; gap: 6px; margin: 0 0 8px; }
-    .cta-btn, .gallery-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 20px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+    .cta-wrap { display: flex; flex-direction: column; gap: 5px; }
+    .cta-btn, .gallery-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
     .cta-btn { border: none; color: #fff; position: relative; overflow: hidden; background: linear-gradient(135deg, var(--purple), #3b82f6, var(--neon-green)); background-size: 200% 200%; animation: gradient-shift 4s ease infinite, glow-pulse 2s ease-in-out infinite; letter-spacing: 0.3px; }
     .cta-btn:active { transform: scale(0.97); }
     @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     @keyframes glow-pulse { 0%, 100% { box-shadow: 0 0 16px rgba(139,92,246,0.25), 0 0 32px rgba(34,197,94,0.08); } 50% { box-shadow: 0 0 24px rgba(139,92,246,0.4), 0 0 48px rgba(34,197,94,0.15); } }
     .cta-btn::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-sm); background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%); animation: shine 3s ease-in-out infinite; }
     @keyframes shine { 0% { transform: translateX(-100%) rotate(25deg); } 30%, 100% { transform: translateX(200%) rotate(25deg); } }
-    .cta-icon { font-size: 20px; position: relative; z-index: 1; }
+    .cta-icon { font-size: 18px; position: relative; z-index: 1; }
     .cta-text { position: relative; z-index: 1; }
     .gallery-btn { border: 1px solid rgba(255,255,255,0.08); background: var(--bg-card); color: var(--text-secondary); }
     .gallery-btn:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
     .gallery-btn:active { transform: scale(0.98); }
     .gallery-icon { font-size: 18px; }
-    .cta-sub { text-align: center; font-size: 11px; color: var(--gray-400); padding-top: 2px; letter-spacing: 0.2px; }
+    .cta-sub { text-align: center; font-size: 10px; color: var(--gray-400); padding-top: 1px; letter-spacing: 0.2px; }
 
-    /* ── Stats strip with highlight ── */
-    .stats-strip { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: nowrap; padding: 6px 0; margin: 0; }
-    .stats-strip span { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-    .stats-highlight { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #34d399; font-weight: 700; font-size: 11px; }
+    .explain-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 2px 0 0; }
+    .explain-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 5px 4px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); }
+    .explain-icon { font-size: 14px; }
+    .explain-text { font-size: 9px; color: var(--text-muted); text-align: center; line-height: 1.3; }
 
-    .dash-bottom { text-align: center; padding-top: 0; }
-    .trust-bar { display: flex; justify-content: center; gap: 16px; padding: 6px 0; font-size: 10px; color: var(--text-muted); }
-    .trust-bar span { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-
-    /* ── History Section ── */
-    .history-section { margin: 4px 0 2px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; }
+    .history-section { margin: 0; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; }
     .history-header:hover { background: var(--bg-card-hover); }
-    .history-arrow { font-size: 11px; transition: transform 0.3s ease; }
+    .history-arrow { font-size: 10px; transition: transform 0.3s ease; }
     .history-arrow.open { transform: rotate(180deg); }
     .history-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0; }
     .history-body.open { max-height: 600px; opacity: 1; }
-    .history-empty { padding: 16px 18px; font-size: 13px; color: var(--text-muted); text-align: center; }
-    .history-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: all 0.2s; }
+    .history-empty { padding: 12px 14px; font-size: 12px; color: var(--text-muted); text-align: center; }
+    .history-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: all 0.2s; }
     .history-item:hover { background: var(--bg-card-hover); }
-    .history-thumb { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--gray-700); flex-shrink: 0; }
+    .history-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--gray-700); flex-shrink: 0; }
     .history-info { flex: 1; min-width: 0; }
-    .history-info .hi-title { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .history-info .hi-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .history-del { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; flex-shrink: 0; }
+    .history-info .hi-title { font-size: 12px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .history-info .hi-meta { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+    .history-del { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: all 0.2s; flex-shrink: 0; }
     .history-del:hover { background: rgba(239,68,68,0.15); color: #ef4444; }
-    .history-mode-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .history-mode-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
     .history-mode-badge.damage { background: rgba(239,68,68,0.12); color: #ef4444; }
     .history-mode-badge.inspiration { background: rgba(139,92,246,0.12); color: #a78bfa; }
+
+    .dash-bottom-bar { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 2px; }
+    .dash-trust-labels { display: flex; justify-content: center; gap: 14px; }
+    .dash-trust-labels span { font-size: 10px; color: var(--text-muted); }
+    .dash-footer { display: block; text-align: center; padding: 2px 24px 6px; color: var(--text-muted); font-size: 10px; }
 
     /* ── Save Button ── */
     .save-section { padding: 4px 0; }
@@ -280,65 +285,94 @@
     <div class="screen screen-dashboard" id="screenDashboard">
       <div class="dash-inner">
 
-        <!-- Logo compact -->
-        <div class="dash-header fade-slide-up">
-          <div class="logo-icon-sm">🛠️</div>
-          <div>
-            <div class="logo-title-sm">HouseFix AI</div>
-            <div class="logo-sub-sm">Jouw Digitale Klusexpert</div>
+        <!-- TOP GROUP: flows naturally -->
+        <div class="dash-top-group">
+
+          <!-- Logo + subtitle -->
+          <div class="dash-header fade-slide-up">
+            <div class="logo-icon-sm">🛠️</div>
+            <div>
+              <div class="logo-title-sm">HouseFix AI</div>
+              <div class="logo-sub-sm">Jouw digitale klusexpert</div>
+            </div>
           </div>
-        </div>
 
-        <!-- Mode Selector -->
-        <div class="mode-selector fade-slide-up stagger-1">
-          <button class="mode-btn mode-active" id="modeDamage" onclick="setMode('damage')">
-            <span class="mode-icon">🚨</span>
-            <span class="mode-label">Klus Hulp</span>
-            <span class="mode-sub">Schade & reparatie</span>
-          </button>
-          <button class="mode-btn" id="modeInspiration" onclick="setMode('inspiration')">
-            <span class="mode-icon">✨</span>
-            <span class="mode-label">Interieur</span>
-            <span class="mode-sub">Stijl & inspiratie</span>
-          </button>
-        </div>
+          <!-- Trust capsule -->
+          <div class="trust-capsule fade-slide-up stagger-1">💚 €14.250 bespaard door gebruikers</div>
 
-        <!-- Primary actions -->
-        <div class="cta-wrap fade-slide-up stagger-2">
-          <button class="cta-btn" id="ctaButton" onclick="openCamera()">
-            <span class="cta-icon">📸</span>
-            <span class="cta-text" id="ctaText">Scan met camera</span>
-          </button>
-          <button class="gallery-btn" id="galleryBtn" onclick="openGalleryPicker()">
-            <span class="gallery-icon">📁</span>
-            <span class="gallery-text">Kies uit galerij</span>
-          </button>
-          <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
-        </div>
-
-        <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
-
-        <!-- Stats strip -->
-        <div class="stats-strip fade-slide-up stagger-3">
-          <span><span class="stats-highlight">⚡ €14.250 bespaard</span></span>
-          <span>🔒 Privacy first</span>
-          <span>🇳🇱 Nederlands</span>
-        </div>
-
-        <!-- History accordion -->
-        <div class="history-section" id="historySection">
-          <div class="history-header" onclick="toggleHistory()">
-            <span>📜 Opgeslagen scans</span>
-            <span class="history-arrow" id="historyArrow">▼</span>
+          <!-- Mode Selector -->
+          <div class="mode-selector fade-slide-up stagger-1">
+            <button class="mode-btn mode-active" id="modeDamage" onclick="setMode('damage')">
+              <span class="mode-icon">🚨</span>
+              <span class="mode-label">Klus Hulp</span>
+              <span class="mode-sub">Schade & reparatie</span>
+            </button>
+            <button class="mode-btn" id="modeInspiration" onclick="setMode('inspiration')">
+              <span class="mode-icon">✨</span>
+              <span class="mode-label">Interieur</span>
+              <span class="mode-sub">Stijl & inspiratie</span>
+            </button>
           </div>
-          <div class="history-body" id="historyBody">
-            <div class="history-empty" id="historyEmpty">Nog geen scans opgeslagen</div>
-            <div id="historyList"></div>
+
+          <!-- Primary actions -->
+          <div class="cta-wrap fade-slide-up stagger-2">
+            <button class="cta-btn" id="ctaButton" onclick="openCamera()">
+              <span class="cta-icon">📸</span>
+              <span class="cta-text" id="ctaText">Scan met camera</span>
+            </button>
+            <button class="gallery-btn" id="galleryBtn" onclick="openGalleryPicker()">
+              <span class="gallery-icon">📁</span>
+              <span class="gallery-text">Kies uit galerij</span>
+            </button>
+            <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
           </div>
+
+          <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
+
+          <!-- 3 compact explain blocks -->
+          <div class="explain-row fade-slide-up stagger-3">
+            <div class="explain-item">
+              <span class="explain-icon">🛠️</span>
+              <span class="explain-text">Scan & AI analyse</span>
+            </div>
+            <div class="explain-item">
+              <span class="explain-icon">💰</span>
+              <span class="explain-text">Kosten vergelijken</span>
+            </div>
+            <div class="explain-item">
+              <span class="explain-icon">📋</span>
+              <span class="explain-text">Materialen + stappen</span>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Footer inside layout -->
-        <div class="dash-footer">HouseFix AI — Jouw Digitale Klusexpert 🇳🇱</div>
+        <!-- BOTTOM GROUP: pinned to bottom -->
+        <div class="dash-bottom-group">
+
+          <!-- History accordion -->
+          <div class="history-section" id="historySection">
+            <div class="history-header" onclick="toggleHistory()">
+              <span>📂 Opgeslagen scans</span>
+              <span class="history-arrow" id="historyArrow">▼</span>
+            </div>
+            <div class="history-body" id="historyBody">
+              <div class="history-empty" id="historyEmpty">Nog geen scans opgeslagen</div>
+              <div id="historyList"></div>
+            </div>
+          </div>
+
+          <!-- Trust labels + Footer -->
+          <div class="dash-bottom-bar">
+            <div class="dash-trust-labels">
+              <span>🔒 Privacy first</span>
+              <span>🇳🇱 Nederlands</span>
+            </div>
+            <div class="dash-footer">HouseFix AI — Jouw digitale klusexpert 🇳🇱</div>
+          </div>
+
+        </div>
+
       </div>
     </div>
 
