@@ -72,30 +72,39 @@
     .screen-camera { background: #000; }
 
     /* ── Dashboard ── */
-    .steps, .trust-banner, .dash-top, .stats-strip, .dash-bottom, .trust-bar { display: none; }
-    .dash-inner { max-width: 480px; margin: 0 auto; padding: 6px 16px 0; display: flex; flex-direction: column; min-height: 100vh; width: 100%; overflow: hidden; justify-content: space-between; }
+    .steps, .trust-banner, .dash-top, .stats-strip, .dash-bottom, .trust-bar, .explain-row { display: none; }
+    .dash-inner { max-width: 480px; margin: 0 auto; padding: 8px 16px 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; width: 100%; overflow: hidden; }
     .screen-dashboard { flex: 1; background: var(--bg-primary); position: relative; z-index: 1; }
-    .dash-top-group { display: flex; flex-direction: column; gap: 4px; }
-    .dash-bottom-group { display: flex; flex-direction: column; gap: 2px; }
 
+    /* GROUP 1: Top */
+    .dg-1 { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
     .dash-header { display: flex; align-items: center; gap: 10px; padding: 2px 0; }
     .logo-icon-sm { font-size: 26px; line-height: 1; flex-shrink: 0; }
     .logo-title-sm { font-size: 19px; font-weight: 900; letter-spacing: -0.3px; color: var(--text-primary); }
     .logo-sub-sm { font-size: 10px; color: var(--text-muted); letter-spacing: 0.2px; margin-top: 1px; }
-
-    .trust-capsule { display: inline-flex; align-self: flex-start; align-items: center; gap: 4px; padding: 3px 12px; border-radius: 20px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #34d399; font-weight: 700; font-size: 10px; margin: 0; }
-
+    .trust-capsule { display: inline-block; align-self: flex-start; padding: 3px 12px; border-radius: 20px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #34d399; font-weight: 700; font-size: 10px; }
     .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
-    .mode-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 8px 4px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); width: 100%; min-height: 54px; }
+    .mode-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 8px 4px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); width: 100%; min-height: 52px; }
     .mode-btn:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-card-hover); }
     .mode-btn.mode-active { border-color: var(--purple); background: rgba(139,92,246,0.1); box-shadow: 0 0 16px var(--purple-glow), inset 0 0 16px rgba(139,92,246,0.05); color: var(--text-primary); }
-    .mode-btn .mode-icon { font-size: 20px; }
-    .mode-btn .mode-label { font-size: 12px; font-weight: 700; }
+    .mode-btn .mode-icon { font-size: 18px; }
+    .mode-btn .mode-label { font-size: 11px; font-weight: 700; }
     .mode-btn .mode-sub { font-size: 9px; color: var(--text-muted); white-space: nowrap; }
     .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
 
+    /* GROUP 2: Middle */
+    .dg-2 { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; padding: 4px 0; }
+    .info-card { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid rgba(255,255,255,0.04); }
+    .info-icon { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
+    .info-content { flex: 1; min-width: 0; }
+    .info-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 1px; }
+    .info-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+
+    /* GROUP 3: Bottom */
+    .dg-3 { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+
     .cta-wrap { display: flex; flex-direction: column; gap: 5px; }
-    .cta-btn, .gallery-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+    .cta-btn, .gallery-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px 20px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
     .cta-btn { border: none; color: #fff; position: relative; overflow: hidden; background: linear-gradient(135deg, var(--purple), #3b82f6, var(--neon-green)); background-size: 200% 200%; animation: gradient-shift 4s ease infinite, glow-pulse 2s ease-in-out infinite; letter-spacing: 0.3px; }
     .cta-btn:active { transform: scale(0.97); }
     @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
@@ -110,13 +119,8 @@
     .gallery-icon { font-size: 18px; }
     .cta-sub { text-align: center; font-size: 10px; color: var(--gray-400); padding-top: 1px; letter-spacing: 0.2px; }
 
-    .explain-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 2px 0 0; }
-    .explain-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 5px 4px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); }
-    .explain-icon { font-size: 14px; }
-    .explain-text { font-size: 9px; color: var(--text-muted); text-align: center; line-height: 1.3; }
-
-    .history-section { margin: 0; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; }
+    .history-section { background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; }
     .history-header:hover { background: var(--bg-card-hover); }
     .history-arrow { font-size: 10px; transition: transform 0.3s ease; }
     .history-arrow.open { transform: rotate(180deg); }
@@ -135,10 +139,10 @@
     .history-mode-badge.damage { background: rgba(239,68,68,0.12); color: #ef4444; }
     .history-mode-badge.inspiration { background: rgba(139,92,246,0.12); color: #a78bfa; }
 
-    .dash-bottom-bar { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 2px; }
+    .dash-bottom-bar { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 3px 0 1px; }
     .dash-trust-labels { display: flex; justify-content: center; gap: 14px; }
     .dash-trust-labels span { font-size: 10px; color: var(--text-muted); }
-    .dash-footer { display: block; text-align: center; padding: 2px 24px 6px; color: var(--text-muted); font-size: 10px; }
+    .dash-footer { display: block; text-align: center; padding: 1px 24px 4px; color: var(--text-muted); font-size: 10px; }
 
     /* ── Save Button ── */
     .save-section { padding: 4px 0; }
@@ -285,10 +289,9 @@
     <div class="screen screen-dashboard" id="screenDashboard">
       <div class="dash-inner">
 
-        <!-- TOP GROUP: flows naturally -->
-        <div class="dash-top-group">
+        <!-- GROUP 1: Logo + Trust + Modes (top) -->
+        <div class="dg-1">
 
-          <!-- Logo + subtitle -->
           <div class="dash-header fade-slide-up">
             <div class="logo-icon-sm">🛠️</div>
             <div>
@@ -297,10 +300,8 @@
             </div>
           </div>
 
-          <!-- Trust capsule -->
           <div class="trust-capsule fade-slide-up stagger-1">💚 €14.250 bespaard door gebruikers</div>
 
-          <!-- Mode Selector -->
           <div class="mode-selector fade-slide-up stagger-1">
             <button class="mode-btn mode-active" id="modeDamage" onclick="setMode('damage')">
               <span class="mode-icon">🚨</span>
@@ -314,8 +315,39 @@
             </button>
           </div>
 
-          <!-- Primary actions -->
-          <div class="cta-wrap fade-slide-up stagger-2">
+        </div>
+
+        <!-- GROUP 2: 3 Explanation cards (middle) -->
+        <div class="dg-2">
+          <div class="info-card fade-slide-up stagger-1">
+            <div class="info-icon">🛠️</div>
+            <div class="info-content">
+              <div class="info-title">Scan de schade</div>
+              <div class="info-desc">Maak een foto van het probleem — AI analyseert direct.</div>
+            </div>
+          </div>
+          <div class="info-card fade-slide-up stagger-2">
+            <div class="info-icon">💰</div>
+            <div class="info-content">
+              <div class="info-title">Vergelijk kosten</div>
+              <div class="info-desc">Zelf doen vs. laten doen — zie je besparing.</div>
+            </div>
+          </div>
+          <div class="info-card fade-slide-up stagger-3">
+            <div class="info-icon">📋</div>
+            <div class="info-content">
+              <div class="info-title">Fix het zelf</div>
+              <div class="info-desc">Materialenlijst + stappenplan direct in beeld.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GROUP 3: CTA + History + Footer (bottom) -->
+        <div class="dg-3">
+
+          <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
+
+          <div class="cta-wrap fade-slide-up stagger-3">
             <button class="cta-btn" id="ctaButton" onclick="openCamera()">
               <span class="cta-icon">📸</span>
               <span class="cta-text" id="ctaText">Scan met camera</span>
@@ -327,30 +359,6 @@
             <div class="cta-sub">Gratis • Geen account • 5 seconden</div>
           </div>
 
-          <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
-
-          <!-- 3 compact explain blocks -->
-          <div class="explain-row fade-slide-up stagger-3">
-            <div class="explain-item">
-              <span class="explain-icon">🛠️</span>
-              <span class="explain-text">Scan & AI analyse</span>
-            </div>
-            <div class="explain-item">
-              <span class="explain-icon">💰</span>
-              <span class="explain-text">Kosten vergelijken</span>
-            </div>
-            <div class="explain-item">
-              <span class="explain-icon">📋</span>
-              <span class="explain-text">Materialen + stappen</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- BOTTOM GROUP: pinned to bottom -->
-        <div class="dash-bottom-group">
-
-          <!-- History accordion -->
           <div class="history-section" id="historySection">
             <div class="history-header" onclick="toggleHistory()">
               <span>📂 Opgeslagen scans</span>
@@ -362,7 +370,6 @@
             </div>
           </div>
 
-          <!-- Trust labels + Footer -->
           <div class="dash-bottom-bar">
             <div class="dash-trust-labels">
               <span>🔒 Privacy first</span>
