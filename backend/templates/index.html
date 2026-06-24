@@ -43,7 +43,8 @@
       background: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -73,7 +74,7 @@
 
     /* ── Dashboard ── */
     .steps, .trust-banner, .dash-top, .stats-strip, .dash-bottom, .trust-bar, .explain-row { display: none; }
-    .dash-inner { max-width: 480px; margin: 0 auto; padding: 8px 16px 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; width: 100%; overflow: hidden; }
+    .dash-inner { max-width: 480px; margin: 0 auto; padding: 8px 16px 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; width: 100%; overflow-y: auto; overflow-x: hidden; }
     .screen-dashboard { flex: 1; background: var(--bg-primary); position: relative; z-index: 1; }
 
     /* GROUP 1: Top */
@@ -163,7 +164,7 @@
     .camera-wrap { display: flex; flex-direction: column; background: #000; position: relative; flex: 1; min-height: 100vh; }
     #video { width: 100%; flex: 1; object-fit: cover; display: block; min-height: 300px; background: #000; }
     #canvas { display: none; }
-    #snapshot { width: 100%; flex: 1; object-fit: contain; display: none; background: #000; min-height: 300px; }
+    #snapshot { width: 100%; display: none; background: #000; max-height: 50vh; object-fit: contain; }
     .cam-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; pointer-events: none; }
     .cam-overlay > * { pointer-events: auto; }
     .cam-badge {
@@ -203,7 +204,7 @@
     .card-header { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; color: var(--text-secondary); }
     .card-header .emoji { font-size: 16px; }
     .card-body { padding: 18px; }
-    .res-thumb { width: 100%; max-height: 200px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 14px; }
+    .res-thumb { width: 100%; max-height: 250px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 10px; }
     .res-type { font-size: 22px; font-weight: 800; color: var(--text-primary); text-transform: capitalize; margin-bottom: 6px; }
     .res-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
     .badge { display: inline-flex; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
@@ -638,7 +639,7 @@ async function analyze() {
       document.getElementById("loadingWrap").classList.remove("active");
       document.getElementById("resultsWrap").classList.add("active");
       document.querySelector(".dash-footer").style.display = "none";
-      showClarification(result.questions);
+            showClarification(result.questions);
       return;
     }
 
@@ -792,6 +793,8 @@ function showResults(r) {
     if (r.colors && r.colors.length) {
       document.getElementById("costCard").style.display = "block";
       document.getElementById("costCard").querySelector(".card-header").innerHTML = '<span class="emoji">🎨</span> Kleurenpalet';
+      // Change "Zelf doen" label to "Kleuren" in inspiration mode
+      document.querySelector(".cost-box.diy .cost-label").textContent = "🎨 Kleuren";
       document.getElementById("costDiy").textContent = r.colors.join(" • ");
       document.getElementById("costPro").textContent = "";
       document.getElementById("costPro").parentElement.style.display = "none";
@@ -987,7 +990,6 @@ function loadHistoryItem(idx) {
   document.getElementById("historyArrow").classList.remove("open");
 
   // Go to dashboard first, then simulate results
-  document.getElementById("screenDashboard").classList.remove("hidden");
   document.getElementById("screenCamera").classList.add("hidden");
   document.getElementById("loadingWrap").classList.remove("active");
   document.getElementById("resultsWrap").classList.add("active");
