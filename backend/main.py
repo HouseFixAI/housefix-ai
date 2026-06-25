@@ -19,6 +19,7 @@ def static_files(filename):
 FALLBACK_ISSUES = [
     {
         "issue_type": "scheur in muur",
+        "building_element": "muur",
         "description": "Een zichtbare scheur in de gipsmuur, waarschijnlijk veroorzaakt door verzakking of kleine structurele beweging. Meestal oppervlakkig en te repareren met plamuur en verf.",
         "cost_range": "€50 - €150",
         "confidence": "medium",
@@ -29,6 +30,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "lekkage loodgieter",
+        "building_element": "leiding",
         "description": "Water dat lekt uit een pijpverbinding of kraan. Dit kan komen door een losse verbinding, versleten rubbers of pijpcorrosie die vervanging nodig heeft.",
         "cost_range": "€120 - €500",
         "confidence": "medium",
@@ -39,6 +41,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "verfbladderen",
+        "building_element": "muur",
         "description": "Verf die borrelt en bladdert van het muuroppervlak, vaak door vocht eronder of slechte voorbereiding van de ondergrond voor het schilderen.",
         "cost_range": "€80 - €400",
         "confidence": "high",
@@ -49,6 +52,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "verstopte afvoer",
+        "building_element": "leiding",
         "description": "Langzame of geblokkeerde afvoer in gootsteen, douche of toilet. Waarschijnlijk veroorzaakt door haar, vet of ophoping van vuil in de leiding.",
         "cost_range": "€60 - €280",
         "confidence": "high",
@@ -59,6 +63,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "defect stopcontact",
+        "building_element": "muur",
         "description": "Het stopcontact werkt niet of valt uit. Dit kan een gesprongen zekering, losse bedrading of een defect stopcontact zijn dat vervangen moet worden.",
         "cost_range": "€80 - €200",
         "confidence": "medium",
@@ -69,6 +74,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "gebroken raam",
+        "building_element": "kozijn",
         "description": "Een gebarsten of kapotte ruit. Vereist glasvervanging en professionele installatie voor een goede afdichting en veiligheid.",
         "cost_range": "€150 - €500",
         "confidence": "high",
@@ -79,6 +85,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "overwoekerde tuin",
+        "building_element": "tuin",
         "description": "Overmatige onkruidgroei, overwoekerde struiken of onverzorgd gazon dat gesnoeid, gewied en algemeen tuinonderhoud nodig heeft.",
         "cost_range": "€80 - €320",
         "confidence": "medium",
@@ -89,6 +96,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "houtrot",
+        "building_element": "kozijn",
         "description": "Aangetast of rottend hout op terras, schutting of raamkozijn door langdurige blootstelling aan vocht. Aangetaste delen moeten worden verwijderd en vervangen.",
         "cost_range": "€250 - €1,000",
         "confidence": "medium",
@@ -99,6 +107,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "gebarsten tegel",
+        "building_element": "vloer",
         "description": "Gebroken of gebarsten keramische tegel op vloer of muur. Vereist verwijdering van de tegel, voorbereiding van de lijm en plaatsing van een nieuwe tegel.",
         "cost_range": "€120 - €400",
         "confidence": "high",
@@ -109,6 +118,7 @@ FALLBACK_ISSUES = [
     },
     {
         "issue_type": "lekkende kraan",
+        "building_element": "leiding",
         "description": "Een druppelende kraan die water verspilt, meestal veroorzaakt door een versleten rubbers, O-ring of patroon die vervangen moet worden.",
         "cost_range": "€60 - €160",
         "confidence": "high",
@@ -121,6 +131,14 @@ FALLBACK_ISSUES = [
 
 SYSTEM_PROMPT = (
     "You are a critical Dutch home repair expert. You analyze photos of home issues.\n\n"
+    "STRUCTURED APPROACH — First identify WHAT you are looking at, THEN check for damage:\n"
+    "• STEP 1: Determine the building element in the photo. "
+    "Is it a wall, ceiling, floor, roof, window/door frame, pipe/installation, tile work, "
+    "or something else (garden, furniture, etc.)? Be specific.\n"
+    "• STEP 2: Only within that building element context, check if there is ACTUAL visible "
+    "damage, wear, or a problem. For example, 'plafond' has different problems than 'vloer' "
+    "or 'leiding'. Roof issues involve leaks, wall issues involve cracks, pipe issues involve "
+    "leaks or blockages.\n\n"
     "CRITICAL SELF-CHECK - First: is there ACTUAL visible damage, wear, or a problem?\n"
     "• If the wall, floor, ceiling, surface, or object looks NORMAL, HEALTHY, and UNDAMAGED "
     "(even if old or weathered), then do NOT invent a problem. Return exactly this: "
@@ -137,14 +155,18 @@ SYSTEM_PROMPT = (
     "{\"error\": \"⚠️ HouseFix AI is speciaal ontworpen voor klussen, objecten en schade in of rondom het huis. Richt de camera alstublieft op het specifieke klusprobleem.\"}\n"
     "2. If the image clearly shows something completely unrelated to home repair (a car, food, landscape, phone screen, etc.), STOP and return exactly this: "
     "{\"error\": \"🔍 Dit object of deze situatie wordt niet herkend als een klusprobleem. Maak een nieuwe, duidelijke foto van de schade of het object.\"}\n\n"
-    "UNCERTAIN - If you are not confident (less than 90% sure what the issue is), or the image shows a plain wall/floor/ceiling without visible damage, then do NOT guess. Instead return: "
+    "UNCERTAIN - If you are not confident (less than 90% sure what the issue is OR less than "
+    "80% sure what building element it is), or the image shows a plain wall/floor/ceiling "
+    "without visible damage, then do NOT guess. Instead return: "
     "{\"needs_clarification\": true, \"questions\": ["
+    "{\"id\": \"element\", \"question\": \"🏗️ Wat voor onderdeel van het huis is dit?\", \"options\": [\"Muur\", \"Plafond\", \"Vloer\", \"Dak\", \"Kozijn/raam\", \"Leiding/kraan\", \"Tegelwerk\", \"Tuin\", \"Anders\"]},"
     "{\"id\": \"size\", \"question\": \"📏 Hoe groot is het probleem ongeveer?\", \"options\": [\"Klein (pleisterformaat)\", \"Middel (handformaat)\", \"Groot (groter dan 50 cm)\"]},"
     "{\"id\": \"location\", \"question\": \"🏠 Is het binnen of buiten?\", \"options\": [\"Binnen\", \"Buiten\"]},"
-    "{\"id\": \"water\", \"question\": \"💧 Komt er vocht/natte plekken bij kijken?\", \"options\": [\"Ja, het is nat\", \"Nee, het is droog\", \"Weet ik niet\"]},"
-    "{\"id\": \"timing\", \"question\": \"⏰ Sinds wanneer speelt dit?\", \"options\": [\"Net ontdekt\", \"Enkele dagen\", \"Weken of langer\"]}"
+    "{\"id\": \"water\", \"question\": \"💧 Komt er vocht/natte plekken bij kijken?\", \"options\": [\"Ja, het is nat\", \"Nee, het is droog\", \"Weet ik niet\"]}"
     "]}\n\n"
-    "ONLY if there is CLEAR, VISIBLE damage AND you are at least 90% confident, analyze it and return valid JSON with these keys:\n"
+    "ONLY if there is CLEAR, VISIBLE damage AND you are at least 90% confident AND at least "
+    "80% confident of the building element, analyze it and return valid JSON with these keys:\n"
+    "building_element (the identified element: muur/plafond/vloer/dak/kozijn/leiding/tegelwerk/tuin/overig),\n"
     "issue_type (short, precise label in Dutch, 1-3 words like 'scheur in muur'),\n"
     "description (1-2 concise sentences in Dutch explaining the problem and what causes it),\n"
     "steps (an array of 4-5 short, direct DIY repair steps in Dutch),\n"
@@ -153,7 +175,7 @@ SYSTEM_PROMPT = (
     "cost_pro (string like '€100 - €250' for professional including travel costs),\n"
     "cost_range (string like '€50 - €250' overall range),\n"
     "confidence (high/medium/low).\n"
-    "Always return ALL 8 fields for a full analysis. Be extremely precise with costs. "
+    "Always return ALL 9 fields for a full analysis. Be extremely precise with costs. "
     "BETTER TO RETURN 'no_damage' THAN TO INVENT A PROBLEM THAT DOESN'T EXIST."
 )
 
