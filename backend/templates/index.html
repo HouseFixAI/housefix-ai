@@ -227,6 +227,8 @@
     .step-txt { font-size: 13px; color: var(--text-secondary); line-height: 1.5; padding-top: 2px; }
 
     .material-tag { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; font-size: 12px; color: var(--text-secondary); font-weight: 500; margin: 0 5px 5px 0; }
+    .color-swatch { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin: 0 4px 4px 0; white-space: nowrap; }
+    .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .gamma-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: #e60005; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 13px; margin-top: 8px; }
 
     .filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -795,17 +797,42 @@ function showResults(r) {
       document.getElementById("resultType").innerHTML = r.style + ' <span style="font-size:12px;color:var(--text-muted);font-weight:400;display:block;margin-top:2px">' + ssHtml + '</span>';
     }
 
-    // Colors
+    // Colors — visual swatches with color matching
     if (r.colors && r.colors.length) {
       document.getElementById("costCard").style.display = "block";
       document.getElementById("costCard").querySelector(".card-header").innerHTML = '<span class="emoji">🎨</span> Kleurenpalet';
-      // Change "Zelf doen" label to "Kleuren" in inspiration mode
       document.querySelector(".cost-box.diy .cost-label").textContent = "🎨 Kleuren";
-      document.getElementById("costDiy").textContent = r.colors.join(" • ");
+      // Try to show visual color swatches with a simple color-name matcher
+      const colorHex = {
+        'wit':'#ffffff','beige':'#f5f0e1','crème':'#fff8e7','zand':'#d4c5a9',
+        'grijs':'#9e9e9e','antraciet':'#404040','zwart':'#222222',
+        'bruin':'#8d6e63','koffie':'#6d4c41','taupe':'#b8a99a',
+        'groen':'#66bb6a','olijfgroen':'#8d9b6a','mint':'#a5d6a7','saliegroen':'#b5c9a3',
+        'blauw':'#64b5f6','lichtblauw':'#90caf9','donkerblauw':'#3949ab','navy':'#1a237e',
+        'rood':'#e57373','bordeaux':'#8e2430','roze':'#f48fb1','lichtroze':'#f8bbd0',
+        'geel':'#ffd54f','mosterd':'#f4c842','oranje':'#ffb74d','koper':'#d4935a',
+        'paars':'#ab47bc','lila':'#ce93d8','goud':'#d4a847','zilver':'#bdbdbd',
+        'hout':'#a58a6f','naturel':'#d4c4a8'
+      };
+      const swatches = r.colors.map(c => {
+        const low = c.toLowerCase();
+        let hex = '#cccccc';
+        for (const [key, val] of Object.entries(colorHex)) {
+          if (low.includes(key)) { hex = val; break; }
+        }
+        return `<span class="color-swatch"><span class="color-dot" style="background:${hex};${hex==='#ffffff'?'border:1px solid rgba(255,255,255,0.2)':''}"></span>${c}</span>`;
+      }).join(' ');
+      document.getElementById("costDiy").innerHTML = swatches;
       document.getElementById("costPro").textContent = "";
       document.getElementById("costPro").parentElement.style.display = "none";
     } else {
       document.getElementById("costCard").style.display = "none";
+    }
+
+    // Styling tip
+    if (r.styling_tip) {
+      document.getElementById("saveBtn").textContent = "💡 " + r.styling_tip;
+      document.getElementById("saveBtn").classList.add("saved");
     }
 
     // Materials
