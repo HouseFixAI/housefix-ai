@@ -789,6 +789,12 @@ function showResults(r) {
     const b = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } }[conf] || { c: "badge-medium", l: "Gemiddeld" };
     document.getElementById("resultBadge").innerHTML = `<span class="badge ${b.c}">${b.l}</span>`;
 
+    // Similar styles
+    if (r.similar_styles && r.similar_styles.length) {
+      const ssHtml = r.similar_styles.map(s => `<span class="material-tag">✨ ${s}</span>`).join("");
+      document.getElementById("resultType").innerHTML = r.style + ' <span style="font-size:12px;color:var(--text-muted);font-weight:400;display:block;margin-top:2px">' + ssHtml + '</span>';
+    }
+
     // Colors
     if (r.colors && r.colors.length) {
       document.getElementById("costCard").style.display = "block";
@@ -815,12 +821,12 @@ function showResults(r) {
       document.getElementById("materialsCard").style.display = "none";
     }
 
-    // DIY tips
-    if (r.diy_tips && r.diy_tips.length) {
+    // Matching stores
+    if (r.matching_stores && r.matching_stores.length) {
       document.getElementById("stepsCard").style.display = "block";
-      document.getElementById("stepsCard").querySelector(".card-header").innerHTML = '<span class="emoji">💡</span> DIY Inspiratie';
-      document.getElementById("stepsBody").innerHTML = r.diy_tips.map((s, i) =>
-        `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`
+      document.getElementById("stepsCard").querySelector(".card-header").innerHTML = '<span class="emoji">🛍️</span> Shopadvies';
+      document.getElementById("stepsBody").innerHTML = r.matching_stores.map(s =>
+        `<div class="step-item"><div class="step-num">🏪</div><div class="step-txt">${s}</div></div>`
       ).join("");
     } else {
       document.getElementById("stepsCard").style.display = "none";
