@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import json
 import random
+import uuid
+import time
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -211,9 +213,11 @@ SYSTEM_PROMPT = (
 
 INSPIRATION_PROMPT = (
     "You are a warm, betrokken en deskundige persoonlijke interieuradviseur. Een "
-    "gebruiker heeft je een foto gestuurd en vraagt om hulp. Jouw taak is niet om "
-    "de foto te beschrijven, maar om de gebruiker te helpen zijn interieur mooier "
-    "te maken. De foto is je vertrekpunt — de gebruiker staat centraal.\n\n"
+    "gebruiker heeft je een foto gestuurd met een specifiek doel. Jouw taak is om "
+    "gepersonaliseerd advies te geven op basis van de foto EN het doel van de gebruiker.\n\n"
+    "De gebruiker heeft eerst een oriëntatie-fase doorlopen waarin je de stijl hebt "
+    "herkend. Nu heeft hij/zij een doel gekozen. Gebruik de oriëntatie-context en "
+    "het doel om advies op maat te geven.\n\n"
     "STRUCTURED APPROACH:\n"
     "STEP 1 — Identify the style and explain why it fits. Kijk naar de foto en reageer "
     "natuurlijk. Begin niet met 'deze ruimte heeft...' maar reageer zoals je tegen "
@@ -233,14 +237,9 @@ INSPIRATION_PROMPT = (
     "{\"error\": \"⚠️ HouseFix AI Interieur kan geen gezichten of dieren analyseren. Richt op het interieur.\"}\n"
     "• If the image is completely unrelated (car, food, landscape, screen), STOP and return: "
     "{\"error\": \"🔍 Dit is niet herkend als interieur- of designfoto. Probeer een foto van een ruimte, meubel of materiaal.\"}\n\n"
-    "If you are uncertain about what you see, return: "
-    "{\"needs_clarification\": true, \"questions\": ["
-    "{\"id\": \"room\", \"question\": \"🏠 Welke ruimte is dit?\", \"options\": [\"Woonkamer\", \"Slaapkamer\", \"Keuken\", \"Badkamer\", \"Entree/gang\"]},"
-    "{\"id\": \"goal\", \"question\": \"🎯 Wat wil je met deze inspiratie doen?\", \"options\": [\"Ik wil deze look namaken — geef me winkeladvies\", \"Ik wil mijn interieur verbeteren — geef me haalbare tips\", \"Ik zoek inspiratie voor een nieuwe stijlrichting\", \"Ik ben gewoon benieuwd — vertel me wat dit is\"]}"
-    "]}\n\n"
     "═══ GOAL PERSONALIZATION ═══\n"
     "PAS JE ADVIES AAN OP BASIS VAN HET DOEL VAN DE GEBRUIKER.\n"
-    "De gebruiker kan een doel aangeven. Als dat gebeurt, verander dan JE HELE OUTPUT — "
+    "De gebruiker heeft een doel gekozen. Verander JE HELE OUTPUT op basis van dit doel — "
     "niet alleen de toon, maar ook de inhoud en nadruk van elk JSON-veld.\n\n"
     "Per doel pas je deze velden aan:\n\n"
     "DOEL 1 — 'Ik wil deze look namaken — geef me winkeladvies'\n"
@@ -297,17 +296,13 @@ INSPIRATION_PROMPT = (
     "op dit materiaal valt — dat maakt de sfeer.'\n"
     "  gamma_tips: Leeg — niet nodig tenzij expliciet gevraagd.\n"
     "  confidence: Altijd 'high' als je zeker bent — twijfel niet bij dit doel.\n\n"
-    "GEEN DOEL BEKEND: Als de gebruiker geen doel heeft opgegeven, geef dan een "
-    "gebalanceerd advies dat alle vier de doelen een beetje bedient — beschrijving, "
-    "winkeltips, kleuradvies en een stylingtip. Maar het beste is als de gebruiker "
-    "wel een doel kiest, want DAN kun je écht persoonlijk advies geven.\n\n"
     "═══ EINDE PERSONALISATIE ═══\n\n"
-    "OTHERWISE, return valid JSON with these keys:\n"
+    "Return valid JSON with these keys:\n"
     "style (short description of the interior style in Dutch),\n"
     "description (2-4 sentences in Dutch. Begin met een enthousiaste, natuurlijke "
     "reactie op de foto — 'Wat mooi!' of 'Dit is echt een prachtige ruimte!'. "
     "Vertel daarna waarom de stijl werkt: welke kleuren, materialen, meubels en "
-    "licht zorgen voor de sfeer. PAS AAN OP BASIS VAN HET DOEL (zie hierboven). "
+    "licht zorgen voor de sfeer. PAS AAN OP BASIS VAN HET DOEL. "
     "Leg uit waarom de geadviseerde producten, kleuren en stijl juist bij deze "
     "specifieke ruimte passen — niet alleen in het algemeen. "
     "Het mag niet klinken als een rapport of beschrijving — het moet voelen "
@@ -329,6 +324,76 @@ INSPIRATION_PROMPT = (
     "echt advies van iemand die verstand heeft van interieur. "
     "Never mention damage, repair, or problems."
 )
+
+ORIENTATION_PROMPT = (
+    "You are a warm, betrokken interieuradviseur. Een gebruiker stuurt je een foto "
+    "van zijn/haar interieur en wil een eerste indruk.\n\n"
+    "Jouw taak is om een ORIËNTATIE te geven — dit is stap 1 van een gesprek. "
+    "Je geeft NOG GEEN shopadvies, kleuradvies, stappenplan of stylingtips. "
+    "Alleen een warme reactie en herkenning van de stijl.\n\n"
+    "Reageer natuurlijk, alsof je tegen een vriend(in) praat die je zijn/haar "
+    "nieuwe interieur laat zien. 'Wat een ontzettend mooie kamer!' of "
+    "'Oh, dit is echt een plaatje! Wat een sfeer!'\n\n"
+    "Benoem de stijl (Scandinavisch, Japandi, Modern, Industrieel, Bohemian, "
+    "Klassiek, etc.) en vertel kort waarom het werkt — welke kleuren, materialen "
+    "en elementen de sfeer bepalen.\n\n"
+    "ABSOLUTELY FORBIDDEN: You MUST NOT look for damage, cracks, leaks, rot, peeling paint, or repairs. "
+    "This is an INSPIRATION mode.\n"
+    "• Chairs, tables, sofas, beds, carpets, curtains, lamps are INTERIOR OBJECTS — not damage.\n"
+    "• Clean concrete, brick, rough wood, worn surfaces are DESIGN CHOICES — not damage.\n"
+    "• NEVER mention products, stores, prices, or shopping advice.\n"
+    "• NEVER give step-by-step plans or DIY instructions.\n"
+    "• If you see a person, face, animal, or pet, return: "
+    "{\"error\": \"⚠️ HouseFix AI kan geen gezichten of dieren analyseren. Richt op het interieur.\"}\n"
+    "• If the image is completely unrelated, return: "
+    "{\"error\": \"🔍 Dit is niet herkend als interieurfoto. Probeer een foto van een ruimte of interieur.\"}\n\n"
+    "Altijd je beste interpretatie geven — nooit om verduidelijking vragen. "
+    "Zelfs als je niet 100% zeker bent, geef dan je beste inschatting.\n\n"
+    "Return valid JSON with these keys:\n"
+    "style (korte stijlbenaming in het Nederlands, 1-3 woorden, e.g. 'Scandinavisch' or 'Modern industrieel'),\n"
+    "reaction (1 warme zin als eerste reactie, natuurlijk en enthousiast, "
+    "alsof je tegen een vriend praat, e.g. 'Wat een prachtige, lichte kamer!'),\n"
+    "style_explanation (1-2 zinnen over waarom deze stijl werkt — welke kleuren, "
+    "materialen en elementen de sfeer bepalen. Niet alleen beschrijven, maar uitleggen "
+    "waarom het bij elkaar past),\n"
+    "vibe (1 woord dat de sfeer beschrijft, e.g. 'rustig', 'speels', 'luxe', 'warm', 'fris'),\n"
+    "confidence (high/medium/low — wees eerlijk maar geef altijd je beste gok).\n"
+    "Always return ALL 5 fields."
+)
+
+# ── Session Cache for multi-step conversation ──
+SESSION_CACHE = {}
+SESSION_TTL = 3600  # 1 hour
+
+def create_session(image_b64, orient_result):
+    session_id = str(uuid.uuid4())
+    SESSION_CACHE[session_id] = {
+        'image': image_b64,
+        'orient': orient_result,
+        'created_at': time.time()
+    }
+    return session_id
+
+def get_session(session_id):
+    session = SESSION_CACHE.get(session_id)
+    if session and time.time() - session['created_at'] < SESSION_TTL:
+        return session
+    return None
+
+def cleanup_sessions():
+    now = time.time()
+    expired = [sid for sid, s in SESSION_CACHE.items()
+               if now - s['created_at'] > SESSION_TTL]
+    for sid in expired:
+        del SESSION_CACHE[sid]
+
+# ── Fallback orientation data ──
+FALLBACK_ORIENT = [
+    {"style": "Scandinavisch", "reaction": "Wat een prachtige, lichte ruimte!", "style_explanation": "Deze stijl draait om eenvoud, natuurlijke materialen en licht. Wit houtwerk, lichte meubels en groene planten zorgen voor een rustige, frisse uitstraling.", "vibe": "rustig", "confidence": "high"},
+    {"style": "Modern industrieel", "reaction": "Wow, wat een gave industriële uitstraling!", "style_explanation": "Ruwe materialen zoals beton en staal, gecombineerd met warm hout en leer. Open ruimtes met hoge plafonds en grote ramen kenmerken deze stijl.", "vibe": "stoer", "confidence": "high"},
+    {"style": "Japandi", "reaction": "Wat een serene, minimalistische schoonheid!", "style_explanation": "De perfecte balans tussen Japanse eenvoud en Scandinavische gezelligheid. Natuurlijke materialen, neutrale kleuren en strakke lijnen creëren rust.", "vibe": "harmonisch", "confidence": "medium"},
+    {"style": "Bohemian", "reaction": "Wat een heerlijk eclectische mix!", "style_explanation": "Kleurrijke texturen, wereldse accessoires en een ontspannen sfeer. Veel planten, kussens en unieke vondsten maken deze stijl persoonlijk en warm.", "vibe": "vrij", "confidence": "medium"},
+]
 
 
 @app.route("/")
@@ -357,15 +422,20 @@ def list_providers():
 
 @app.route("/api/analyze", methods=["POST"])
 def analyze_image():
-    """Single unified endpoint for all analysis.
+    """Multi-step analysis endpoint.
     
     Accepts:
       - image (base64)
       - mode: "damage" | "inspiration"
-      - answers (optional): list of {question, answer} from clarification step
+      - step: "orient" (inspiration step 1) | "advise" (inspiration step 2)
+      - session_id (for step 2)
+      - goal (for step 2: the user's chosen archetype)
     
-    Returns repair analysis (damage mode), style analysis (inspiration mode),
-    clarification questions, or safety warnings.
+    Flow for inspiration mode:
+      1. POST with step="orient" → returns orientation + session_id
+      2. POST with step="advise" + session_id + goal → returns personalized advice
+    
+    Damage mode: unchanged (single step).
     """
     import re as regex_module
 
@@ -379,19 +449,120 @@ def analyze_image():
 
     image_base64 = data["image"]
     mode = data.get("mode", "damage")
-    answers = data.get("answers", None)
+    step = data.get("step", None)
 
     if not isinstance(image_base64, str) or len(image_base64) < 100:
         return jsonify({"error": "Invalid image data"}), 400
 
-    # If no API key, return fallback
+    # If no API key, return fallback (damage mode) or orientation fallback
     if not OPENAI_API_KEY:
+        if mode == "inspiration" and step == "orient":
+            fallback = random.choice(FALLBACK_ORIENT)
+            session_id = create_session(image_base64, fallback)
+            return jsonify({"orient": fallback, "session_id": session_id})
+        elif mode == "inspiration" and step == "advise":
+            return jsonify(random.choice(FALLBACK_ISSUES))
         return jsonify(random.choice(FALLBACK_ISSUES))
 
-    # Choose prompt based on mode
+    # ── INSPIRATION MODE: STEP 1 — Orientation ──
+    if mode == "inspiration" and step == "orient":
+        try:
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": ORIENTATION_PROMPT},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Geef een eerste indruk van deze ruimte."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}},
+                        ],
+                    },
+                ],
+                max_tokens=400,
+                temperature=0.3,
+            )
+            message = response.choices[0].message.content
+            json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                if isinstance(parsed, dict) and "error" in parsed:
+                    return jsonify({"warning": parsed["error"]})
+                # Store in session cache
+                session_id = create_session(image_base64, parsed)
+                return jsonify({"orient": parsed, "session_id": session_id})
+        except Exception as e:
+            app.logger.error(f"Orientation error: {e}")
+            fallback = random.choice(FALLBACK_ORIENT)
+            session_id = create_session(image_base64, fallback)
+            return jsonify({"orient": fallback, "session_id": session_id})
+        return jsonify({"orient": random.choice(FALLBACK_ORIENT)})
+
+    # ── INSPIRATION MODE: STEP 2 — Personalized Advice ──
+    if mode == "inspiration" and step == "advise":
+        session_id = data.get("session_id", "")
+        goal = data.get("goal", "")
+        session = get_session(session_id)
+
+        # Build context from session
+        context_parts = []
+        if session:
+            orient = session.get('orient', {})
+            context_parts.append(f"Eerste indruk van deze ruimte: {orient.get('style', 'onbekend')} — {orient.get('style_explanation', '')}")
+            context_parts.append(f"Sfeer: {orient.get('vibe', '')}")
+            # Use stored image
+            image_base64 = session.get('image', image_base64)
+        else:
+            context_parts.append("Geen eerdere sessie gevonden — geef advies op basis van de foto alleen.")
+
+        if goal:
+            context_parts.append(f"DOEL VAN DE GEBRUIKER: {goal}")
+
+        user_context = "\n".join(context_parts)
+
+        try:
+            client = OpenAI(api_key=OPENAI_API_KEY)
+            full_prompt = INSPIRATION_PROMPT + (
+                f"\n\nCONTEXT VAN EERDERE STAP:\n{user_context}\n\n"
+                "Gebruik deze context om je advies te personaliseren. "
+                "Het doel van de gebruiker is hierboven vermeld — pas je hele advies daarop aan."
+            )
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": full_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Geef gepersonaliseerd advies op basis van de context en het doel."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}},
+                        ],
+                    },
+                ],
+                max_tokens=700,
+                temperature=0.2,
+            )
+            message = response.choices[0].message.content
+            json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group())
+                if isinstance(parsed, dict) and "error" in parsed:
+                    return jsonify({"warning": parsed["error"]})
+                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed):
+                    return jsonify(parsed)
+        except Exception as e:
+            app.logger.error(f"Advise error: {e}")
+            return jsonify({"error": str(e)}), 500
+
+        return jsonify({"style": "Stijl niet herkend", "description": "Er is iets misgegaan bij het genereren van het advies.", "confidence": "low"})
+
+    # ── DAMAGE MODE OR LEGACY INSPIRATION (single step) ──
+    answers = data.get("answers", None)
     base_prompt = INSPIRATION_PROMPT if mode == "inspiration" else SYSTEM_PROMPT
 
-    # If clarification answers provided, append context
     if answers and len(answers) > 0:
         context_lines = [f"{a['question']} → {a['answer']}" for a in answers]
         user_context = "\n".join(context_lines)

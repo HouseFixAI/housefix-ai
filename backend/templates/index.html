@@ -244,7 +244,11 @@
           .accordion-inner { padding: 0; }
 
           .btn-reset-app { display: block; width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1.5px dashed var(--border-light); background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: all 0.3s; }
-          .btn-reset-app:hover { border-color: var(--terracotta); color: var(--terracotta); }
+              .btn-reset-app:hover { border-color: var(--terracotta); color: var(--terracotta); }
+
+              .goal-btn { display: block; width: 100%; padding: 14px 18px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-light); background: var(--bg-card); cursor: pointer; text-align: left; transition: all 0.2s; }
+              .goal-btn:hover { border-color: var(--terracotta); background: var(--terracotta-soft); }
+              .goal-btn:active { transform: scale(0.98); }
 
           .footer { text-align: center; padding: 20px 24px; color: var(--text-muted); font-size: 12px; }
           .dash-footer { display: block; text-align: center; padding: 8px 24px 12px; color: var(--text-muted); font-size: 12px; margin-top: 6px; }
@@ -641,43 +645,210 @@ function retake() {
 }
 
 /* ── Analyze ── */
-async function analyze() {
-  if (!imageBase64) return;
+    async function analyze() {
+      if (!imageBase64) return;
 
-  document.getElementById("screenCamera").classList.add("hidden");
-  document.getElementById("loadingWrap").classList.add("active");
+      document.getElementById("screenCamera").classList.add("hidden");
+      document.getElementById("loadingWrap").classList.add("active");
 
-  try {
-    const resp = await fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: imageBase64, mode: currentMode })
-    });
-    const result = await resp.json();
-    if (result.error) throw new Error(result.error);
+      // Inspiration mode: step 1 = orientation
+      if (currentMode === "inspiration") {
+        try {
+          const resp = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: imageBase64, mode: "inspiration", step: "orient" })
+          });
+          const result = await resp.json();
+          if (result.error) throw new Error(result.error);
+          if (result.warning) {
+            showWarning(result.warning);
+            return;
+          }
+          // Show orientation + archetype picker
+          document.getElementById("loadingWrap").classList.remove("active");
+          document.getElementById("resultsWrap").classList.add("active");
+          document.querySelector(".dash-footer").style.display = "none";
+          showOrientation(result.orient, result.session_id);
+          return;
+        } catch (e) {
+          alert("⚠️ " + e.message);
+          goHome();
+          return;
+        }
+      }
 
-    // GPT needs clarification (plain wall, uncertain)
-    if (result.needs_clarification && result.questions) {
+      // Damage mode: original flow
+      try {
+        const resp = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: imageBase64, mode: currentMode })
+        });
+        const result = await resp.json();
+        if (result.error) throw new Error(result.error);
+
+        // GPT needs clarification (plain wall, uncertain)
+        if (result.needs_clarification && result.questions) {
+          document.getElementById("loadingWrap").classList.remove("active");
+          document.getElementById("resultsWrap").classList.add("active");
+          document.querySelector(".dash-footer").style.display = "none";
+          showClarification(result.questions);
+          return;
+        }
+
+        const pResp = await fetch("/api/providers");
+        providers = await pResp.json();
+        showResults(result);
+
+      } catch (e) {
+        alert("⚠️ " + e.message);
+        goHome();
+      }
+
       document.getElementById("loadingWrap").classList.remove("active");
       document.getElementById("resultsWrap").classList.add("active");
       document.querySelector(".dash-footer").style.display = "none";
-            showClarification(result.questions);
-      return;
     }
 
-    const pResp = await fetch("/api/providers");
-    providers = await pResp.json();
-    showResults(result);
+    /* ── Show Orientation (Step 1) ── */
+    let currentSessionId = "";
+    let currentOrientResult = null;
 
-  } catch (e) {
-    alert("⚠️ " + e.message);
-    goHome();
-  }
+    function showOrientation(orient, sessionId) {
+      currentSessionId = sessionId;
+      currentOrientResult = orient;
 
-  document.getElementById("loadingWrap").classList.remove("active");
-  document.getElementById("resultsWrap").classList.add("active");
-  document.querySelector(".dash-footer").style.display = "none";
-}
+      const container = document.getElementById("resultContent");
+
+      const conf = orient.confidence || "medium";
+      const badgeMap = { high: "badge-high", medium: "badge-medium", low: "badge-low" };
+      const badgeClass = badgeMap[conf] || "badge-medium";
+      const labelMap = { high: "Hoge", medium: "Gemiddelde", low: "Lage" };
+
+      let html = `
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="padding:24px">
+            <div style="font-size:18px;line-height:1.6;color:var(--text-secondary);margin-bottom:12px">
+              ${orient.reaction || "Wat een mooie ruimte!"}
+            </div>
+            <div class="res-type" style="font-size:24px;margin-bottom:4px">${orient.style || "Stijl herkend"}</div>
+            <div style="margin-top:4px;margin-bottom:12px">
+              <span class="badge ${badgeClass}">${labelMap[conf] || "Medium"} zekerheid</span>
+              ${orient.vibe ? `<span class="badge" style="background:var(--sage-soft);color:var(--sage);margin-left:6px">${orient.vibe}</span>` : ""}
+            </div>
+            <div class="res-desc" style="font-size:15px;margin-bottom:8px">${orient.style_explanation || ""}</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-body" style="padding:24px">
+            <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:16px">
+              Wat wil je met deze inspiratie doen?
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="goal-btn" data-goal="Ik wil deze look namaken — geef me winkeladvies">
+                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">🛍️ Deze look namaken</span>
+                <span style="font-size:13px;color:var(--text-muted)">Winkeladvies, producten en prijzen</span>
+              </button>
+              <button class="goal-btn" data-goal="Ik wil mijn interieur verbeteren — geef me haalbare tips">
+                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">💡 Mijn interieur verbeteren</span>
+                <span style="font-size:13px;color:var(--text-muted)">Haalbare tips voor kleine aanpassingen</span>
+              </button>
+              <button class="goal-btn" data-goal="Ik zoek inspiratie voor een nieuwe stijlrichting">
+                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">🎨 Nieuwe stijlrichting ontdekken</span>
+                <span style="font-size:13px;color:var(--text-muted)">Inspiratie en verwante stijlen</span>
+              </button>
+              <button class="goal-btn" data-goal="Ik ben gewoon benieuwd — vertel me wat dit is">
+                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">👀 Gewoon benieuwd</span>
+                <span style="font-size:13px;color:var(--text-muted)">Uitleg over wat je ziet</span>
+              </button>
+            </div>
+          </div>
+        </div>`;
+
+      container.innerHTML = html;
+
+      // Attach click handlers for goal buttons
+      document.querySelectorAll(".goal-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const goal = this.dataset.goal;
+          submitGoal(goal);
+        });
+      });
+    }
+
+    /* ── Submit Goal (Step 2) ── */
+    async function submitGoal(goal) {
+      document.getElementById("loadingWrap").classList.add("active");
+      document.getElementById("resultsWrap").classList.remove("active");
+
+      try {
+        const resp = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: imageBase64,
+            mode: "inspiration",
+            step: "advise",
+            session_id: currentSessionId,
+            goal: goal
+          })
+        });
+        const result = await resp.json();
+        if (result.error) throw new Error(result.error);
+
+        const pResp = await fetch("/api/providers");
+        providers = await pResp.json();
+
+        document.getElementById("loadingWrap").classList.remove("active");
+        document.getElementById("resultsWrap").classList.add("active");
+        document.querySelector(".dash-footer").style.display = "none";
+
+        // Show the advice result with a "try another" button
+        showResults(result);
+        addTryAnotherButton();
+
+      } catch (e) {
+        alert("⚠️ " + e.message);
+        goHome();
+      }
+    }
+    
+    /* ── Show Warning ── */
+    function showWarning(warning) {
+      document.getElementById("loadingWrap").classList.remove("active");
+      document.getElementById("resultsWrap").classList.add("active");
+      document.querySelector(".dash-footer").style.display = "none";
+      const container = document.getElementById("resultContent");
+      container.innerHTML = `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div class="res-type" style="font-size:20px;color:var(--terracotta);margin-bottom:8px">⚠️ Niet herkend</div><div class="res-desc">${warning}</div></div></div>`;
+    }
+
+    /* ── Add "Try Another Goal" Button ── */
+    function addTryAnotherButton() {
+      const container = document.getElementById("resultsWrap");
+      const existing = document.getElementById("tryAnotherBtn");
+      if (existing) existing.remove();
+
+      const btn = document.createElement("button");
+      btn.id = "tryAnotherBtn";
+      btn.className = "btn-reset-app";
+      btn.textContent = "Probeer een ander doel";
+      btn.style.marginTop = "4px";
+      btn.addEventListener("click", function() {
+        document.getElementById("resultsWrap").classList.remove("active");
+        // Reset to show orientation + goals
+        document.getElementById("resultsWrap").classList.add("active");
+        document.getElementById("resultContent").innerHTML = "";
+        showOrientation(currentOrientResult, currentSessionId);
+        // Hide advise results
+        ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = "none";
+        });
+      });
+      container.appendChild(btn);
+    }
 
 /* ── Clarification Questions ── */
 let clarificationAnswers = [];
