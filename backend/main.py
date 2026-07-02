@@ -310,8 +310,22 @@ INSPIRATION_PROMPT = (
     "colors (an array of 4-6 specific colors in Dutch with paint brand suggestions, "
     "e.g. 'Flexa Natural Beige' or 'Histor Warm Zand'),\n"
     "materials (an array of visible materials in Dutch),\n"
-    "matching_stores (an array of 2-3 specific stores with product names, price ranges, "
-    "and why they match, e.g. 'IKEA SÖDERHAMN bank ~€600-900 — past door strakke lijnen'),\n"
+    "matching_stores (an array of 2-3 specific product recommendations, EACH as a JSON object:\n"
+    "  {\"store\": \"IKEA\", \"product\": \"KALLAX kast 147×77 cm\", \"price\": \"€89\", \"why\": \"Past door strakke lijnen bij de raamverdeling\"}\n"
+    "  - store: winkelnaam (IKEA, HEMA, Leen Bakker, etc.)\n"
+    "  - product: productnaam + maat/kleur specificatie\n"
+    "  - price: exacte prijs in € (niet 'ca.' of range)\n"
+    "  - why: waarom dit product past bij deze specifieke ruimte en stijl — niet algemeen, maar persoonlijk\n"
+    "),\n"
+    "options (an array of 2-3 personalized style variants, each as:\n"
+    "  {\"name\": \"Scandinavisch licht\", \"description\": \"Waarom deze variant werkt\", \"colors\": [...], \"materials\": [...], \"stores\": [same structure as matching_stores]}\n"
+    "  - name: korte variantnaam in Nederlands\n"
+    "  - description: waarom dit een goed alternatief is\n"
+    "  - colors: 3-4 kleuren specifiek voor deze variant\n"
+    "  - materials: 2-4 materialen specifiek voor deze variant\n"
+    "  - stores: 2-3 product recommendations — same object format as matching_stores\n"
+    "  Maak de eerste optie altijd de aanbevolen keuze (optie A). De andere opties zijn alternatieven.\n"
+    "),\n"
     "similar_styles (an array of 1-2 related style names with brief explanation),\n"
     "styling_tip (1 short, concrete tip in Dutch that the user can apply tomorrow — "
     "e.g. 'Voeg een rotan lamp toe voor een warme sfeer' or 'Een groot groen blad "
@@ -395,6 +409,167 @@ FALLBACK_ORIENT = [
     {"style": "Bohemian", "reaction": "Wat een heerlijk eclectische mix!", "style_explanation": "Kleurrijke texturen, wereldse accessoires en een ontspannen sfeer. Veel planten, kussens en unieke vondsten maken deze stijl persoonlijk en warm.", "vibe": "vrij", "confidence": "medium"},
 ]
 
+# ── Fallback inspiration advice data (Fase 3: structured stores + options) ──
+FALLBACK_INSPIRATION = [
+    {
+        "style": "Scandinavisch minimalisme",
+        "description": "Wat een rustgevende, lichte uitstraling! Deze ruimte ademt Scandinavische eenvoud: wit als basis, natuurlijke materialen en strakke lijnen. De kunst is dat het niet kaal aanvoelt — elk object heeft een doel en draagt bij aan de balans.",
+        "options": [
+            {
+                "name": "Scandinavisch licht",
+                "description": "Blijf bij de lichte, luchtige basis met warme houtaccenten.",
+                "colors": ["warm wit", "eiken", "saliegroen", "lichtgrijs"],
+                "materials": ["eiken", "linnen", "wol", "keramiek"],
+                "stores": [
+                    {"store": "IKEA", "product": "KALLAX kast 147×77 cm", "price": "€89", "why": "Rasterstructuur herhaalt de strakke architectuurlijnen zonder te overheersen."},
+                    {"store": "Leen Bakker", "product": "Linnen gordijn naturel 140×250 cm", "price": "€59,95", "why": "Linnen dempt licht op een zachte manier — precies wat deze ruimte nodig heeft."},
+                    {"store": "HEMA", "product": "Keramieken vaas mat wit 30 cm", "price": "€14,95", "why": "Eenvoudig en tijdloos — de perfecte accessoire voor deze strakke stijl."}
+                ]
+            },
+            {
+                "name": "Warm Scandinavisch",
+                "description": "Voeg diepte toe met warme accentkleuren zonder de rust te breken.",
+                "colors": ["terracotta", "crème", "koper", "mosterd"],
+                "materials": ["velours", "rotan", "koper", "eiken"],
+                "stores": [
+                    {"store": "IKEA", "product": "STRANDMAL hanglamp rotan", "price": "€39,95", "why": "Rotan geeft warmte en textuur — breekt het strakke zonder rommelig te worden."},
+                    {"store": "HEMA", "product": "Koperen kaarshouder set 3-stuks", "price": "€12,95", "why": "Koper accenten brengen licht en warmte in de ruimte, vooral in de avond."},
+                    {"store": "De Bommel", "product": "Velours kussen mosterd 45×45 cm", "price": "€24,99", "why": "Mosterd accent verbindt het warme hout met de lichte muur — een subtiele blikvanger."}
+                ]
+            },
+            {
+                "name": "Natuur-inspiratie",
+                "description": "Haal de buitenlucht naar binnen met organische vormen en aardse tinten.",
+                "colors": ["olijfgroen", "zand", "bruin", "crème"],
+                "materials": ["linnen", "keramiek", "rotan", "steen"],
+                "stores": [
+                    {"store": "Intratuin", "product": "Olijfboom 120 cm pot", "price": "€59,95", "why": "Een olijfboom brengt hoogte, textuur en een mediterraan gevoel — dé blikvanger."},
+                    {"store": "Leen Bakker", "product": "Rotan bijzettafel naturel", "price": "€44,95", "why": "Organische vorm die de strakke lijnen verzacht zonder te contrasteren."}
+                ]
+            }
+        ],
+        "colors": ["warm wit", "eiken", "saliegroen", "lichtgrijs"],
+        "materials": ["eiken", "linnen", "wol", "keramiek"],
+        "matching_stores": [
+            {"store": "IKEA", "product": "KALLAX kast 147×77 cm", "price": "€89", "why": "Past door strakke lijnen bij de ritmiek van de ruimte."},
+            {"store": "Leen Bakker", "product": "Linnen gordijn naturel", "price": "€59,95", "why": "Zachte lichtinval zonder de ruimte donker te maken."}
+        ],
+        "similar_styles": ["Japandi", "Modern klassiek"],
+        "styling_tip": "Begin met de rotan hanglamp — die verandert de sfeer in één middag zonder te verven of boren.",
+        "primary_action": "Hang de STRANDMAL lamp boven de eettafel voor warmte en textuur.",
+        "confidence": "high"
+    },
+    {
+        "style": "Modern industrieel",
+        "description": "Wat een stoere, rauwe uitstraling! Beton, staal en hout komen hier perfect samen. De open ruimte en hoge plafonds vragen om sterke, architecturale keuzes — geen rommel, geen overbodige decoratie.",
+        "options": [
+            {
+                "name": "Licht industrieel",
+                "description": "Verzacht het beton met warm hout en leer voor een uitnodigende sfeer.",
+                "colors": ["betongrijs", "zwart", "eiken", "olijfgroen"],
+                "materials": ["eiken", "leer", "beton", "staal"],
+                "stores": [
+                    {"store": "IKEA", "product": "KIVIK bank 3-zits zwart", "price": "€899", "why": "Strak, zwart frame past bij het industriële palet — leer gaat jaren mee."},
+                    {"store": "Karwei", "product": "Planken eiken 200×25 cm (onbehandeld)", "price": "€24,95", "why": "Zwevende planken verzachten de betonnen muur zonder deze te bedekken."}
+                ]
+            },
+            {
+                "name": "Ruw industrieel",
+                "description": "Omarm het rauwe met donkere accenten en metalen details.",
+                "colors": ["antraciet", "zwart", "roestbruin", "koper"],
+                "materials": ["staal", "beton", "glas", "leer"],
+                "stores": [
+                    {"store": "Karwei", "product": "Metallic wandkast antraciet 80×30 cm", "price": "€79,95", "why": "Metalen kast accentueert de industriële look — functioneel en stoer."},
+                    {"store": "HEMA", "product": "Glazen decoratiefles zwart 3-stuks", "price": "€17,95", "why": "Donker glas past bij de rauwe esthetiek zonder extra kleur toe te voegen."}
+                ]
+            }
+        ],
+        "colors": ["betongrijs", "zwart", "eiken", "olijfgroen"],
+        "materials": ["eiken", "leer", "beton", "staal"],
+        "matching_stores": [
+            {"store": "IKEA", "product": "KIVIK bank 3-zits zwart", "price": "€899", "why": "Strak, zwart frame voor een industriële basis."},
+            {"store": "Karwei", "product": "Zwevende planken eiken 200×25 cm", "price": "€24,95", "why": "Verzacht beton zonder het te bedekken."}
+        ],
+        "similar_styles": ["Loft", "Brutalistisch"],
+        "styling_tip": "Vervang de gordijnen door jaloezieën — dat versterkt de industriële lijnvoering.",
+        "primary_action": "Installeer zwevende eiken planken langs de betonmuur.",
+        "confidence": "high"
+    },
+    {
+        "style": "Japandi",
+        "description": "Wat een serene balans tussen eenvoud en warmte! Japandi is de perfecte symbiose van Japanse minimalisme en Scandinavische hygge. Elk detail is bewust gekozen — niets staat er per ongeluk.",
+        "options": [
+            {
+                "name": "Minimalistisch Japandi",
+                "description": "Ga voor volledige rust met een monochroom palet en natuurlijke texturen.",
+                "colors": ["wit", "beige", "lichtgrijs", "zwart"],
+                "materials": ["eiken", "linnen", "steen", "keramiek"],
+                "stores": [
+                    {"store": "IKEA", "product": "HEMNES bijzettafel wit 55×55 cm", "price": "€59,95", "why": "Massief hout met strakke lijnen — Japandi in meubelvorm."},
+                    {"store": "HEMA", "product": "Linnen placemat naturel set 4", "price": "€14,95", "why": "Linnen textuur voegt warmte toe zonder visuele ruis."},
+                    {"store": "Leen Bakker", "product": "Stenen vaas mat zwart 20 cm", "price": "€19,95", "why": "Zware, organische vorm die de rust verankert."}
+                ]
+            },
+            {
+                "name": "Warm Japandi",
+                "description": "Voeg diepe houttinten en groene accenten toe voor een aardse variant.",
+                "colors": ["donker eiken", "olijfgroen", "crème", "zwart"],
+                "materials": ["donker eiken", "linnen", "keramiek", "bamboe"],
+                "stores": [
+                    {"store": "IKEA", "product": "BESTÅ kast donker eiken 120×40 cm", "price": "€249", "why": "Donker hout geeft diepte aan het lichte palet — functioneel en sculpturaal."},
+                    {"store": "Intratuin", "product": "Bamboe plantenstandaard 80 cm", "price": "€34,95", "why": "Bamboe past perfect bij de natuurlijke, Aziatische invloeden van Japandi."}
+                ]
+            }
+        ],
+        "colors": ["wit", "beige", "lichtgrijs", "zwart"],
+        "materials": ["eiken", "linnen", "steen", "keramiek"],
+        "matching_stores": [
+            {"store": "IKEA", "product": "HEMNES bijzettafel wit 55×55 cm", "price": "€59,95", "why": "Massief hout, strakke lijnen — de essentie van Japandi."},
+            {"store": "HEMA", "product": "Linnen placemat naturel set 4", "price": "€14,95", "why": "Textuur zonder visuele ruis."}
+        ],
+        "similar_styles": ["Zen", "Wabi-sabi"],
+        "styling_tip": "Rol een tatami-mat uit onder de zithoek — dat geeft direct een Japanse basis.",
+        "primary_action": "Vervang je bijzettafel door een HEMNES in massief hout.",
+        "confidence": "high"
+    },
+    {
+        "style": "Bohemian",
+        "description": "Wat een feest van kleur en textuur! Deze ruimte vertelt een verhaal met wereldse accessoires, warme tinten en laagjes textiel. Het voelt ontspannen en uitnodigend — alsof je in een verre reis bent beland.",
+        "options": [
+            {
+                "name": "Boho natuurlijk",
+                "description": "Aardse tinten en natuurlijke materialen voor een geborgen sfeer.",
+                "colors": ["terracotta", "mosterd", "olijfgroen", "crème"],
+                "materials": ["katoen", "rotan", "keramiek", "wol"],
+                "stores": [
+                    {"store": "HEMA", "product": "Wollen katoenkleed gevlochten 140×200 cm", "price": "€39,95", "why": "Gevlochten textiel voegt laagjes toe — de basis van elke boho-inrichting."},
+                    {"store": "Intratuin", "product": "Hangplant in rotan mand 25 cm", "price": "€24,95", "why": "Groen in rotan — dé boho-combinatie die hoogte en leven brengt."}
+                ]
+            },
+            {
+                "name": "Boho kleurrijk",
+                "description": "Durf met kleur! Oranje, rood en blauw in een speelse mix.",
+                "colors": ["oranje", "koraal", "indigo", "goud"],
+                "materials": ["zijde", "fluweel", "katoen", "glas"],
+                "stores": [
+                    {"store": "IKEA", "product": "GURLI kussen 50×50 cm oranje", "price": "€12,95", "why": "Betaalbaar statement-kussen dat de ruimte een kleurboost geeft."},
+                    {"store": "De Bommel", "product": "Fluwelen kussen koraal 45×45 cm", "price": "€29,99", "why": "Fluweel voegt luxe textuur toe aan de relaxte boho-sfeer."}
+                ]
+            }
+        ],
+        "colors": ["terracotta", "mosterd", "olijfgroen", "crème"],
+        "materials": ["katoen", "rotan", "keramiek", "wol"],
+        "matching_stores": [
+            {"store": "HEMA", "product": "Gevlochten katoenkleed 140×200 cm", "price": "€39,95", "why": "Laagjes textiel voor de boho-basis."},
+            {"store": "Intratuin", "product": "Hangplant rotan 25 cm", "price": "€24,95", "why": "Groen in rotan geeft hoogte en leven."}
+        ],
+        "similar_styles": ["Eclectisch", "Mid-Century Modern"],
+        "styling_tip": "Hang een macramé plantenhanger voor het raam — dat geeft hoogte en textuur in één.",
+        "primary_action": "Leg het wollen katoenkleed onder de zithoek voor laagjes warmte.",
+        "confidence": "medium"
+    }
+]
+
 
 @app.route("/")
 def index():
@@ -461,7 +636,7 @@ def analyze_image():
             session_id = create_session(image_base64, fallback)
             return jsonify({"orient": fallback, "session_id": session_id})
         elif mode == "inspiration" and step == "advise":
-            return jsonify(random.choice(FALLBACK_ISSUES))
+                        return jsonify(random.choice(FALLBACK_INSPIRATION))
         return jsonify(random.choice(FALLBACK_ISSUES))
 
     # ── INSPIRATION MODE: STEP 1 — Orientation ──
