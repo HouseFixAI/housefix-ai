@@ -288,6 +288,20 @@
               .cached-banner { background: rgba(138, 155, 122, 0.06); border: 1px solid rgba(138, 155, 122, 0.12); color: var(--sage); }
               .fallback-banner-icon { flex-shrink: 0; font-size: 15px; line-height: 1.4; }
 
+              /* ── Identify ── */
+              .identify-head { font-family:'Playfair Display',serif; font-size: 26px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; line-height: 1.3; }
+              .identify-sub { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--terracotta); margin-bottom: 12px; }
+              .identify-card { border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-card); padding: 20px; margin-bottom: 16px; }
+              .identify-row { display: flex; padding: 8px 0; border-bottom: 1px solid var(--border-light); }
+              .identify-row:last-child { border-bottom: none; }
+              .identify-label { flex: 0 0 110px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); padding-top: 2px; }
+              .identify-value { flex: 1; font-size: 14px; color: var(--text-primary); line-height: 1.5; }
+              .identify-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+              .identify-tag { display: inline-block; padding: 4px 12px; border-radius: 8px; background: var(--terracotta-soft); color: var(--terracotta); font-size: 12px; font-weight: 600; line-height: 1.4; }
+              .identify-context { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px; }
+              .identify-narrative { font-size: 15px; color: var(--text-secondary); line-height: 1.8; padding: 20px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); margin-bottom: 16px; }
+              .identify-narrative::first-letter { font-size: 22px; font-weight: 700; color: var(--terracotta); }
+
           .footer { text-align: center; padding: 20px 24px; color: var(--text-muted); font-size: 12px; }
           .dash-footer { display: block; text-align: center; padding: 8px 24px 12px; color: var(--text-muted); font-size: 12px; margin-top: 6px; }
 
@@ -861,6 +875,105 @@ function retake() {
       container.innerHTML = `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div class="res-type" style="font-size:20px;color:var(--terracotta);margin-bottom:8px">⚠️ Niet herkend</div><div class="res-desc">${warning}</div></div></div>`;
     }
     
+    /* ── Intent-based render dispatcher ── */
+    /* Routes to the correct renderer based on r.intent */
+    const INTENT_RENDERERS = {
+      identify: renderIdentify,
+      purchase: null,  /* Fase 2 */
+      style: null,     /* defaults to existing flow */
+      room_design: null,
+      renovate: null,
+      repair: null,    /* uses showResults */
+    };
+
+    /* ── Render Identify ── */
+    function renderIdentify(r) {
+      currentResult = r;
+      const id = r.identification || {};
+
+      // Hide damage-mode cards
+      ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(el => {
+        const e = document.getElementById(el);
+        if (e) e.style.display = "none";
+      });
+
+      let bannerHtml = "";
+      if (r.is_fallback) {
+        bannerHtml = `<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen — voor een persoonlijke analyse specifiek voor jouw object hebben we een AI-verbinding nodig.</div>`;
+      } else if (r._cached) {
+        bannerHtml = `<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt.</div>`;
+      }
+
+      let html = bannerHtml;
+
+      // Object type header
+      html += `<div class="identify-head">${r.object_type || "Object"}</div>`;
+      if (id.type) {
+        html += `<div class="identify-sub">${id.type}</div>`;
+      }
+
+      // Identification card
+      html += `<div class="identify-card">`;
+
+      // Style
+      if (id.style) {
+        html += `<div class="identify-row"><div class="identify-label">Stijl</div><div class="identify-value">${id.style}</div></div>`;
+      }
+
+      // Design period
+      if (id.design_period) {
+        html += `<div class="identify-row"><div class="identify-label">Periode</div><div class="identify-value">${id.design_period}</div></div>`;
+      }
+
+      // Materials
+      if (id.materials && id.materials.length) {
+        html += `<div class="identify-row"><div class="identify-label">Materialen</div><div class="identify-value"><div class="identify-tags">`;
+        id.materials.forEach(m => { html += `<span class="identify-tag">${m}</span>`; });
+        html += `</div></div></div>`;
+      }
+
+      // Designer hint
+      if (id.designer_hint) {
+        html += `<div class="identify-row"><div class="identify-label">Ontwerp</div><div class="identify-value">${id.designer_hint}</div></div>`;
+      }
+
+      // Key features
+      if (id.key_features && id.key_features.length) {
+        html += `<div class="identify-row"><div class="identify-label">Kenmerken</div><div class="identify-value"><div class="identify-tags">`;
+        id.key_features.forEach(f => { html += `<span class="identify-tag">${f}</span>`; });
+        html += `</div></div></div>`;
+      }
+
+      // Why special
+      if (id.why_special) {
+        html += `<div class="identify-row"><div class="identify-label">Waarom</div><div class="identify-value">${id.why_special}</div></div>`;
+      }
+
+      html += `</div>`; // close card
+
+      // Description (narrative)
+      if (r.description) {
+        html += `<div class="identify-narrative">${r.description}</div>`;
+      }
+
+      // Style context
+      if (r.style_context) {
+        html += `<div class="identify-context">${r.style_context}</div>`;
+      }
+
+      // Styling tip
+      if (r.styling_tip) {
+        html += `<div class="advice-section"><div class="advice-tip">${r.styling_tip}</div></div>`;
+      }
+
+      document.getElementById("resultContent").innerHTML = html;
+
+      // Update save button
+      const saveBtn = document.getElementById("saveBtn");
+      saveBtn.textContent = "Sla herkenning op";
+      saveBtn.classList.remove("saved");
+    }
+
     /* ── Show Inspiration Advice (Flowing Story) ── */
     /* Fase 3: gestructureerde productkaarten + optie-tabs */
     let _currentOptionIndex = 0;
@@ -870,6 +983,16 @@ function retake() {
       currentResult = r;
       _storedAdviceData = r;
       _currentOptionIndex = 0;
+
+      // ── Intent-based routing ──
+      if (r.intent === "identify") {
+        renderIdentify(r);
+        return;
+      }
+      if (r.intent === "purchase") {
+        // Placeholder: will be implemented in Fase 2
+      }
+      // Fall through to existing style/default flow
     
       // Hide damage-mode cards
       ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(id => {
