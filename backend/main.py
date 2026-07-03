@@ -372,6 +372,58 @@ INSPIRATION_PROMPT = (
     "Never mention damage, repair, or problems."
 )
 
+# ── IDENTIFY PROMPT ──
+IDENTIFY_PROMPT = (
+    "You are a warme, deskundige interieur- en designexpert. Je hebt oog voor detail, "
+    "kent designgeschiedenis en kunt objecten duiden alsof je in een museum staat.\n\n"
+    "Een gebruiker heeft een foto gestuurd van een object en wil weten WAT het is. "
+    "Niet wat hij ermee moet doen, niet hoe hij het moet stylen — maar: wat is dit, "
+    "waar komt het vandaan, welk ontwerp, welk materiaal, waarom is het bijzonder?\n\n"
+    "Jouw taak is om een diepgaande, persoonlijke IDENTIFICATIE te geven. "
+    "Geen droge opsomming, maar een verhaal dat de gebruiker het gevoel geeft "
+    "dat hij naast een kenner staat die met passie over design vertelt.\n\n"
+    "STAP 1 — IDENTIFICEER HET OBJECT: Wat is het precies? Benoem het type object "
+    "(vaas, lamp, stoel, tafel, sculptuur, etc.), het dominante materiaal, de "
+    "vormgeving en de afwerking. Wees specifiek: 'een handgedraaide keramieken vaas "
+    "met mat saliegroen glazuur' in plaats van 'een groene vaas'.\n\n"
+    "STAP 2 — BEPAAL DE STIJL EN DESIGNPERIODE: Welke ontwerpstroming hoort hierbij? "
+    "(Japandi, Scandinavian modern, Art Deco, Bauhaus, Memphis, Mid-Century Modern, "
+    "Wabi-sabi, etc.) Dateer het ontwerp indien mogelijk in een periode of decennium. "
+    "Leg uit WAAROM je deze stijl herkent: welke kenmerken verwijzen ernaar?\n\n"
+    "STAP 3 — GEEF CONTEXT: Hoe wordt dit object normaal toegepast in een interieur? "
+    "In welke setting komt het het beste tot zijn recht? Wat zegt dit object over de "
+    "smaak van de eigenaar? Dit is geen shopadvies, maar een cultuurhistorische of "
+    "esthetische duiding.\n\n"
+    "STAP 4 — SLUIT AF MET EEN PERSOONLIJKE OPMERKING: Wat maakt dit object de moeite "
+    "waard? Waarom is het bijzonder dat de gebruiker dit object heeft? Dit hoeft niet "
+    "groots te zijn — een kleine, oprechte observatie is krachtiger dan een opgeklopt verhaal.\n\n"
+    "ABSOLUTELY FORBIDDEN:\n"
+    "• Geef GEEN shopadvies, prijzen, winkels of koopinformatie.\n"
+    "• Geef GEEN stappenplannen of DIY-instructies.\n"
+    "• Geef GEEN stylingtips voor de ruimte (dat is een andere intentie).\n"
+    "• Zoek NIET naar schade, reparaties of gebreken — dit is een designanalyse.\n"
+    "• Als je een persoon, gezicht of dier ziet: stop en retourneer "
+    "{\"error\": \"⚠️ HouseFix AI kan geen gezichten of dieren analyseren.\"}\n"
+    "• Als de foto volledig ongerelateerd is (auto, eten, landschap): stop en retourneer "
+    "{\"error\": \"🔍 Dit is niet herkend als design- of interieurobject.\"}\n\n"
+    "Return valid JSON with these keys:\n"
+    "intent (altijd 'identify'),\n"
+    "object_type (korte benaming van het object in Nederlands, e.g. 'Keramieken vaas', 'Designstoel', 'Tafellamp'),\n"
+    "identification (een object met de volgende velden:\n"
+    "  - type: uitgebreide beschrijving van het object (1 zin, e.g. 'Handgedraaide keramieken vaas met mat saliegroen glazuur')\n"
+    "  - materials: lijst van materialen (e.g. ['keramiek', 'mat glazuur'])\n"
+    "  - style: stijlbenaming (e.g. 'Japandi / Wabi-sabi')\n"
+    "  - design_period: geschatte periode of ontwerpstroming (e.g. '1960-1980, studio pottery', 'Mid-Century Modern, 1950s')\n"
+    "  - designer_hint: eventuele verwijzing naar een ontwerper of merk, alleen als aannemelijk (e.g. 'Doet denken aan Lucie Rie', 'Vermoedelijk ontworpen door Arne Jacobsen'). Wees voorzichtig — niet verzinnen.\n"
+    "  - key_features: lijst van 2-4 opvallende ontwerpkenmerken (e.g. ['organische vorm', 'subtiele glazuurvariaties', 'ongelakte bodem'])\n"
+    "  - why_special: 1 zin waarom dit object bijzonder is — niet algemeen, maar specifiek voor DIT exemplaar (e.g. 'De variatie in glazuurdikte maakt elke vaas uniek — dit is het kenmerk van ambachtelijk werk.')\n"
+    "),\n"
+    "style_context (1-2 zinnen over hoe dit object in een interieur past, welke sfeer het geeft, en bij welke interieurstijlen het aansluit. Dit is GEEN shopadvies, maar context),\n"
+    "description (1 warme, natuurlijke alinea die het object beschrijft alsof je het aan een vriend laat zien in een museum. Begin met het object, niet met een ruimte. Vertel een verhaal — wat zie je, wat voel je, waarom is dit object de moeite waard om naar te kijken?),\n"
+    "styling_tip (1 korte, concrete tip die niets met kopen te maken heeft. Hoe kun je dit object het beste laten zien? Bijv. 'Zet er een tak bloeiende kweepeer in voor een Wabi-sabi compositie.' of 'Plaats het op een sokkel van 40 cm hoog — dan komt de organische vorm beter tot zijn recht.'),\n"
+    "confidence (high/medium/low — wees eerlijk. Als je twijfelt over de herkomst of het ontwerp, zeg dat dan. 'medium' met uitleg is beter dan 'high' zonder onderbouwing)."
+)
+
 ORIENTATION_PROMPT = (
     "You are a warm, betrokken interieuradviseur. Een gebruiker stuurt je een foto "
     "van zijn/haar interieur en wil een eerste indruk.\n\n"
@@ -403,6 +455,15 @@ ORIENTATION_PROMPT = (
     "Altijd je beste interpretatie geven — nooit om verduidelijking vragen. "
     "Zelfs als je niet 100% zeker bent, geef dan je beste inschatting.\n\n"
     "Return valid JSON with these keys:\n"
+    "user_intent (bepaal de intentie van de gebruiker op basis van de foto. "
+    "Voor nu alleen: 'identify' als de foto een duidelijk herkenbaar object centraal heeft staan "
+    "(vaas, lamp, stoel, tafel, meubel, kunstobject) en de compositie suggereert dat de gebruiker "
+    "wil weten wat het is. Bij twijfel: geef dit veld niet mee of leeg.\n"
+    "  - identify: Het hoofdonderwerp is één object, ingelijst met aandacht voor het object zelf. "
+    "De gebruiker wil weten: wat is dit, welk ontwerp, welk materiaal, welke stijl?\n"
+    "  (Andere intents zoals 'purchase' worden later toegevoegd.)\n"
+    "  Alleen 'identify' of leeg — nog geen andere waarden.\n"
+    "),\n"
     "scene_type (een van: 'complete_room', 'object_closeup', 'texture_detail', 'unclear' — bepaal op basis van de foto),\n"
     "style (korte stijlbenaming in het Nederlands, 1-3 woorden, e.g. 'Scandinavisch' or 'Modern industrieel'. Bij object_closeup: de stijl van het object. Bij texture_detail: de stijl waarbij dit materiaal past.),\n"
     "reaction (1 warme zin als eerste reactie, natuurlijk en enthousiast, "
@@ -411,7 +472,7 @@ ORIENTATION_PROMPT = (
     "materialen en elementen de sfeer bepalen. Bij object_closeup: leg uit hoe dit object in een interieur past en welke stijl het versterkt.),\n"
     "vibe (1 woord dat de sfeer beschrijft, e.g. 'rustig', 'speels', 'luxe', 'warm', 'fris'),\n"
     "confidence (high/medium/low — wees eerlijk maar geef altijd je beste gok).\n"
-    "Always return ALL 6 fields."
+    "Always return ALL 7 fields."
 )
 
 # ── Session Cache for multi-step conversation ──
@@ -641,6 +702,76 @@ FALLBACK_INSPIRATION = [
     }
 ]
 
+# ── Fallback identify data ──
+FALLBACK_IDENTIFY = [
+    {
+        "intent": "identify",
+        "object_type": "Keramieken vaas",
+        "identification": {
+            "type": "Handgedraaide keramieken vaas met mat saliegroen glazuur",
+            "materials": ["keramiek", "mat saliegroen glazuur"],
+            "style": "Japandi / Wabi-sabi",
+            "design_period": "1960-1980, studio pottery — vermoedelijk Scandinavisch of Japans",
+            "designer_hint": "De organische vorm en matte glazuur doen denken aan Lucie Rie of Katherine Pleydell-Bouverie",
+            "key_features": [
+                "organische, asymmetrische vorm",
+                "subtiele variatie in glazuurdikte",
+                "ongelakte bodem (teken van ambachtelijk werk)",
+                "matte, niet-reflecterende afwerking"
+            ],
+            "why_special": "De variatie in glazuurdikte maakt elke vaas uniek — dit is het kenmerk van echt ambachtelijk werk, niet van serieproductie."
+        },
+        "style_context": "Deze vaas past perfect in een Japandi of Wabi-sabi interieur, waar imperfectie en natuurlijke materialen centraal staan. Ook in een Scandinavian modern interieur voegt het een organisch contrast toe aan strakke lijnen.",
+        "description": "Wat een prachtig exemplaar! Dit is een handgedraaide keramieken vaas met een mat saliegroen glazuur dat prachtig varieert in dikte — zie je hoe het licht erin speelt? Die onregelmatigheid is geen fout, het is het kenmerk van echt handwerk. De organische, bijna asymmetrische vorm verraadt de invloed van Wabi-sabi, de Japanse filosofie die schoonheid ziet in imperfectie. Dit is geen serieproductie — dit is iemands ambacht, met liefde gemaakt aan een draaischijf. Een vaas als deze vertelt een verhaal van geduld en meesterschap.",
+        "styling_tip": "Zet er een tak bloeiende kweepeer in voor een Wabi-sabi compositie — de knikken en vormen van de tak versterken de organische kwaliteit van de vaas.",
+        "confidence": "high"
+    },
+    {
+        "intent": "identify",
+        "object_type": "Designstoel",
+        "identification": {
+            "type": "Iconische eetkamerstoel met gevormd hout en conische poten",
+            "materials": ["gevormd fineerhout (eiken)", "chromen poten"],
+            "style": "Mid-Century Modern / Scandinavian modern",
+            "design_period": "Jaren 1950-1960, hoogtepunt van de Deense designgolf",
+            "designer_hint": "Sterk verwant aan ontwerpen van Arne Jacobsen (Series 7) of Hans Wegner (Wishbone). Het gebruik van gevormd hout is typerend voor de Deense meubeltraditie.",
+            "key_features": [
+                "driedimensionaal gevormd fineer (zitvlak + rugleuning uit één stuk)",
+                "conische, taps toelopende chromen poten",
+                "ergonomische curve die het lichaam omarmt",
+                "tijdloze proporties — even breed als hoog"
+            ],
+            "why_special": "Een stoel als deze heeft zijn vorm niet aan een computer te danken, maar aan jaren van experimenteren met fineerbuigen — een techniek die Deense ontwerpers in de jaren '50 tot perfectie brachten."
+        },
+        "style_context": "Deze stoel is een icoon van het Scandinavian modern design uit de jaren '50 en '60. Hij past in elk interieur dat ruimte geeft aan tijdloze vormgeving — van een minimalistisch Japandi tot een eclectische mix met industriële elementen.",
+        "description": "Wat een prachtig stuk design! Dit is een eetkamerstoel in de beste traditie van Deens meubeldesign. Het opvallendste kenmerk is de gebogen rugleuning en het zitvlak, gemaakt uit één stuk gevormd fineerhout — een techniek die in de jaren '50 werd geperfectioneerd door ontwerpers als Arne Jacobsen. De conische chromen poten geven de stoel een bijna zwevend profiel. Wat deze stoel bijzonder maakt: hij is zowel comfortabel als sculpturaal. Hij nodigt uit om te gaan zitten, maar is ook een lust voor het oog als je eromheen loopt. Dit is design dat functioneel is zonder zijn schoonheid te verliezen.",
+        "styling_tip": "Combineer met een eenvoudige eiken tafel en een hanglamp met een zwart snoer — dan komt de sculpturale kwaliteit van de stoel het beste tot zijn recht.",
+        "confidence": "high"
+    },
+    {
+        "intent": "identify",
+        "object_type": "Tafellamp",
+        "identification": {
+            "type": "Minimalistische tafellamp met kegelvormige kap en dunne metalen arm",
+            "materials": ["metaal (gelakt staal of aluminium)", "textiel bekleding op kap"],
+            "style": "Bauhaus / Functionalistisch / Modernistisch",
+            "design_period": "Jaren 1930-1960, geïnspireerd op Bauhaus-principes van 'vorm volgt functie'",
+            "designer_hint": "De eenvoudige kegelvorm en verstelbare arm doen denken aan ontwerpen van Wilhelm Wagenfeld of Christian Dell, twee Duitse Bauhaus-ontwerpers die de basis legden voor modern lampenontwerp.",
+            "key_features": [
+                "verstelbare, draaibare arm voor gerichte verlichting",
+                "kegelvormige kap die het licht bundelt",
+                "minimalistische vorm — geen overbodige decoratie",
+                "balans tussen functie en esthetiek: elk onderdeel heeft een doel"
+            ],
+            "why_special": "Deze lamp is een zuivere uitdrukking van 'vorm volgt functie': er is geen onderdeel dat niet functioneel is. Die ontwerpdiscipline is zeldzaam en tijdloos."
+        },
+        "style_context": "Een lamp als deze is even thuis op een bureau in een modernistisch interieur als op een nachtkastje in een Scandinavische slaapkamer. Het strakke, functionele ontwerp past bij elk interieur dat waarde hecht aan heldere lijnen en eerlijke materialen.",
+        "description": "Dit is een prachtig voorbeeld van modernistisch lampenontwerp — en wat mij betreft een van de zuiverste vormen van design die er bestaat. De kegelvormige kap, de dunne metalen arm, de eenvoudige voet: alles aan deze lamp heeft een functie, niets is decoratie. Dat is het Bauhaus-principe in zijn puurste vorm. Wat ik bijzonder vind aan dit ontwerp is de manier waarop het licht wordt gemanipuleerd: de kap bundelt het licht naar beneden, terwijl de metalen arm het mogelijk maakt om de lichtbron precies te richten waar je het nodig hebt. Functioneel, maar ook esthetisch — want de lamp zelf trekt de aandacht, niet alleen het licht dat hij geeft.",
+        "styling_tip": "Zet hem op een donker houten bureau met een open boek ernaast — dan wordt de lamp zelf een stilleven, niet alleen een lichtbron.",
+        "confidence": "medium"
+    }
+]
+
 
 @app.route("/")
 def index():
@@ -713,7 +844,11 @@ def analyze_image():
             session_id = create_session(image_base64, fallback)
             return jsonify({"orient": fallback, "session_id": session_id, "is_fallback": True})
         elif mode == "inspiration" and step == "advise":
-            result = random.choice(FALLBACK_INSPIRATION)
+            user_intent = data.get("user_intent", "")
+            if user_intent == "identify":
+                result = random.choice(FALLBACK_IDENTIFY)
+            else:
+                result = random.choice(FALLBACK_INSPIRATION)
             result["is_fallback"] = True
             return jsonify(result)
         result = random.choice(FALLBACK_ISSUES)
@@ -776,7 +911,9 @@ def analyze_image():
         if session:
             orient = session.get('orient', {})
             scene_type = orient.get('scene_type', 'complete_room')
+            user_intent = orient.get('user_intent', '')
             context_parts.append(f"SCENE_TYPE: {scene_type}")
+            context_parts.append(f"USER_INTENT: {user_intent}")
             context_parts.append(f"Eerste indruk van deze ruimte: {orient.get('style', 'onbekend')} — {orient.get('style_explanation', '')}")
             context_parts.append(f"Sfeer: {orient.get('vibe', '')}")
             # Use stored image
@@ -790,17 +927,31 @@ def analyze_image():
         user_context = "\n".join(context_parts)
 
         # Check cache before calling GPT
-        ack = cache_key(mode, "advise", image_base64, goal)
+        ack = cache_key(mode, "advise", image_base64, f"{goal}:{user_intent}")
         acached = get_cached_response(ack)
         if acached:
             return jsonify(acached)
 
         try:
             client = OpenAI(api_key=OPENAI_API_KEY)
-            full_prompt = INSPIRATION_PROMPT + (
+
+            # Select prompt based on user intent
+            if user_intent == "identify":
+                base_prompt = IDENTIFY_PROMPT
+                system_message = (
+                    "Je bent een designexpert die objecten identificeert. "
+                    "Gebruik de context en het doel om je analyse te personaliseren."
+                )
+            else:
+                base_prompt = INSPIRATION_PROMPT
+                system_message = (
+                    "Gebruik deze context om je advies te personaliseren. "
+                    "Het doel van de gebruiker is hierboven vermeld — pas je hele advies daarop aan."
+                )
+
+            full_prompt = base_prompt + (
                 f"\n\nCONTEXT VAN EERDERE STAP:\n{user_context}\n\n"
-                "Gebruik deze context om je advies te personaliseren. "
-                "Het doel van de gebruiker is hierboven vermeld — pas je hele advies daarop aan."
+                f"{system_message}"
             )
             response = client.chat.completions.create(
                 model="gpt-4o",
@@ -824,7 +975,7 @@ def analyze_image():
                 parsed = json.loads(json_match.group())
                 if isinstance(parsed, dict) and "error" in parsed:
                     return jsonify({"warning": parsed["error"]})
-                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed):
+                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed or "identification" in parsed):
                     set_cached_response(ack, parsed)
                     return jsonify(parsed)
         except Exception as e:
