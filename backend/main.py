@@ -230,6 +230,38 @@ INSPIRATION_PROMPT = (
     "kopen, waar, en waarom past het?\n"
     "STEP 3 — Geef 1 kleine styling_tip: wat kan de gebruiker MORGEN al doen om deze "
     "look nog mooier te maken? Een kussen, plant, lamp of accessoire.\n\n"
+    "═══ SCENE TYPE ADAPTATIE ═══\n"
+    "De gebruiker heeft in de oriëntatie-fase een 'scene_type' meegekregen. "
+    "Pas je advies aan op basis van SCENE_TYPE:\n\n"
+    "SCENE_TYPE = complete_room:\n"
+    "  - Normale interieuranalyse: beschrijf de stijl, kleuren, materialen van de ruimte.\n"
+    "  - Geef shopadvies voor meubels, accessoires en decoratie die de ruimte versterken.\n"
+    "  - 3-4 producten uit verschillende segmenten (budget, midden, premium).\n"
+    "  - De description beschrijft de RUIMTE, niet een enkel object.\n\n"
+    "SCENE_TYPE = object_closeup:\n"
+    "  - Dit is een close-up van een specifiek object (vaas, lamp, stoel, tafel) met beperkte context.\n"
+    "  - Beschrijf HET OBJECT, niet een complete ruimte. Wat is het? Welk materiaal? Welke stijl?\n"
+    "  - Geef GEEN shopadvies voor een volledige ruimte-inrichting. Richt je op:\n"
+    "    * Hoe dit object past in 2-3 verschillende interieurstijlen (bv. Scandinavisch, Bohemian)\n"
+    "    * Vergelijkbare objecten in andere stijlen (bv. 'deze vaas in keramiek past bij Scandinavisch, een rotan variant past bij Bohemian')\n"
+    "    * Hoe je dit object kunt combineren (bv. 'zet er een tak eucalyptus in voor een natuurlijk accent')\n"
+    "  - matching_stores en stores in options: max 1-2 producten, gericht op accessoires die bij DIT OBJECT passen.\n"
+    "  - colors: de kleuren van het object + 1-2 accentkleuren die erbij passen (niet een volledig ruimtepalet).\n"
+    "  - materials: de materialen van het object + 1-2 materialen die er goed mee combineren.\n"
+    "  - De description begint met het object ('Wat een prachtige minimalistische vaas!') niet met een ruimte.\n\n"
+    "SCENE_TYPE = texture_detail:\n"
+    "  - Dit is een detailopname van een materiaal of textuur.\n"
+    "  - Beschrijf HET MATERIAAL: wat is het, welke eigenschappen heeft het, welke sfeer geeft het?\n"
+    "  - Geef GEEN shopadvies. In plaats daarvan: bij welke interieurstijlen past dit materiaal?\n"
+    "  - matching_stores en stores in options: leeg laten ([]).\n"
+    "  - colors: max 2-3 kleuren die bij dit materiaal passen.\n"
+    "  - materials: het materiaal zelf + 1-2 complementaire materialen.\n\n"
+    "SCENE_TYPE = unclear:\n"
+    "  - Je kunt niet goed bepalen wat er op de foto staat.\n"
+    "  - Geef een eerlijke, zachte reactie: je herkent niet genoeg details voor een advies.\n"
+    "  - matching_stores en stores in options: leeg laten ([]).\n"
+    "  - Beschrijf wat je WEL ziet (kleuren, vormen) en nodig uit om een betere foto te maken.\n"
+    "  - styling_tip: 'Maak een foto van de hele ruimte of van het object dat je wilt bespreken.'\n\n"
     "ABSOLUTELY FORBIDDEN: You MUST NOT look for damage, cracks, leaks, rot, peeling paint, or repairs. "
     "This is an INSPIRATION mode. The user wants to know about style, not find problems.\n"
     "• Chairs, tables, sofas, beds, carpets, curtains, lamps are INTERIOR OBJECTS — not damage.\n"
@@ -346,6 +378,12 @@ ORIENTATION_PROMPT = (
     "Jouw taak is om een ORIËNTATIE te geven — dit is stap 1 van een gesprek. "
     "Je geeft NOG GEEN shopadvies, kleuradvies, stappenplan of stylingtips. "
     "Alleen een warme reactie en herkenning van de stijl.\n\n"
+    "STAP 0 — SCENE BEPALING: Kijk eerst naar de foto en bepaal wat voor beeld dit is:\n"
+    "  - complete_room: Een overzicht van een hele ruimte (woonkamer, slaapkamer, keuken) met meerdere meubels, objecten en voldoende context om de stijl te bepalen.\n"
+    "  - object_closeup: Een close-up van een specifiek object (vaas, lamp, stoel, tafel) met beperkte context. De achtergrond is zichtbaar maar er is geen complete ruimte.\n"
+    "  - texture_detail: Een detailopname van een materiaal of textuur (houtnerf, stof, verf) zonder herkenbare objecten of ruimte.\n"
+    "  - unclear: Niet duidelijk of het om interieur gaat, of de foto is te beperkt voor een zinvolle stijlanalyse.\n\n"
+    "Pas je hele analyse aan op basis van scene_type. Bij object_closeup en texture_detail benoem je het object of materiaal, niet een complete ruimte.\n\n"
     "Reageer natuurlijk, alsof je tegen een vriend(in) praat die je zijn/haar "
     "nieuwe interieur laat zien. 'Wat een ontzettend mooie kamer!' of "
     "'Oh, dit is echt een plaatje! Wat een sfeer!'\n\n"
@@ -365,15 +403,15 @@ ORIENTATION_PROMPT = (
     "Altijd je beste interpretatie geven — nooit om verduidelijking vragen. "
     "Zelfs als je niet 100% zeker bent, geef dan je beste inschatting.\n\n"
     "Return valid JSON with these keys:\n"
-    "style (korte stijlbenaming in het Nederlands, 1-3 woorden, e.g. 'Scandinavisch' or 'Modern industrieel'),\n"
+    "scene_type (een van: 'complete_room', 'object_closeup', 'texture_detail', 'unclear' — bepaal op basis van de foto),\n"
+    "style (korte stijlbenaming in het Nederlands, 1-3 woorden, e.g. 'Scandinavisch' or 'Modern industrieel'. Bij object_closeup: de stijl van het object. Bij texture_detail: de stijl waarbij dit materiaal past.),\n"
     "reaction (1 warme zin als eerste reactie, natuurlijk en enthousiast, "
-    "alsof je tegen een vriend praat, e.g. 'Wat een prachtige, lichte kamer!'),\n"
+    "alsof je tegen een vriend praat, e.g. 'Wat een prachtige, lichte kamer!' of 'Wat een mooie vaas — die past perfect bij een Scandinavisch interieur!'),\n"
     "style_explanation (1-2 zinnen over waarom deze stijl werkt — welke kleuren, "
-    "materialen en elementen de sfeer bepalen. Niet alleen beschrijven, maar uitleggen "
-    "waarom het bij elkaar past),\n"
+    "materialen en elementen de sfeer bepalen. Bij object_closeup: leg uit hoe dit object in een interieur past en welke stijl het versterkt.),\n"
     "vibe (1 woord dat de sfeer beschrijft, e.g. 'rustig', 'speels', 'luxe', 'warm', 'fris'),\n"
     "confidence (high/medium/low — wees eerlijk maar geef altijd je beste gok).\n"
-    "Always return ALL 5 fields."
+    "Always return ALL 6 fields."
 )
 
 # ── Session Cache for multi-step conversation ──
@@ -436,10 +474,10 @@ def cleanup_sessions():
 
 # ── Fallback orientation data ──
 FALLBACK_ORIENT = [
-    {"style": "Scandinavisch", "reaction": "Wat een prachtige, lichte ruimte!", "style_explanation": "Deze stijl draait om eenvoud, natuurlijke materialen en licht. Wit houtwerk, lichte meubels en groene planten zorgen voor een rustige, frisse uitstraling.", "vibe": "rustig", "confidence": "high"},
-    {"style": "Modern industrieel", "reaction": "Wow, wat een gave industriële uitstraling!", "style_explanation": "Ruwe materialen zoals beton en staal, gecombineerd met warm hout en leer. Open ruimtes met hoge plafonds en grote ramen kenmerken deze stijl.", "vibe": "stoer", "confidence": "high"},
-    {"style": "Japandi", "reaction": "Wat een serene, minimalistische schoonheid!", "style_explanation": "De perfecte balans tussen Japanse eenvoud en Scandinavische gezelligheid. Natuurlijke materialen, neutrale kleuren en strakke lijnen creëren rust.", "vibe": "harmonisch", "confidence": "medium"},
-    {"style": "Bohemian", "reaction": "Wat een heerlijk eclectische mix!", "style_explanation": "Kleurrijke texturen, wereldse accessoires en een ontspannen sfeer. Veel planten, kussens en unieke vondsten maken deze stijl persoonlijk en warm.", "vibe": "vrij", "confidence": "medium"},
+    {"scene_type": "complete_room", "style": "Scandinavisch", "reaction": "Wat een prachtige, lichte ruimte!", "style_explanation": "Deze stijl draait om eenvoud, natuurlijke materialen en licht. Wit houtwerk, lichte meubels en groene planten zorgen voor een rustige, frisse uitstraling.", "vibe": "rustig", "confidence": "high"},
+    {"scene_type": "complete_room", "style": "Modern industrieel", "reaction": "Wow, wat een gave industriële uitstraling!", "style_explanation": "Ruwe materialen zoals beton en staal, gecombineerd met warm hout en leer. Open ruimtes met hoge plafonds en grote ramen kenmerken deze stijl.", "vibe": "stoer", "confidence": "high"},
+    {"scene_type": "complete_room", "style": "Japandi", "reaction": "Wat een serene, minimalistische schoonheid!", "style_explanation": "De perfecte balans tussen Japanse eenvoud en Scandinavische gezelligheid. Natuurlijke materialen, neutrale kleuren en strakke lijnen creëren rust.", "vibe": "harmonisch", "confidence": "medium"},
+    {"scene_type": "complete_room", "style": "Bohemian", "reaction": "Wat een heerlijk eclectische mix!", "style_explanation": "Kleurrijke texturen, wereldse accessoires en een ontspannen sfeer. Veel planten, kussens en unieke vondsten maken deze stijl persoonlijk en warm.", "vibe": "vrij", "confidence": "medium"},
 ]
 
 # ── Fallback inspiration advice data (Fase 3: structured stores + options) ──
@@ -737,6 +775,8 @@ def analyze_image():
         context_parts = []
         if session:
             orient = session.get('orient', {})
+            scene_type = orient.get('scene_type', 'complete_room')
+            context_parts.append(f"SCENE_TYPE: {scene_type}")
             context_parts.append(f"Eerste indruk van deze ruimte: {orient.get('style', 'onbekend')} — {orient.get('style_explanation', '')}")
             context_parts.append(f"Sfeer: {orient.get('vibe', '')}")
             # Use stored image
