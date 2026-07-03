@@ -4,6 +4,7 @@ import json
 import random
 import uuid
 import time
+import hashlib
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -379,6 +380,38 @@ ORIENTATION_PROMPT = (
 SESSION_CACHE = {}
 SESSION_TTL = 3600  # 1 hour
 
+# ── Response Cache (keyed by image hash to avoid redundant GPT calls) ──
+RESPONSE_CACHE = {}
+RESPONSE_CACHE_TTL = 7200  # 2 hours
+
+def image_hash(image_b64):
+    """Deterministic short hash from a base64 image string."""
+    return hashlib.sha256(image_b64[:2000].encode()).hexdigest()[:16]
+
+def cache_key(mode, step, image_b64, goal=""):
+    """Build a cache key from mode + step + image hash + optional goal."""
+    h = image_hash(image_b64)
+    return f"{mode}:{step}:{h}:{goal}"
+
+def get_cached_response(key):
+    """Return cached response if valid, else None."""
+    entry = RESPONSE_CACHE.get(key)
+    if entry and time.time() - entry['created_at'] < RESPONSE_CACHE_TTL:
+        return entry['data']
+    return None
+
+def set_cached_response(key, data):
+    """Store a response in the cache."""
+    RESPONSE_CACHE[key] = {'data': data, 'created_at': time.time()}
+
+def cleanup_cache():
+    """Remove expired cache entries."""
+    now = time.time()
+    expired = [k for k, v in RESPONSE_CACHE.items()
+               if now - v['created_at'] > RESPONSE_CACHE_TTL]
+    for k in expired:
+        del RESPONSE_CACHE[k]
+
 def create_session(image_b64, orient_result):
     session_id = str(uuid.uuid4())
     SESSION_CACHE[session_id] = {
@@ -629,18 +662,35 @@ def analyze_image():
     if not isinstance(image_base64, str) or len(image_base64) < 100:
         return jsonify({"error": "Invalid image data"}), 400
 
-    # If no API key, return fallback (damage mode) or orientation fallback
+    # If no API key, check cache first, then fallback
     if not OPENAI_API_KEY:
+        ck = cache_key(mode, step or "", image_base64, data.get("goal", ""))
+        cached = get_cached_response(ck)
+        if cached:
+            cached["_cached"] = True
+            return jsonify(cached)
+
         if mode == "inspiration" and step == "orient":
             fallback = random.choice(FALLBACK_ORIENT)
             session_id = create_session(image_base64, fallback)
-            return jsonify({"orient": fallback, "session_id": session_id})
+            return jsonify({"orient": fallback, "session_id": session_id, "is_fallback": True})
         elif mode == "inspiration" and step == "advise":
-                        return jsonify(random.choice(FALLBACK_INSPIRATION))
-        return jsonify(random.choice(FALLBACK_ISSUES))
+            result = random.choice(FALLBACK_INSPIRATION)
+            result["is_fallback"] = True
+            return jsonify(result)
+        result = random.choice(FALLBACK_ISSUES)
+        result["is_fallback"] = True
+        return jsonify(result)
 
     # ── INSPIRATION MODE: STEP 1 — Orientation ──
     if mode == "inspiration" and step == "orient":
+        # Check cache before calling GPT
+        ock = cache_key(mode, "orient", image_base64)
+        ocached = get_cached_response(ock)
+        if ocached:
+            session_id = create_session(image_base64, ocached)
+            return jsonify({"orient": ocached, "session_id": session_id, "_cached": True})
+
         try:
             client = OpenAI(api_key=OPENAI_API_KEY)
             response = client.chat.completions.create(
@@ -665,6 +715,8 @@ def analyze_image():
                 parsed = json.loads(json_match.group())
                 if isinstance(parsed, dict) and "error" in parsed:
                     return jsonify({"warning": parsed["error"]})
+                # Store in response cache for future requests
+                set_cached_response(ock, parsed)
                 # Store in session cache
                 session_id = create_session(image_base64, parsed)
                 return jsonify({"orient": parsed, "session_id": session_id})
@@ -697,6 +749,12 @@ def analyze_image():
 
         user_context = "\n".join(context_parts)
 
+        # Check cache before calling GPT
+        ack = cache_key(mode, "advise", image_base64, goal)
+        acached = get_cached_response(ack)
+        if acached:
+            return jsonify(acached)
+
         try:
             client = OpenAI(api_key=OPENAI_API_KEY)
             full_prompt = INSPIRATION_PROMPT + (
@@ -727,6 +785,7 @@ def analyze_image():
                 if isinstance(parsed, dict) and "error" in parsed:
                     return jsonify({"warning": parsed["error"]})
                 if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed):
+                    set_cached_response(ack, parsed)
                     return jsonify(parsed)
         except Exception as e:
             app.logger.error(f"Advise error: {e}")
@@ -737,6 +796,12 @@ def analyze_image():
     # ── DAMAGE MODE OR LEGACY INSPIRATION (single step) ──
     answers = data.get("answers", None)
     base_prompt = INSPIRATION_PROMPT if mode == "inspiration" else SYSTEM_PROMPT
+
+    # Check cache for damage/legacy mode
+    dck = cache_key(mode, "single", image_base64, data.get("goal", ""))
+    dcached = get_cached_response(dck)
+    if dcached:
+        return jsonify(dcached)
 
     if answers and len(answers) > 0:
         context_lines = [f"{a['question']} → {a['answer']}" for a in answers]
@@ -784,6 +849,7 @@ def analyze_image():
                 return jsonify({"needs_clarification": True, "questions": parsed.get("questions", [])})
             # Normal analysis result (damage: issue_type keys, inspiration: style key)
             if isinstance(parsed, dict) and ("issue_type" in parsed or "style" in parsed):
+                set_cached_response(dck, parsed)
                 return jsonify(parsed)
 
         return jsonify(random.choice(FALLBACK_ISSUES))
