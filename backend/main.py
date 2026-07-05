@@ -1136,7 +1136,7 @@ def analyze_image():
                 parsed = json.loads(json_match.group())
                 if isinstance(parsed, dict) and "error" in parsed:
                     return jsonify({"warning": parsed["error"]})
-                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed or "identification" in parsed):
+                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed or "identification" in parsed or "intent" in parsed):
                     set_cached_response(ack, parsed)
                     return jsonify(parsed)
         except Exception as e:
