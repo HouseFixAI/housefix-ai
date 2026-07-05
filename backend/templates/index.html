@@ -302,6 +302,39 @@
               .identify-narrative { font-size: 15px; color: var(--text-secondary); line-height: 1.8; padding: 20px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); margin-bottom: 16px; }
               .identify-narrative::first-letter { font-size: 22px; font-weight: 700; color: var(--terracotta); }
 
+              /* ── Purchase ── */
+              .purchase-head { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+              .purchase-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 12px; }
+              .purchase-total { display: flex; justify-content: space-between; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--sage-soft); margin-bottom: 14px; }
+              .purchase-total-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+              .purchase-total-price { font-size: 20px; font-weight: 800; color: var(--terracotta); }
+              .segment-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+              .segment-tab { flex: 1; padding: 8px 6px; border-radius: var(--radius-xs); border: 1.5px solid var(--border-light); background: var(--bg-card); cursor: pointer; font-size: 12px; font-weight: 700; text-align: center; transition: all 0.2s; color: var(--text-secondary); }
+              .segment-active { border-color: var(--terracotta); background: var(--terracotta-soft); color: var(--terracotta); box-shadow: 0 0 0 1px var(--terracotta); }
+              .purchase-card { padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-card); margin-bottom: 8px; }
+              .purchase-card.prio-essential { border-left: 3px solid var(--terracotta); }
+              .purchase-card-name { font-size: 14px; font-weight: 700; }
+              .purchase-card-price { font-size: 17px; font-weight: 800; color: var(--terracotta); margin: 3px 0; }
+              .purchase-card-store { font-size: 12px; color: var(--text-secondary); }
+              .purchase-card-why { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; }
+              .purchase-section-title { font-family:'Playfair Display',serif; font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+              .purchase-checklist { display: flex; flex-direction: column; gap: 4px; }
+              .purchase-check-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-xs); border: 1px solid var(--border-light); font-size: 13px; cursor: pointer; }
+              .purchase-check-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--terracotta); }
+              .purchase-check-item:has(input:checked) { background: var(--sage-soft); text-decoration: line-through; color: var(--text-muted); }
+              .purchase-color-row { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border-light); font-size: 12px; }
+              .purchase-color-name { font-weight: 600; }
+              .purchase-color-exact { color: var(--text-muted); }
+
+              /* ── Intent buttons ── */
+              .intent-btn { display: flex; flex-direction: column; width: 100%; padding: 14px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-light); background: var(--bg-card); cursor: pointer; text-align: left; transition: all 0.2s; margin-bottom: 8px; }
+              .intent-btn:hover { border-color: var(--terracotta); background: var(--terracotta-soft); }
+              .intent-btn.intent-rec { border-color: var(--sage); background: var(--sage-soft); }
+              .intent-btn-icon { font-size: 20px; }
+              .intent-btn-label { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+              .intent-btn-sub { font-size: 12px; color: var(--text-muted); }
+              .intent-rec-badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 9px; font-weight: 700; background: var(--sage); color: #fff; margin-left: 6px; vertical-align: middle; }
+
           .footer { text-align: center; padding: 20px 24px; color: var(--text-muted); font-size: 12px; }
           .dash-footer { display: block; text-align: center; padding: 8px 24px 12px; color: var(--text-muted); font-size: 12px; margin-top: 6px; }
 
@@ -795,24 +828,23 @@ function retake() {
         <div class="card" style="margin-bottom:16px">
           <div class="card-body" style="padding:24px">
             <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:16px">
-              Wat wil je met deze inspiratie doen?
+              Wat wil je doen?
             </div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <button class="goal-btn" data-goal="Ik wil deze look namaken — geef me winkeladvies">
-                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">🛍️ Deze look namaken</span>
-                <span style="font-size:13px;color:var(--text-muted)">Winkeladvies, producten en prijzen</span>
+            <div class="intent-grid">
+              <button class="intent-btn${orient.user_intent === 'purchase' ? ' intent-rec' : ''}" data-intent="purchase">
+                <span class="intent-btn-icon">🛠️</span>
+                <span class="intent-btn-label">Toepassen${orient.user_intent === 'purchase' ? ' <span class="intent-rec-badge">Aanbevolen</span>' : ''}</span>
+                <span class="intent-btn-sub">Kopen, materialen, boodschappenlijst</span>
               </button>
-              <button class="goal-btn" data-goal="Ik wil mijn interieur verbeteren — geef me haalbare tips">
-                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">💡 Mijn interieur verbeteren</span>
-                <span style="font-size:13px;color:var(--text-muted)">Haalbare tips voor kleine aanpassingen</span>
+              <button class="intent-btn${!orient.user_intent ? ' intent-rec' : ''}" data-intent="style">
+                <span class="intent-btn-icon">🎨</span>
+                <span class="intent-btn-label">Ontdekken${!orient.user_intent ? ' <span class="intent-rec-badge">Aanbevolen</span>' : ''}</span>
+                <span class="intent-btn-sub">Stijlen, kleuren, interieur-inspiratie</span>
               </button>
-              <button class="goal-btn" data-goal="Ik zoek inspiratie voor een nieuwe stijlrichting">
-                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">🎨 Nieuwe stijlrichting ontdekken</span>
-                <span style="font-size:13px;color:var(--text-muted)">Inspiratie en verwante stijlen</span>
-              </button>
-              <button class="goal-btn" data-goal="Ik ben gewoon benieuwd — vertel me wat dit is">
-                <span style="font-weight:700;display:block;font-size:15px;color:var(--text-primary);margin-bottom:2px">👀 Gewoon benieuwd</span>
-                <span style="font-size:13px;color:var(--text-muted)">Uitleg over wat je ziet</span>
+              <button class="intent-btn${orient.user_intent === 'identify' ? ' intent-rec' : ''}" data-intent="identify">
+                <span class="intent-btn-icon">👀</span>
+                <span class="intent-btn-label">Begrijpen${orient.user_intent === 'identify' ? ' <span class="intent-rec-badge">Aanbevolen</span>' : ''}</span>
+                <span class="intent-btn-sub">Wat is dit? Uitleg en design-analyse</span>
               </button>
             </div>
           </div>
@@ -820,13 +852,34 @@ function retake() {
 
       container.innerHTML = html;
 
-      // Attach click handlers for goal buttons
-      document.querySelectorAll(".goal-btn").forEach(btn => {
+      // Attach click handlers for intent buttons
+      document.querySelectorAll(".intent-btn").forEach(btn => {
         btn.addEventListener("click", function() {
-          const goal = this.dataset.goal;
-          submitGoal(goal);
+          const intent = this.dataset.intent;
+          submitWithIntent(intent);
         });
       });
+    }
+
+    /* ── Submit With Intent ── */
+    async function submitWithIntent(intent) {
+      document.getElementById("loadingWrap").classList.add("active");
+      document.getElementById("resultsWrap").classList.remove("active");
+      try {
+        const resp = await fetch("/api/analyze", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ image: imageBase64, mode:"inspiration", step:"advise", session_id: currentSessionId, user_intent: intent })
+        });
+        const result = await resp.json();
+        if (result.error) throw new Error(result.error);
+        const pResp = await fetch("/api/providers");
+        providers = await pResp.json();
+        document.getElementById("loadingWrap").classList.remove("active");
+        document.getElementById("resultsWrap").classList.add("active");
+        document.querySelector(".dash-footer").style.display = "none";
+        showInspirationAdvice(result);
+        addTryAnotherButton();
+      } catch (e) { alert("⚠️ " + e.message); goHome(); }
     }
 
     /* ── Submit Goal (Step 2) ── */
@@ -879,14 +932,35 @@ function retake() {
     /* Routes to the correct renderer based on r.intent */
     const INTENT_RENDERERS = {
       identify: renderIdentify,
-      purchase: null,  /* Fase 2 */
+      purchase: renderPurchase,
       style: null,     /* defaults to existing flow */
       room_design: null,
       renovate: null,
       repair: null,    /* uses showResults */
     };
 
-    /* ── Render Identify ── */
+        /* ── Render Purchase ── */
+    function renderPurchase(r) {
+      currentResult = r;
+      ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(el=>{const e=document.getElementById(el);if(e)e.style.display="none";});
+      let b="";
+      if(r.is_fallback)b='<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen</div>';
+      else if(r._cached)b='<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt.</div>';
+      let html=b+'<div class="purchase-head">'+(r.object_type||"Interieur")+'</div><div class="purchase-desc">'+(r.description||"")+'</div>';
+      if(r.total_estimate)html+='<div class="purchase-total"><span class="purchase-total-label">Totale kosten</span><span class="purchase-total-price">'+r.total_estimate+'</span></div>';
+      let bestSeg="middenklasse",bestScore=0;
+      for(const seg of["budget","middenklasse","premium"]){const p=r.segments&&r.segments[seg]||[];const s=p.reduce((a,b)=>a+(b.visual_match||0),0);if(s>bestScore){bestScore=s;bestSeg=seg;}}
+      html+='<div class="segment-tabs">';
+      const lb={budget:"💰 Budget",middenklasse:"✨ Middenklasse",premium:"👑 Premium"};
+      for(const seg of["budget","middenklasse","premium"])html+='<button class="segment-tab'+(seg===bestSeg?" segment-active":"")+'" data-seg="'+seg+'">'+lb[seg]+'</button>';
+      html+='</div>';
+      for(const seg of["budget","middenklasse","premium"]){const v=seg===bestSeg?"block":"none";html+='<div class="segment-content" id="seg-'+seg+'" style="display:'+v+'">';const p=r.segments&&r.segments[seg]||[];if(p.length)p.forEach(x=>{html+='<div class="purchase-card prio-essential"><div class="purchase-card-name">'+x.name+'</div><div class="purchase-card-price">'+x.price+'</div><div class="purchase-card-store">🛒 '+x.store+'</div><div class="purchase-card-why">'+x.why+'</div></div>';});html+='</div>';}
+      if(r.shopping_list&&r.shopping_list.length){html+='<div class="purchase-section"><div class="purchase-section-title">📋 Boodschappenlijst</div><div class="purchase-checklist">';r.shopping_list.forEach(i=>{html+='<label class="purchase-check-item"><input type="checkbox" /><span>'+i+'</span></label>';});html+='</div></div>';}
+      document.getElementById("resultContent").innerHTML=html;
+      setTimeout(()=>{document.querySelectorAll(".segment-tab").forEach(t=>t.addEventListener("click",function(){document.querySelectorAll(".segment-tab").forEach(x=>x.classList.remove("segment-active"));this.classList.add("segment-active");document.querySelectorAll(".segment-content").forEach(c=>c.style.display="none");const e=document.getElementById("seg-"+this.dataset.seg);if(e)e.style.display="block";}));},0);
+      document.getElementById("saveBtn").textContent="Sla boodschappenlijst op";
+    }
+/* ── Render Identify ── */
     function renderIdentify(r) {
       currentResult = r;
       const id = r.identification || {};
@@ -990,7 +1064,8 @@ function retake() {
         return;
       }
       if (r.intent === "purchase") {
-        // Placeholder: will be implemented in Fase 2
+        renderPurchase(r);
+        return;
       }
       // Fall through to existing style/default flow
     

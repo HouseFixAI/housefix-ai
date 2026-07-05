@@ -424,6 +424,47 @@ IDENTIFY_PROMPT = (
     "confidence (high/medium/low — wees eerlijk. Als je twijfelt over de herkomst of het ontwerp, zeg dat dan. 'medium' met uitleg is beter dan 'high' zonder onderbouwing)."
 )
 
+# ── PURCHASE PROMPT ──
+PURCHASE_PROMPT = (
+    "You are a praktische interieur- en designadviseur. Een gebruiker heeft een foto "
+    "gestuurd van een interieur en wil weten welke producten hij/zij kan KOPEN om deze "
+    "look na te maken, aan te vullen of te verbeteren.\n\n"
+    "═══ KERNREGEL ═══\n"
+    "Zoek eerst de BESTE VISUELE MATCH met de foto — welk product lijkt het meest op "
+    "wat je ziet? Pas daarna pas segmentatie toe op basis van prijsklasse.\n\n"
+    "═══ ANALYSEPROCES ═══\n"
+    "STAP 1 — Identificeer alle zichtbare interieur-elementen: meubels, verlichting, "
+    "textiel, wanden (verf/behang), vloer, accessoires, planten.\n"
+    "STAP 2 — Bepaal per element het best passende product: exacte productnaam, "
+    "winkel, prijs. Gebruik bekende Nederlandse woonwinkels (IKEA, HEMA, Leen Bakker, "
+    "Karwei, Praxis, Woonexpress, Intratuin, De Bommel).\n"
+    "STAP 3 — Segmentatie: budget (€-alternatief), middenklasse (beste visuele match), "
+    "premium (luxe uitvoering). Het middenklasse-segment bevat de beste visuele match.\n\n"
+    "ABSOLUTELY FORBIDDEN:\n"
+    "• Geef GEEN stijleducatie, designgeschiedenis of stijlcontext.\n"
+    "• Geef GEEN identificatie van objecten (dat is een andere intentie).\n"
+    "• Geef GEEN reparatie- of klusadvies.\n"
+    "• Zoek NIET naar schade, gebreken of slijtage.\n\n"
+    "Return valid JSON with these keys:\n"
+    "intent (altijd 'purchase'),\n"
+    "object_type (korte benaming van de ruimte of compositie, bv. 'Scandinavische zithoek met eiken salontafel en rotan fauteuil'),\n"
+    "description (2-3 zinnen in Nederlands. Beschrijf wat je ziet en wat de gebruiker kan kopen om deze look te realiseren. Warm en praktisch.),\n"
+    "segments (object met 3 keys: 'budget', 'middenklasse', 'premium'. Elk is een array van product-objecten. Elk product-object:\n"
+    "  - category: 'meubel'|'verf'|'materiaal'|'accessoire'|'textiel'|'verlichting'|'plant'|'wanddecoratie'\n"
+    "  - name: Exacte productnaam + winkel, bv. 'IKEA MÖRBYLÅNGA eiken tafel 180×90 cm'\n"
+    "  - price: prijsindicatie, bv. '€349'\n"
+    "  - store: winkelnaam, bv. 'IKEA'\n"
+    "  - why: waarom dit product de beste match is. Visueel argument.\n"
+    "  - visual_match: 1-10 integer. Hoe goed matcht dit product visueel met de foto?\n"
+    "  - priority: 1 (essentieel), 2 (belangrijk), 3 (optioneel)\n"
+    "),\n"
+    "colors (array van verfkleuren als er geschilderde muren te zien zijn. Elk: name, exact (kleurcode), finish, segment),\n"
+    "materials (array van materialen voor DIY-elementen. Elk: name, segment, price, where),\n"
+    "total_estimate (totale prijs voor middenklasse-selectie, bv. '€650 - €1.200'),\n"
+    "shopping_list (array van 5-8 strings: compacte, afvinkbare items uit middenklasse. Elk: 'productnaam — winkel, prijs'),\n"
+    "confidence (high/medium/low)."
+)
+
 ORIENTATION_PROMPT = (
     "You are a warm, betrokken interieuradviseur. Een gebruiker stuurt je een foto "
     "van zijn/haar interieur en wil een eerste indruk.\n\n"
@@ -456,13 +497,16 @@ ORIENTATION_PROMPT = (
     "Zelfs als je niet 100% zeker bent, geef dan je beste inschatting.\n\n"
     "Return valid JSON with these keys:\n"
     "user_intent (bepaal de intentie van de gebruiker op basis van de foto. "
-    "Voor nu alleen: 'identify' als de foto een duidelijk herkenbaar object centraal heeft staan "
-    "(vaas, lamp, stoel, tafel, meubel, kunstobject) en de compositie suggereert dat de gebruiker "
-    "wil weten wat het is. Bij twijfel: geef dit veld niet mee of leeg.\n"
-    "  - identify: Het hoofdonderwerp is één object, ingelijst met aandacht voor het object zelf. "
+    "Kies uit een van deze waarden:\n"
+    "  - 'identify': Het hoofdonderwerp is één object, ingelijst met aandacht voor het object zelf. "
     "De gebruiker wil weten: wat is dit, welk ontwerp, welk materiaal, welke stijl?\n"
-    "  (Andere intents zoals 'purchase' worden later toegevoegd.)\n"
-    "  Alleen 'identify' of leeg — nog geen andere waarden.\n"
+    "  - 'purchase': De foto toont een duidelijk herkenbare interieursituatie met meerdere "
+    "zichtbare interieur-elementen (meubels, verfkleuren, materialen, stoffen, verlichting, "
+    "accessoires) die de gebruiker waarschijnlijk wil namaken of kopen. "
+    "Dit geldt voor complete_room scenes waar je specifieke producten kunt aanwijzen.\n"
+    "  - (leeg): Bij alle andere situaties, of bij twijfel. "
+    "Laat leeg. De gebruiker kiest dan zelf.\n"
+    "Alleen 'identify', 'purchase' of leeg — geen andere waarden.\n"
     "),\n"
     "scene_type (een van: 'complete_room', 'object_closeup', 'texture_detail', 'unclear' — bepaal op basis van de foto),\n"
     "style (korte stijlbenaming in het Nederlands, 1-3 woorden, e.g. 'Scandinavisch' or 'Modern industrieel'. Bij object_closeup: de stijl van het object. Bij texture_detail: de stijl waarbij dit materiaal past.),\n"
@@ -539,6 +583,8 @@ FALLBACK_ORIENT = [
     {"scene_type": "complete_room", "style": "Modern industrieel", "reaction": "Wow, wat een gave industriële uitstraling!", "style_explanation": "Ruwe materialen zoals beton en staal, gecombineerd met warm hout en leer. Open ruimtes met hoge plafonds en grote ramen kenmerken deze stijl.", "vibe": "stoer", "confidence": "high"},
     {"scene_type": "complete_room", "style": "Japandi", "reaction": "Wat een serene, minimalistische schoonheid!", "style_explanation": "De perfecte balans tussen Japanse eenvoud en Scandinavische gezelligheid. Natuurlijke materialen, neutrale kleuren en strakke lijnen creëren rust.", "vibe": "harmonisch", "confidence": "medium"},
     {"scene_type": "complete_room", "style": "Bohemian", "reaction": "Wat een heerlijk eclectische mix!", "style_explanation": "Kleurrijke texturen, wereldse accessoires en een ontspannen sfeer. Veel planten, kussens en unieke vondsten maken deze stijl persoonlijk en warm.", "vibe": "vrij", "confidence": "medium"},
+    {"scene_type": "complete_room", "style": "Moderne Scandinavisch", "reaction": "Wat een prachtige, lichte ruimte! De balans tussen hout en wit is perfect.", "style_explanation": "Deze stijl draait om eenvoud, natuurlijke materialen en licht. Wit houtwerk, lichte meubels en groene planten zorgen voor een rustige, frisse uitstraling. De houten vloer en wollen accessoires geven warmte.", "vibe": "fris", "confidence": "high", "user_intent": "purchase"},
+    {"scene_type": "complete_room", "style": "Japandi minimalisme", "reaction": "Wat een serene schoonheid — elk detail is bewust gekozen.", "style_explanation": "Japanse eenvoud ontmoet Scandinavische hygge. Eiken meubels, neutrale tinten en organische vormen. De rotan accenten en keramiek geven textuur.", "vibe": "harmonisch", "confidence": "medium", "user_intent": "purchase"},
 ]
 
 # ── Fallback inspiration advice data (Fase 3: structured stores + options) ──
@@ -772,6 +818,112 @@ FALLBACK_IDENTIFY = [
     }
 ]
 
+# ── Fallback purchase data (3 realistische voorbeelden met NL winkels) ──
+FALLBACK_PURCHASE = [
+    {
+        "intent": "purchase",
+        "object_type": "Scandinavisch-Japandi zithoek met eiken salontafel, rotan fauteuil en linnen accessoires",
+        "description": "Een warme, lichte zithoek waar Scandinavische eenvoud en Japanse harmonie samenkomen.",
+        "segments": {
+            "budget": [
+                {"category": "meubel", "name": "IKEA LACK salontafel 90×55 cm wit", "price": "€29,99", "store": "IKEA", "why": "Zelfde strakke vorm en lichte uitstraling.", "visual_match": 5, "priority": 1},
+                {"category": "meubel", "name": "HEMA rotan fauteuil naturel", "price": "€149", "store": "HEMA", "why": "Rotan gevlochten stoel, zelfde materiaal en kleur.", "visual_match": 7, "priority": 1}
+            ],
+            "middenklasse": [
+                {"category": "meubel", "name": "Leen Bakker salontafel eiken 100×60 cm conische poten", "price": "€249", "store": "Leen Bakker", "why": "Massief eiken blad, conische poten — exact de look van de foto.", "visual_match": 9, "priority": 1},
+                {"category": "meubel", "name": "Leen Bakker rotan armstoel naturel met zitkussen", "price": "€349", "store": "Leen Bakker", "why": "Dikke rotan vlecht, armleuningen — exact de fauteuil op de foto.", "visual_match": 9, "priority": 1},
+                {"category": "verf", "name": "Histor Natuurwit 1201 muurverf mat 2,5L", "price": "€44,95", "store": "Praxis", "why": "Warme witte muren zoals op de foto.", "visual_match": 9, "priority": 1}
+            ],
+            "premium": [
+                {"category": "meubel", "name": "De Bommel eiken massief salontafel 110×70 cm", "price": "€895", "store": "De Bommel", "why": "Massief eiken, handmade, superieure kwaliteit.", "visual_match": 10, "priority": 1},
+                {"category": "meubel", "name": "Intratuin handgevlochten rotan fauteuil", "price": "€899", "store": "Intratuin", "why": "Ambachtelijk gevlochten rotan, designklassieker.", "visual_match": 10, "priority": 1}
+            ]
+        },
+        "materials": [
+            {"name": "Eiken tafelblad massief 100×60 cm", "segment": "middenklasse", "price": "€249", "where": "Leen Bakker"},
+            {"name": "Rotan stoel gevlochten naturel", "segment": "middenklasse", "price": "€349", "where": "Leen Bakker"}
+        ],
+        "colors": [
+            {"name": "Warm wit (muren)", "exact": "Histor Natuurwit 1201", "finish": "mat", "segment": "budget"},
+            {"name": "Saliegroen (kussen)", "exact": "Flexa Salie 25.03", "finish": "mat", "segment": "middenklasse"}
+        ],
+        "total_estimate": "€650 - €1.200",
+        "shopping_list": [
+            "Salontafel eiken 100×60 conisch — Leen Bakker, €249",
+            "Rotan armstoel naturel — Leen Bakker, €349",
+            "Muurverf Natuurwit 2,5L — Praxis, €44,95"
+        ],
+        "confidence": "high"
+    },
+    {
+        "intent": "purchase",
+        "object_type": "Industriële eethoek met zwarte tafel, leren stoelen en betonlook",
+        "description": "Een stoere, industriële eethoek met zwart metaal, donker hout en leren stoelen.",
+        "segments": {
+            "budget": [
+                {"category": "meubel", "name": "IKEA NORDVIKEN tafel 120×80 cm zwart", "price": "€149", "store": "IKEA", "why": "Zwart onderstel, houten blad, zelfde silhouet.", "visual_match": 6, "priority": 1}
+            ],
+            "middenklasse": [
+                {"category": "meubel", "name": "Woonexpress eettafel zwart metaal + eiken blad 180×90 cm", "price": "€599", "store": "Woonexpress", "why": "Zwart metalen onderstel, eiken blad — exact de industriële tafellook.", "visual_match": 9, "priority": 1},
+                {"category": "meubel", "name": "Leen Bakker eetkamerstoel zwart leder 2-pack", "price": "€449", "store": "Leen Bakker", "why": "Zwart lederen stoelen met metalen onderstel.", "visual_match": 9, "priority": 1},
+                {"category": "verlichting", "name": "Karwei zwarte hanglamp industrieel", "price": "€69,95", "store": "Karwei", "why": "Zwarte metalen hanglamp, industriële uitstraling.", "visual_match": 9, "priority": 2}
+            ],
+            "premium": [
+                {"category": "meubel", "name": "De Bommel eettafel massief eiken met stalen onderstel", "price": "€1.895", "store": "De Bommel", "why": "Ambachtelijk, massief eiken, stalen onderstel.", "visual_match": 10, "priority": 1}
+            ]
+        },
+        "materials": [
+            {"name": "Eiken tafelblad massief 180×90 cm", "segment": "middenklasse", "price": "€599", "where": "Woonexpress"},
+            {"name": "Leder eetkamerstoel zwart", "segment": "middenklasse", "price": "€449/2-pack", "where": "Leen Bakker"}
+        ],
+        "colors": [
+            {"name": "Zwart (meubels)", "exact": "Flexa Zwart Mat 90.01", "finish": "mat", "segment": "middenklasse"},
+            {"name": "Betonlook grijs (muur)", "exact": "Histor Betonlook 30.02", "finish": "mat", "segment": "middenklasse"}
+        ],
+        "total_estimate": "€1.200 - €2.500",
+        "shopping_list": [
+            "Eettafel zwart metaal + eiken — Woonexpress, €599",
+            "Leder eetkamerstoel zwart 2-pack — Leen Bakker, €449",
+            "Zwarte hanglamp industrieel — Karwei, €69,95"
+        ],
+        "confidence": "high"
+    },
+    {
+        "intent": "purchase",
+        "object_type": "Bohemian slaapkamer met rotan hoofdbord, macramé en groene planten",
+        "description": "Een warme, ontspannen slaapkamer met rotan hoofdbord, macramé en veel groen.",
+        "segments": {
+            "budget": [
+                {"category": "meubel", "name": "HEMA rotan hoofdbord 140 cm", "price": "€79,99", "store": "HEMA", "why": "Rotan hoofdbord, zelfde gevlochten look.", "visual_match": 7, "priority": 1}
+            ],
+            "middenklasse": [
+                {"category": "meubel", "name": "Intratuin rotan hoofdbord 180 cm breed", "price": "€249", "store": "Intratuin", "why": "Breed rotan hoofdbord, dicht geweven, exact dezelfde look.", "visual_match": 10, "priority": 1},
+                {"category": "textiel", "name": "Woonexpress linnen dekbedovertrek ivory", "price": "€89,95", "store": "Woonexpress", "why": "Zuiver linnen, ivory, zelfde textuur.", "visual_match": 10, "priority": 1},
+                {"category": "wanddecoratie", "name": "HEMA macramé wandhanger 80 cm", "price": "€29,99", "store": "HEMA", "why": "Macramé wandhanger, boho-element.", "visual_match": 8, "priority": 2},
+                {"category": "plant", "name": "Intratuin vijgenboom 150 cm", "price": "€49,95", "store": "Intratuin", "why": "Grote kamerplant, weelderig groen.", "visual_match": 9, "priority": 2}
+            ],
+            "premium": [
+                {"category": "meubel", "name": "De Bommel rotan hoofdbord handgevlochten", "price": "€695", "store": "De Bommel", "why": "Handgevlochten rotan, massief frame.", "visual_match": 10, "priority": 1},
+                {"category": "textiel", "name": "De Bommel linnen dekbedovertrek", "price": "€249", "store": "De Bommel", "why": "Belgisch linnen, hoogste kwaliteit.", "visual_match": 10, "priority": 1}
+            ]
+        },
+        "materials": [
+            {"name": "Rotan hoofdbord 180 cm", "segment": "middenklasse", "price": "€249", "where": "Intratuin"},
+            {"name": "Linnen dekbedovertrek ivory", "segment": "middenklasse", "price": "€89,95", "where": "Woonexpress"}
+        ],
+        "colors": [
+            {"name": "Ivory (beddegoed)", "exact": "Flexa Naturel Mat 10.01", "finish": "mat", "segment": "middenklasse"},
+            {"name": "Rotan naturel", "exact": "Flexa Rotan Mat 15.02", "finish": "mat", "segment": "middenklasse"}
+        ],
+        "total_estimate": "€350 - €1.200",
+        "shopping_list": [
+            "Rotan hoofdbord 180 cm — Intratuin, €249",
+            "Linnen dekbedovertrek ivory — Woonexpress, €89,95",
+            "Macramé wandhanger — HEMA, €29,99"
+        ],
+        "confidence": "high"
+    }
+]
 
 @app.route("/")
 def index():
@@ -847,6 +999,8 @@ def analyze_image():
             user_intent = data.get("user_intent", "")
             if user_intent == "identify":
                 result = random.choice(FALLBACK_IDENTIFY)
+            elif user_intent == "purchase":
+                result = random.choice(FALLBACK_PURCHASE)
             else:
                 result = random.choice(FALLBACK_INSPIRATION)
             result["is_fallback"] = True
@@ -941,6 +1095,12 @@ def analyze_image():
                 system_message = (
                     "Je bent een designexpert die objecten identificeert. "
                     "Gebruik de context en het doel om je analyse te personaliseren."
+                )
+            elif user_intent == "purchase":
+                base_prompt = PURCHASE_PROMPT
+                system_message = (
+                    "Je bent een praktische interieuradviseur voor aankoopadvies. "
+                    "Gebruik de context om productadvies op maat te geven."
                 )
             else:
                 base_prompt = INSPIRATION_PROMPT
