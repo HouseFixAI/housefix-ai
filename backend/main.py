@@ -985,7 +985,7 @@ def analyze_image():
 
     # If no API key, check cache first, then fallback
     if not OPENAI_API_KEY:
-        ck = cache_key(mode, step or "", image_base64, data.get("goal", ""))
+        ck = cache_key(mode, step or "", image_base64, data.get("goal", "") + ":" + data.get("user_intent", ""))
         cached = get_cached_response(ck)
         if cached:
             cached["_cached"] = True
@@ -1065,7 +1065,8 @@ def analyze_image():
         if session:
             orient = session.get('orient', {})
             scene_type = orient.get('scene_type', 'complete_room')
-            user_intent = orient.get('user_intent', '')
+            request_intent = data.get("user_intent", "")
+            user_intent = request_intent if request_intent else orient.get("user_intent", "")
             context_parts.append(f"SCENE_TYPE: {scene_type}")
             context_parts.append(f"USER_INTENT: {user_intent}")
             context_parts.append(f"Eerste indruk van deze ruimte: {orient.get('style', 'onbekend')} — {orient.get('style_explanation', '')}")
@@ -1081,7 +1082,7 @@ def analyze_image():
         user_context = "\n".join(context_parts)
 
         # Check cache before calling GPT
-        ack = cache_key(mode, "advise", image_base64, f"{goal}:{user_intent}")
+        ack = cache_key(mode, "advise", image_base64, f"{goal}:{request_intent}")
         acached = get_cached_response(ack)
         if acached:
             return jsonify(acached)
