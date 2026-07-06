@@ -886,7 +886,7 @@ function retake() {
     /* Show purchase questions form */
     function showPurchaseQuestions() {
       document.getElementById("loadingWrap").classList.remove("active");
-      document.getElementById("resultsWrap").classList.remove("active");
+      document.getElementById("resultsWrap").classList.add("active");
       const html = '<div class="pq-wrap active">' +
         '<div class="pq-card"><div class="pq-label">Focus</div><div class="pq-options">' +
           '<div class="pq-opt pq-active" data-pq="focus_exact">Exact dezelfde look</div>' +
