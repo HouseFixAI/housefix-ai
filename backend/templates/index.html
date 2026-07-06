@@ -348,6 +348,44 @@
               .pq-seg-btn.pq-active { border-color: var(--terracotta); background: var(--terracotta-soft); color: var(--terracotta); }
               .pq-submit { display: block; width: 100%; padding: 14px; border-radius: var(--radius-sm); border: none; background: var(--terracotta); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; text-align: center; }
 
+              /* Fase 4: Visual Inspiration */
+              .pv-swatch { width: 80px; height: 80px; border-radius: var(--radius-xs); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+              .pv-icon { width: 36px; height: 36px; border-radius: 6px; opacity: 0.8; }
+              .pv-meubel { background: rgba(255,255,255,0.25); border-radius: 4px 4px 0 0; width: 28px; height: 24px; margin-top: 12px; }
+              .pv-verlichting { border-radius: 50%; width: 20px; height: 20px; background: rgba(255,255,200,0.5); box-shadow: 0 0 12px rgba(255,200,100,0.4); }
+              .pv-textiel { border-radius: 2px; width: 30px; height: 18px; background: rgba(255,255,255,0.2); }
+              .pv-plant { border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; width: 22px; height: 28px; background: rgba(100,180,80,0.4); }
+              .pv-verf { border-radius: 50%; width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.3); }
+              .pv-accessoire { border-radius: 4px; width: 18px; height: 18px; background: rgba(255,255,255,0.2); }
+              .pv-wanddecoratie { width: 10px; height: 20px; border-radius: 20px; background: rgba(255,255,255,0.2); }
+              .pv-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+              .pv-info { flex: 1; }
+              .pv-save { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 16px; border: 1px solid var(--border-light); background: var(--bg-card); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--terracotta); transition: all 0.2s; }
+              .pv-save:hover { background: var(--terracotta-soft); }
+              .pv-save.saved { background: var(--terracotta-soft); border-color: var(--terracotta); color: var(--terracotta); }
+              .pv-board-btn { display: inline-block; padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--border-light); background: var(--bg-card); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary); transition: all 0.2s; }
+              .pv-board-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
+              .pv-comp-wrapper { margin-bottom: 16px; }
+              .pv-comp-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+              .pv-comp-scroll { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+              .pv-comp-col { flex: 0 0 240px; scroll-snap-align: start; }
+              .pv-comp-label { font-size: 13px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+              .pv-room { position: relative; width: 240px; height: 180px; border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 6px; }
+              .pv-room-item { position: absolute; width: 40px; height: 40px; border-radius: 8px; }
+              .pv-comp-total { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-align: center; }
+              /* Board overlay */
+              .pv-board-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+              .pv-board-panel { background: var(--bg-primary); border-radius: var(--radius); max-width: 420px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px; }
+              .pv-board-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); padding: 4px 8px; }
+              .pv-board-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+              .pv-board-item { padding: 12px; border-radius: var(--radius-xs); border: 1px solid var(--border-light); background: var(--bg-card); }
+              .pv-board-swatch { width: 100%; height: 60px; border-radius: var(--radius-xs); margin-bottom: 8px; }
+              .pv-board-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+              .pv-board-price { font-size: 14px; font-weight: 700; color: var(--terracotta); }
+              .pv-board-store { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+              .pv-board-del { font-size: 11px; color: var(--text-muted); cursor: pointer; background: none; border: none; padding: 0; }
+              .pv-board-del:hover { color: var(--terracotta); }
+
           .footer { text-align: center; padding: 20px 24px; color: var(--text-muted); font-size: 12px; }
           .dash-footer { display: block; text-align: center; padding: 8px 24px 12px; color: var(--text-muted); font-size: 12px; margin-top: 6px; }
 
@@ -1014,17 +1052,172 @@ function retake() {
       else if(r._cached)b='<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt.</div>';
       let html=b+'<div class="purchase-head">'+(r.object_type||"Interieur")+'</div><div class="purchase-desc">'+(r.description||"")+'</div>';
       if(r.total_estimate)html+='<div class="purchase-total"><span class="purchase-total-label">Totale kosten</span><span class="purchase-total-price">'+r.total_estimate+'</span></div>';
+
+      // Build 3-column composition preview
+      html+=buildCompositionPreview(r.segments);
+
+      // Segment tabs
       let bestSeg="middenklasse",bestScore=0;
       for(const seg of["budget","middenklasse","premium"]){const p=r.segments&&r.segments[seg]||[];const s=p.reduce((a,b)=>a+(b.visual_match||0),0);if(s>bestScore){bestScore=s;bestSeg=seg;}}
       html+='<div class="segment-tabs">';
       const lb={budget:"💰 Budget",middenklasse:"✨ Middenklasse",premium:"👑 Premium"};
       for(const seg of["budget","middenklasse","premium"])html+='<button class="segment-tab'+(seg===bestSeg?" segment-active":"")+'" data-seg="'+seg+'">'+lb[seg]+'</button>';
       html+='</div>';
-      for(const seg of["budget","middenklasse","premium"]){const v=seg===bestSeg?"block":"none";html+='<div class="segment-content" id="seg-'+seg+'" style="display:'+v+'">';const p=r.segments&&r.segments[seg]||[];if(p.length)p.forEach(x=>{html+='<div class="purchase-card prio-essential"><div class="purchase-card-name">'+x.name+'</div><div class="purchase-card-price">'+x.price+'</div><div class="purchase-card-store">🛒 '+x.store+'</div><div class="purchase-card-why">'+x.why+'</div></div>';});html+='</div>';}
+
+      // Product cards per segment with visual + save button
+      for(const seg of["budget","middenklasse","premium"]){
+        const v=seg===bestSeg?"block":"none";
+        html+='<div class="segment-content" id="seg-'+seg+'" style="display:'+v+'">';
+        const p=r.segments&&r.segments[seg]||[];
+        if(p.length){
+          p.forEach((x,i)=>{
+            const v=x.visual||{};
+            const pal=v.color_palette||["#e8ddd0","#d4c5b5"];
+            const mood=v.mood||"warm";
+            const style_tag=v.style_tag||"modern";
+            const cat=x.category||"accessoire";
+            const pos=x.position||"center";
+            const feat=x.featured||false;
+            // Visual swatch
+            const swatchHtml='<div class="pv-swatch" style="background:linear-gradient(135deg,'+pal[0]+','+(pal[1]||pal[0])+')"><div class="pv-icon pv-'+cat+'"></div></div>';
+            const sid='prod_'+seg+'_'+i;
+            html+='<div class="purchase-card'+(feat?' prio-essential':'')+'" data-pos="'+pos+'" data-feat="'+feat+'">';
+            html+='<div class="pv-row">'+swatchHtml+'<div class="pv-info"><div class="purchase-card-name">'+x.name+'</div><div class="purchase-card-price">'+x.price+'</div><div class="purchase-card-store">🛒 '+x.store+'</div></div></div>';
+            html+='<div class="purchase-card-why">'+x.why+'</div>';
+            // Save button
+            html+='<button class="pv-save" data-pid="'+sid+'" data-name="'+escHtml(x.name)+'" data-price="'+escHtml(x.price)+'" data-store="'+escHtml(x.store)+'" data-cat="'+cat+'" data-pal="'+pal.join(",")+'" data-mood="'+mood+'" data-style="'+style_tag+'">♡ Bewaren</button>';
+            html+='</div>';
+          });
+        }
+        html+='</div>';
+      }
+
+      // Shopping list
       if(r.shopping_list&&r.shopping_list.length){html+='<div class="purchase-section"><div class="purchase-section-title">📋 Boodschappenlijst</div><div class="purchase-checklist">';r.shopping_list.forEach(i=>{html+='<label class="purchase-check-item"><input type="checkbox" /><span>'+i+'</span></label>';});html+='</div></div>';}
+
+      // Board button
+      const savedCount = JSON.parse(localStorage.getItem("hf_board")||"[]").length;
+      html+='<div style="text-align:center;margin-top:12px"><button class="pv-board-btn" id="showBoardBtn">📋 Mijn bord ('+savedCount+')</button></div>';
+
       document.getElementById("resultContent").innerHTML=html;
-      setTimeout(()=>{document.querySelectorAll(".segment-tab").forEach(t=>t.addEventListener("click",function(){document.querySelectorAll(".segment-tab").forEach(x=>x.classList.remove("segment-active"));this.classList.add("segment-active");document.querySelectorAll(".segment-content").forEach(c=>c.style.display="none");const e=document.getElementById("seg-"+this.dataset.seg);if(e)e.style.display="block";}));},0);
+
+      // Save button handlers
+      document.querySelectorAll(".pv-save").forEach(btn=>{
+        btn.addEventListener("click",function(){
+          const board=JSON.parse(localStorage.getItem("hf_board")||"[]");
+          const existing=board.findIndex(x=>x.pid===this.dataset.pid);
+          if(existing>=0){board.splice(existing,1);this.textContent="♡ Bewaren";this.classList.remove("saved");}
+          else{
+            board.push({pid:this.dataset.pid,name:this.dataset.name,price:this.dataset.price,store:this.dataset.store,category:this.dataset.cat,palette:this.dataset.pal,mood:this.dataset.mood,style_tag:this.dataset.style,savedAt:new Date().toISOString()});
+            this.textContent="♥ Bewaard";this.classList.add("saved");
+          }
+          localStorage.setItem("hf_board",JSON.stringify(board));
+          document.getElementById("showBoardBtn").textContent="📋 Mijn bord ("+board.length+")";
+        });
+      });
+
+      // Show board
+      document.getElementById("showBoardBtn").addEventListener("click",function(){showInspirationBoard();});
+
+      // Tab switching
+      setTimeout(()=>{
+        document.querySelectorAll(".segment-tab").forEach(t=>t.addEventListener("click",function(){
+          document.querySelectorAll(".segment-tab").forEach(x=>x.classList.remove("segment-active"));
+          this.classList.add("segment-active");
+          document.querySelectorAll(".segment-content").forEach(c=>c.style.display="none");
+          const e=document.getElementById("seg-"+this.dataset.seg);if(e)e.style.display="block";
+        }));
+      },0);
       document.getElementById("saveBtn").textContent="Sla boodschappenlijst op";
+    }
+
+    /* Esc HTML */
+    function escHtml(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+
+    /* Build 3-column composition preview */
+    function buildCompositionPreview(segments){
+      if(!segments)return "";
+      const segs=["budget","middenklasse","premium"];
+      const lbs={budget:"💰 Budget €10-€80",middenklasse:"✨ Design €80-€500",premium:"👑 Luxe €500+"};
+      let html="";
+      // Check if we have any featured products to show composition
+      let hasAny=false;
+      segs.forEach(s=>{const p=segments[s]||[];if(p.find(x=>x.featured))hasAny=true;});
+      if(!hasAny)return "";
+
+      html+='<div class="pv-comp-wrapper"><div class="pv-comp-title">Vergelijk de uitvoeringen</div><div class="pv-comp-scroll">';
+      segs.forEach(s=>{
+        const p=segments[s]||[];
+        const feat=p.find(x=>x.featured)||p[0]||{};
+        const v=feat.visual||{};
+        const pal=v.color_palette||["#e8ddd0","#d4c5b5"];
+        const style_tag=v.style_tag||"modern";
+        html+='<div class="pv-comp-col">';
+        html+='<div class="pv-comp-label">'+lbs[s]+'</div>';
+        html+='<div class="pv-room" style="background:linear-gradient(180deg,'+pal[0]+'30 0%,'+pal[1]+'20 60%,#f5f0ea 100%)">';
+        // Room elements positioned by their data-pos
+        p.forEach(item=>{
+          const pos=item.position||"center";
+          const iv=item.visual||{};
+          const ip=iv.color_palette||["#d4c5b5","#c4b5a5"];
+          const ic=item.category||"accessoire";
+          const leftPos={center:"35%",left:"10%",right:"60%",top:"30%",floor:"20%"};
+          const topPos={center:"40%",left:"35%",right:"35%",top:"5%",floor:"65%"};
+          const size=item.featured?"60px":"40px";
+          html+='<div class="pv-room-item" style="left:'+leftPos[pos]+';top:'+topPos[pos]+';width:'+size+';height:'+size+';background:radial-gradient(circle,'+ip[0]+','+(ip[1]||ip[0])+');border-radius:'+(ic==="plant"?"50% 50% 50% 50% / 60% 60% 40% 40%":"12px")+'"></div>';
+        });
+        html+='</div><div class="pv-comp-total">Totaal: '+(segments[s].reduce((sum,x)=>sum+(parseInt(x.price.replace(/[^0-9]/g,""))||0),0)||"—")+'</div>';
+        html+='</div>';
+      });
+      html+='</div></div>';
+      return html;
+    }
+
+    /* Show inspiration board overlay */
+    function showInspirationBoard(){
+      const board=JSON.parse(localStorage.getItem("hf_board")||"[]");
+      let html='<div class="pv-board-overlay" id="boardOverlay"><div class="pv-board-panel">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-family:Playfair Display,serif;font-size:20px;font-weight:700">📋 Mijn bord</span><button class="pv-board-close" id="boardCloseBtn">✕</button></div>';
+      if(board.length===0)html+='<p style="color:var(--text-muted);text-align:center;padding:20px 0">Nog geen producten opgeslagen. Tik op ♡ bij een product om het te bewaren.</p>';
+      else{
+        html+='<div class="pv-board-grid">';
+        board.forEach((item,i)=>{
+          const pals=(item.palette||"#e8ddd0,#d4c5b5").split(",");
+          html+='<div class="pv-board-item"><div class="pv-board-swatch" style="background:linear-gradient(135deg,'+pals[0]+','+(pals[1]||pals[0])+')"></div>';
+          html+='<div class="pv-board-name">'+item.name+'</div>';
+          html+='<div class="pv-board-price">'+item.price+'</div>';
+          html+='<div class="pv-board-store">'+item.store+'</div>';
+          html+='<button class="pv-board-del" data-idx="'+i+'">Verwijderen</button></div>';
+        });
+        html+='</div>';
+      }
+      html+='</div></div>';
+      // Append to body
+      const div=document.createElement("div");div.innerHTML=html;
+      document.body.appendChild(div.firstElementChild);
+      document.getElementById("boardCloseBtn").addEventListener("click",()=>{
+        document.getElementById("boardOverlay").remove();
+      });
+      document.querySelectorAll(".pv-board-del").forEach(btn=>{
+        btn.addEventListener("click",function(){
+          const idx=parseInt(this.dataset.idx);
+          const board2=JSON.parse(localStorage.getItem("hf_board")||"[]");
+          board2.splice(idx,1);
+          localStorage.setItem("hf_board",JSON.stringify(board2));
+          document.getElementById("boardOverlay").remove();
+          showInspirationBoard();
+          // Update all save buttons
+          document.querySelectorAll(".pv-save").forEach(b=>{
+            const pid=b.dataset.pid;
+            if(board2.find(x=>x.pid===pid)){b.textContent="♥ Bewaard";b.classList.add("saved");}
+            else{b.textContent="♡ Bewaren";b.classList.remove("saved");}
+          });
+          const sb=document.getElementById("showBoardBtn");
+          if(sb)sb.textContent="📋 Mijn bord ("+board2.length+")";
+        });
+      });
+      // Close on overlay click
+      document.getElementById("boardOverlay").addEventListener("click",function(e){if(e.target===this)this.remove();});
     }
 /* ── Render Identify ── */
     function renderIdentify(r) {
