@@ -426,34 +426,77 @@ IDENTIFY_PROMPT = (
 
 # ── PURCHASE PROMPT ──
 PURCHASE_PROMPT = (
-    "You are a praktische interieur- en designadviseur. Een gebruiker heeft een foto "
-    "gestuurd van een interieur en wil weten welke producten hij/zij kan KOPEN om deze "
-    "look na te maken, aan te vullen of te verbeteren.\n\n"
+    "You are een high-end interieur- en designadviseur met oog voor kwaliteit. Een "
+    "gebruiker heeft een foto gestuurd en wil weten welke producten hij/zij kan KOPEN.\n\n"
     "═══ KERNREGEL ═══\n"
-    "Zoek eerst de BESTE VISUELE MATCH met de foto — welk product lijkt het meest op "
-    "wat je ziet? Pas daarna pas segmentatie toe op basis van prijsklasse.\n\n"
-    "═══ ANALYSEPROCES ═══\n"
-    "STAP 1 — Identificeer alle zichtbare interieur-elementen: meubels, verlichting, "
-    "textiel, wanden (verf/behang), vloer, accessoires, planten.\n"
-    "STAP 2 — Bepaal per element het best passende product: exacte productnaam, "
-    "winkel, prijs. Gebruik bekende Nederlandse woonwinkels (IKEA, HEMA, Leen Bakker, "
-    "Karwei, Praxis, Woonexpress, Intratuin, De Bommel).\n"
-    "STAP 3 — Segmentatie: budget (€-alternatief), middenklasse (beste visuele match), "
-    "premium (luxe uitvoering). Het middenklasse-segment bevat de beste visuele match.\n\n"
+    "Zoek eerst de BESTE VISUELE MATCH. Segmentatie komt daarna. "
+    "Middenklasse en premium zijn VERBODEN voor budgetmerken.\n\n"
+    "═══ SCENE-TYPE ROUTERING ═══\n"
+    "CONTEXT bevat SCENE_TYPE. Kies het juiste pad:\n\n"
+    "PAD A — object_closeup (foto van een specifiek object: vaas, lamp, stoel, tafel):\n"
+    "  STAP 1: Identificeer het object exact: materiaal, stijl, kleur, afmeting.\n"
+    "  STAP 2: Splits in TWEE complementaire aanbevelingen:\n"
+    "    (a) EXACTE MATCH: Het product dat het meest op de foto lijkt.\n"
+    "    (b) COMPOSITIE: Functionele items die een COMPOSITIE vormen met het object.\n"
+    "  COMPOSITIEREGELS per object:\n"
+    "    - VAAS → console/tafel/zuil (om op te staan), wandspot (om uit te lichten),\n"
+    "      luxe dienblad of object in exact zelfde materiaal/stijl.\n"
+    "      NOOIT: willekeurige kaarsen, kandelaars, planten die niet op de foto staan.\n"
+    "    - STOEL → bijzettafel, vloerkleed, wandlamp (functioneel bij de stoel).\n"
+    "    - LAMP → bijpassend meubel, dimmer (functioneel).\n"
+    "    - TAFEL → stoelen, tafelstyling, centerpiece.\n"
+    "    - KAST → wanddecoratie erboven, bijpassende accessoires ernaast.\n\n"
+    "PAD B — complete_room (overzicht van een hele ruimte):\n"
+    "  Identificeer ALLE zichtbare interieur-elementen. Prioriteer:\n"
+    "  meubels → verf/behang → textiel → verlichting → accessoires → planten.\n"
+    "  Geef per element het best passende product.\n\n"
+    "PAD C — texture_detail (close-up van materiaal/textuur):\n"
+    "  Focus op het specifieke materiaal (verf, behang, stof, vloer).\n"
+    "  Adviseer producten die bij dit materiaal passen.\n\n"
+    "═══ PRIJSSEGMENTATIE ═══\n"
+    "Gebruik deze STRENGE regels per segment. OVERSCHRIJDING is niet toegestaan.\n\n"
+    "BUDGET (€10 - €80):\n"
+    "  Winkels: IKEA, HEMA, Action, Leen Bakker, Xenos\n"
+    "  Dit is het enige segment waar budgetketens zijn toegestaan.\n"
+    "  Eenvoudige, functionele alternatieven voor de look.\n\n"
+    "MIDDENKLASSE (€80 - €500):\n"
+    "  VERBODEN: IKEA, HEMA, Action, Leen Bakker, Xenos.\n"
+    "  Toegestaan: Woonexpress, Intratuin, Karwei designlijn, VT Wonen webshop,\n"
+    "    fonQ, designonline.nl, Westwing, BOL.com design, Kwantum designlijn,\n"
+    "    JYSK designserie, H&M Home (alleen accessoires), Zara Home (design-lijn).\n"
+    "  Dit is het HOOFDSEGMENT — hier zit de beste visuele match.\n"
+    "  Producten moeten Kwaliteit uitstralen: massief hout, zuiver linnen, designermerken.\n\n"
+    "PREMIUM (€500 - €2.000+):\n"
+    "  VERBODEN: ALLE budget- en retailketens (IKEA, HEMA, Action, Leen Bakker,\n"
+    "    Woonexpress, Karwei, JYSK, Kwantum, HEMA Home, Zara Home).\n"
+    "  Toegestaan: De Bommel exclusief, Intratuin designer, MOOOI, Artifort,\n"
+    "    &Tradition, Hay, Vitra, Eichholtz, exclusieve designwinkels, galeries.\n"
+    "  Dit segment is voor designklassiekers, limited editions, ambachtelijk werk.\n\n"
+    "═══ COMPOSITIELOGICA ═══\n"
+    "Een complementair product is ALLEEN logisch als het:\n"
+    "1. Een FUNCTIE heeft ten opzichte van het hoofdobject\n"
+    "   - JUIST: 'Deze eiken console accentueert de vaas door hoogte en contrast'\n"
+    "   - FOUT: 'Deze kaars staat gezellig naast de vaas'\n"
+    "2. In dezelfde STIJL is als het hoofdobject (Japandi → eiken, industrieel → metaal)\n"
+    "3. Een PRIJS heeft die past bij het object (geen €9,99 product naast een €200 vaas)\n"
+    "4. Een VISUELE REDEN heeft in de compositie\n"
+    "   - JUIST: 'Deze wandspot versterkt de sculpturale kwaliteit van de vaas'\n"
+    "   - FOUT: 'Dit past er wel bij'\n\n"
     "ABSOLUTELY FORBIDDEN:\n"
     "• Geef GEEN stijleducatie, designgeschiedenis of stijlcontext.\n"
     "• Geef GEEN identificatie van objecten (dat is een andere intentie).\n"
     "• Geef GEEN reparatie- of klusadvies.\n"
-    "• Zoek NIET naar schade, gebreken of slijtage.\n\n"
+    "• Zoek NIET naar schade, gebreken of slijtage.\n"
+    "• Gebruik NOOIT IKEA, HEMA, Action of Leen Bakker in middenklasse of premium.\n\n"
     "Return valid JSON with these keys:\n"
     "intent (altijd 'purchase'),\n"
-    "object_type (korte benaming van de ruimte of compositie, bv. 'Scandinavische zithoek met eiken salontafel en rotan fauteuil'),\n"
+    "object_type (korte benaming van de ruimte of compositie, bv. 'Japandi zithoek met eiken salontafel en rotan fauteuil'),\n"
     "description (2-3 zinnen in Nederlands. Beschrijf wat je ziet en wat de gebruiker kan kopen om deze look te realiseren. Warm en praktisch.),\n"
     "segments (object met 3 keys: 'budget', 'middenklasse', 'premium'. Elk is een array van product-objecten. Elk product-object:\n"
-    "  - category: 'meubel'|'verf'|'materiaal'|'accessoire'|'textiel'|'verlichting'|'plant'|'wanddecoratie'\n"
-    "  - name: Exacte productnaam + winkel, bv. 'IKEA MÖRBYLÅNGA eiken tafel 180×90 cm'\n"
+    "  - category: 'meubel'|'verf'|'accessoire'|'textiel'|'verlichting'|'plant'|'wanddecoratie'\n"
+    "  - name: Exacte productnaam + winkel, bv. 'Woonexpress eiken salontafel 100×60 cm conische poten'\n"
     "  - price: prijsindicatie, bv. '€349'\n"
-    "  - store: winkelnaam, bv. 'IKEA'\n"
+    "  - store: winkelnaam, bv. 'Woonexpress'\n"
     "  - why: waarom dit product de beste match is. Visueel argument.\n"
     "  - visual_match: 1-10 integer. Hoe goed matcht dit product visueel met de foto?\n"
     "  - priority: 1 (essentieel), 2 (belangrijk), 3 (optioneel)\n"
@@ -818,108 +861,124 @@ FALLBACK_IDENTIFY = [
     }
 ]
 
-# ── Fallback purchase data (3 realistische voorbeelden met NL winkels) ──
+# ── Fallback purchase data (3 voorbeelden — premium prijsniveau) ──
 FALLBACK_PURCHASE = [
     {
         "intent": "purchase",
         "object_type": "Scandinavisch-Japandi zithoek met eiken salontafel, rotan fauteuil en linnen accessoires",
-        "description": "Een warme, lichte zithoek waar Scandinavische eenvoud en Japanse harmonie samenkomen.",
+        "description": "Een warme, lichte zithoek waar Scandinavische eenvoud en Japanse harmonie samenkomen. "
+        "Massief eiken meubels, handgevlochten rotan en zuiver linnen bepalen de sfeer.",
         "segments": {
             "budget": [
-                {"category": "meubel", "name": "IKEA LACK salontafel 90×55 cm wit", "price": "€29,99", "store": "IKEA", "why": "Zelfde strakke vorm en lichte uitstraling.", "visual_match": 5, "priority": 1},
-                {"category": "meubel", "name": "HEMA rotan fauteuil naturel", "price": "€149", "store": "HEMA", "why": "Rotan gevlochten stoel, zelfde materiaal en kleur.", "visual_match": 7, "priority": 1}
+                {"category": "meubel", "name": "IKEA LACK salontafel 90×55 cm wit", "price": "€29,99", "store": "IKEA", "why": "Zelfde strakke vorm, lichte uitstraling — budgetalternatief.", "visual_match": 5, "priority": 1},
+                {"category": "meubel", "name": "HEMA rotan fauteuil naturel", "price": "€149", "store": "HEMA", "why": "Rotan gevlochten stoel, zelfde materiaal en kleur.", "visual_match": 6, "priority": 1}
             ],
             "middenklasse": [
-                {"category": "meubel", "name": "Leen Bakker salontafel eiken 100×60 cm conische poten", "price": "€249", "store": "Leen Bakker", "why": "Massief eiken blad, conische poten — exact de look van de foto.", "visual_match": 9, "priority": 1},
-                {"category": "meubel", "name": "Leen Bakker rotan armstoel naturel met zitkussen", "price": "€349", "store": "Leen Bakker", "why": "Dikke rotan vlecht, armleuningen — exact de fauteuil op de foto.", "visual_match": 9, "priority": 1},
-                {"category": "verf", "name": "Histor Natuurwit 1201 muurverf mat 2,5L", "price": "€44,95", "store": "Praxis", "why": "Warme witte muren zoals op de foto.", "visual_match": 9, "priority": 1}
+                {"category": "meubel", "name": "Woonexpress eiken salontafel 100×60 cm conische poten", "price": "€349", "store": "Woonexpress", "why": "Massief eiken blad, conische poten, naturel afwerking — exact de look.", "visual_match": 9, "priority": 1},
+                {"category": "meubel", "name": "Intratuin handgevlochten rotan fauteuil naturel", "price": "€499", "store": "Intratuin", "why": "Dik rotan vlechtwerk, armleuningen, met dik zitkussen — exact de fauteuil.", "visual_match": 9, "priority": 1},
+                {"category": "textiel", "name": "Westwing linnen kussen 50×50 cm saliegroen", "price": "€79,95", "store": "Westwing", "why": "Zuiver linnen in saliegroen, zelfde textuur en kleur.", "visual_match": 9, "priority": 2},
+                {"category": "verlichting", "name": "fonQ rotan hanglamp 45 cm naturel", "price": "€129", "store": "fonQ", "why": "Grote rotan hanglamp, warm licht, natuurlijk accent.", "visual_match": 8, "priority": 3},
+                {"category": "meubel", "name": "Woonexpress eiken bijzettafel 45×45 cm", "price": "€189", "store": "Woonexpress", "why": "Massief eiken, past bij de salontafel.", "visual_match": 8, "priority": 2}
             ],
             "premium": [
-                {"category": "meubel", "name": "De Bommel eiken massief salontafel 110×70 cm", "price": "€895", "store": "De Bommel", "why": "Massief eiken, handmade, superieure kwaliteit.", "visual_match": 10, "priority": 1},
-                {"category": "meubel", "name": "Intratuin handgevlochten rotan fauteuil", "price": "€899", "store": "Intratuin", "why": "Ambachtelijk gevlochten rotan, designklassieker.", "visual_match": 10, "priority": 1}
+                {"category": "meubel", "name": "Eichholtz eiken salontafel 120×70 cm met marmeren blad", "price": "€1.495", "store": "Exclusieve designwinkel", "why": "Luxe uitvoering met marmer, sculpturaal ontwerp.", "visual_match": 8, "priority": 1},
+                {"category": "meubel", "name": "Artifort rotan fauteuil 'F888' handgevlochten", "price": "€1.895", "store": "Artifort", "why": "Designklassieker, handgevlochten, museumwaardig.", "visual_match": 9, "priority": 1}
             ]
         },
         "materials": [
-            {"name": "Eiken tafelblad massief 100×60 cm", "segment": "middenklasse", "price": "€249", "where": "Leen Bakker"},
-            {"name": "Rotan stoel gevlochten naturel", "segment": "middenklasse", "price": "€349", "where": "Leen Bakker"}
+            {"name": "Eiken tafelblad massief 100×60 cm", "segment": "middenklasse", "price": "€349", "where": "Woonexpress"},
+            {"name": "Rotan fauteuil handgevlochten", "segment": "middenklasse", "price": "€499", "where": "Intratuin"}
         ],
         "colors": [
             {"name": "Warm wit (muren)", "exact": "Histor Natuurwit 1201", "finish": "mat", "segment": "budget"},
             {"name": "Saliegroen (kussen)", "exact": "Flexa Salie 25.03", "finish": "mat", "segment": "middenklasse"}
         ],
-        "total_estimate": "€650 - €1.200",
+        "total_estimate": "€850 - €1.600",
         "shopping_list": [
-            "Salontafel eiken 100×60 conisch — Leen Bakker, €249",
-            "Rotan armstoel naturel — Leen Bakker, €349",
-            "Muurverf Natuurwit 2,5L — Praxis, €44,95"
+            "Eiken salontafel conisch — Woonexpress, €349",
+            "Rotan fauteuil handgevlochten — Intratuin, €499",
+            "Linnen kussen salie 50×50 — Westwing, €79,95",
+            "Rotan hanglamp 45 cm — fonQ, €129",
+            "Eiken bijzettafel — Woonexpress, €189"
         ],
         "confidence": "high"
     },
     {
         "intent": "purchase",
-        "object_type": "Industriële eethoek met zwarte tafel, leren stoelen en betonlook",
-        "description": "Een stoere, industriële eethoek met zwart metaal, donker hout en leren stoelen.",
+        "object_type": "Industriële eethoek met zwart stalen tafel, cognac lederen stoelen en betonlook",
+        "description": "Een karaktervolle industriële eethoek. Zwart stalen onderstel met massief eiken blad, "
+        "cognac lederen stoelen en een betonlook accentmuur. Robuust, warm en tijdloos.",
         "segments": {
             "budget": [
-                {"category": "meubel", "name": "IKEA NORDVIKEN tafel 120×80 cm zwart", "price": "€149", "store": "IKEA", "why": "Zwart onderstel, houten blad, zelfde silhouet.", "visual_match": 6, "priority": 1}
+                {"category": "meubel", "name": "IKEA NORDVIKEN tafel 120×80 cm zwart", "price": "€149", "store": "IKEA", "why": "Zwart onderstel, houten blad — zelfde silhouet.", "visual_match": 5, "priority": 1},
+                {"category": "meubel", "name": "JYSK eetkamerstoel zwart kunstleer", "price": "€79,99", "store": "JYSK", "why": "Zwarte stoel met kunstleren zitting.", "visual_match": 5, "priority": 1}
             ],
             "middenklasse": [
-                {"category": "meubel", "name": "Woonexpress eettafel zwart metaal + eiken blad 180×90 cm", "price": "€599", "store": "Woonexpress", "why": "Zwart metalen onderstel, eiken blad — exact de industriële tafellook.", "visual_match": 9, "priority": 1},
-                {"category": "meubel", "name": "Leen Bakker eetkamerstoel zwart leder 2-pack", "price": "€449", "store": "Leen Bakker", "why": "Zwart lederen stoelen met metalen onderstel.", "visual_match": 9, "priority": 1},
-                {"category": "verlichting", "name": "Karwei zwarte hanglamp industrieel", "price": "€69,95", "store": "Karwei", "why": "Zwarte metalen hanglamp, industriële uitstraling.", "visual_match": 9, "priority": 2}
+                {"category": "meubel", "name": "Woonexpress eettafel zwart metaal + eiken blad 200×90 cm", "price": "€699", "store": "Woonexpress", "why": "Zwart stalen onderstel, massief eiken blad — exact de industriële tafellook.", "visual_match": 9, "priority": 1},
+                {"category": "meubel", "name": "Intratuin eetkamerstoel cognac leder 2-pack", "price": "€599", "store": "Intratuin", "why": "Cognac lederen stoel, metalen onderstel — identiek aan de foto.", "visual_match": 9, "priority": 1},
+                {"category": "verlichting", "name": "fonQ zwarte industriële hanglamp metaal", "price": "€89,95", "store": "fonQ", "why": "Zwarte metalen hanglamp met industriële uitstraling.", "visual_match": 9, "priority": 2},
+                {"category": "wanddecoratie", "name": "VT Wonen betonlook wandpanel 120×80 cm", "price": "€149", "store": "VT Wonen webshop", "why": "Betonlook paneel voor de accentmuur.", "visual_match": 8, "priority": 2}
             ],
             "premium": [
-                {"category": "meubel", "name": "De Bommel eettafel massief eiken met stalen onderstel", "price": "€1.895", "store": "De Bommel", "why": "Ambachtelijk, massief eiken, stalen onderstel.", "visual_match": 10, "priority": 1}
+                {"category": "meubel", "name": "Eichholtz eettafel massief eiken met stalen onderstel 240×100 cm", "price": "€2.495", "store": "Eichholtz", "why": "Massief eiken, handgelast stalen onderstel — design statement.", "visual_match": 10, "priority": 1},
+                {"category": "meubel", "name": "Hay eetkamerstoel cognac leder 'About a Chair'", "price": "€695", "store": "Hay", "why": "Designklassieker, cognac leder, metalen onderstel.", "visual_match": 9, "priority": 1}
             ]
         },
         "materials": [
-            {"name": "Eiken tafelblad massief 180×90 cm", "segment": "middenklasse", "price": "€599", "where": "Woonexpress"},
-            {"name": "Leder eetkamerstoel zwart", "segment": "middenklasse", "price": "€449/2-pack", "where": "Leen Bakker"}
+            {"name": "Eiken tafelblad massief 200×90 cm", "segment": "middenklasse", "price": "€699", "where": "Woonexpress"},
+            {"name": "Leder eetkamerstoel cognac 2-pack", "segment": "middenklasse", "price": "€599", "where": "Intratuin"},
+            {"name": "Betonlook wandpanel", "segment": "middenklasse", "price": "€149", "where": "VT Wonen"}
         ],
         "colors": [
             {"name": "Zwart (meubels)", "exact": "Flexa Zwart Mat 90.01", "finish": "mat", "segment": "middenklasse"},
             {"name": "Betonlook grijs (muur)", "exact": "Histor Betonlook 30.02", "finish": "mat", "segment": "middenklasse"}
         ],
-        "total_estimate": "€1.200 - €2.500",
+        "total_estimate": "€1.500 - €3.000",
         "shopping_list": [
-            "Eettafel zwart metaal + eiken — Woonexpress, €599",
-            "Leder eetkamerstoel zwart 2-pack — Leen Bakker, €449",
-            "Zwarte hanglamp industrieel — Karwei, €69,95"
+            "Eettafel zwart metaal + eiken — Woonexpress, €699",
+            "Eetkamerstoel cognac leder 2-pack — Intratuin, €599",
+            "Zwarte hanglamp industrieel — fonQ, €89,95",
+            "Betonlook wandpanel — VT Wonen, €149"
         ],
         "confidence": "high"
     },
     {
         "intent": "purchase",
         "object_type": "Bohemian slaapkamer met rotan hoofdbord, macramé en groene planten",
-        "description": "Een warme, ontspannen slaapkamer met rotan hoofdbord, macramé en veel groen.",
+        "description": "Een warme, ontspannen slaapkamer met een breed rotan hoofdbord als middelpunt. "
+        "Macramé wandkunst, zuiver linnen beddegoed en een grote vijgenboom creëren een natuurlijke, geborgen sfeer.",
         "segments": {
             "budget": [
-                {"category": "meubel", "name": "HEMA rotan hoofdbord 140 cm", "price": "€79,99", "store": "HEMA", "why": "Rotan hoofdbord, zelfde gevlochten look.", "visual_match": 7, "priority": 1}
+                {"category": "meubel", "name": "HEMA rotan hoofdbord 140 cm", "price": "€79,99", "store": "HEMA", "why": "Rotan hoofdbord, zelfde gevlochten look.", "visual_match": 6, "priority": 1},
+                {"category": "textiel", "name": "IKEA LENDEARYLL linnen dekbedovertrek beige", "price": "€19,99", "store": "IKEA", "why": "Linnen look, warme beige tint.", "visual_match": 5, "priority": 2}
             ],
             "middenklasse": [
-                {"category": "meubel", "name": "Intratuin rotan hoofdbord 180 cm breed", "price": "€249", "store": "Intratuin", "why": "Breed rotan hoofdbord, dicht geweven, exact dezelfde look.", "visual_match": 10, "priority": 1},
-                {"category": "textiel", "name": "Woonexpress linnen dekbedovertrek ivory", "price": "€89,95", "store": "Woonexpress", "why": "Zuiver linnen, ivory, zelfde textuur.", "visual_match": 10, "priority": 1},
-                {"category": "wanddecoratie", "name": "HEMA macramé wandhanger 80 cm", "price": "€29,99", "store": "HEMA", "why": "Macramé wandhanger, boho-element.", "visual_match": 8, "priority": 2},
-                {"category": "plant", "name": "Intratuin vijgenboom 150 cm", "price": "€49,95", "store": "Intratuin", "why": "Grote kamerplant, weelderig groen.", "visual_match": 9, "priority": 2}
+                {"category": "meubel", "name": "Intratuin rotan hoofdbord 200 cm breed handgevlochten", "price": "€399", "store": "Intratuin", "why": "Breed handgevlochten rotan hoofdbord — exact de look van de foto.", "visual_match": 10, "priority": 1},
+                {"category": "textiel", "name": "Westwing linnen dekbedovertrek ivory 240×220 cm", "price": "€149", "store": "Westwing", "why": "Zuiver linnen, ivory, zelfde textuur en kleur.", "visual_match": 10, "priority": 1},
+                {"category": "wanddecoratie", "name": "VT Wonen macramé wandkleed 120×80 cm handgeknoopt", "price": "€89,95", "store": "VT Wonen webshop", "why": "Macramé wandkleed, handgeknoopt, naturel.", "visual_match": 8, "priority": 2},
+                {"category": "plant", "name": "Intratuin vijgenboom 180 cm", "price": "€89,95", "store": "Intratuin", "why": "Grote vijgenboom, weelderig groen.", "visual_match": 9, "priority": 2},
+                {"category": "accessoire", "name": "fonQ rotan bijzettafel 50 cm rond", "price": "€119", "store": "fonQ", "why": "Rotan bijzettafel, past bij het hoofdbord.", "visual_match": 8, "priority": 3}
             ],
             "premium": [
-                {"category": "meubel", "name": "De Bommel rotan hoofdbord handgevlochten", "price": "€695", "store": "De Bommel", "why": "Handgevlochten rotan, massief frame.", "visual_match": 10, "priority": 1},
-                {"category": "textiel", "name": "De Bommel linnen dekbedovertrek", "price": "€249", "store": "De Bommel", "why": "Belgisch linnen, hoogste kwaliteit.", "visual_match": 10, "priority": 1}
+                {"category": "meubel", "name": "De Bommel rotan hoofdbord 220 cm handgevlochten massief frame", "price": "€895", "store": "De Bommel", "why": "Handgevlochten rotan, massief eiken frame, uniek exemplaar.", "visual_match": 10, "priority": 1},
+                {"category": "textiel", "name": "De Bommel Belgisch linnen dekbedovertrek ivory 260×240 cm", "price": "€299", "store": "De Bommel", "why": "Belgisch linnen, hoogste kwaliteit, wordt zachter met elke wasbeurt.", "visual_match": 10, "priority": 1}
             ]
         },
         "materials": [
-            {"name": "Rotan hoofdbord 180 cm", "segment": "middenklasse", "price": "€249", "where": "Intratuin"},
-            {"name": "Linnen dekbedovertrek ivory", "segment": "middenklasse", "price": "€89,95", "where": "Woonexpress"}
+            {"name": "Rotan hoofdbord 200 cm handgevlochten", "segment": "middenklasse", "price": "€399", "where": "Intratuin"},
+            {"name": "Linnen dekbedovertrek ivory", "segment": "middenklasse", "price": "€149", "where": "Westwing"}
         ],
         "colors": [
             {"name": "Ivory (beddegoed)", "exact": "Flexa Naturel Mat 10.01", "finish": "mat", "segment": "middenklasse"},
             {"name": "Rotan naturel", "exact": "Flexa Rotan Mat 15.02", "finish": "mat", "segment": "middenklasse"}
         ],
-        "total_estimate": "€350 - €1.200",
+        "total_estimate": "€650 - €1.600",
         "shopping_list": [
-            "Rotan hoofdbord 180 cm — Intratuin, €249",
-            "Linnen dekbedovertrek ivory — Woonexpress, €89,95",
-            "Macramé wandhanger — HEMA, €29,99"
+            "Rotan hoofdbord 200 cm — Intratuin, €399",
+            "Linnen dekbedovertrek ivory — Westwing, €149",
+            "Macramé wandkleed 120×80 — VT Wonen, €89,95",
+            "Vijgenboom 180 cm — Intratuin, €89,95",
+            "Rotan bijzettafel — fonQ, €119"
         ],
         "confidence": "high"
     }
