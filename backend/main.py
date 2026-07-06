@@ -1138,10 +1138,32 @@ def analyze_image():
         if goal:
             context_parts.append(f"DOEL VAN DE GEBRUIKER: {goal}")
 
+        # ── Inject user_answers for purchase intent ──
+        user_answers = data.get("user_answers", {})
+        if user_intent == "purchase" and user_answers:
+            ua = user_answers
+            context_parts.append("\n═══ GEBRUIKERSPARAMETERS (harde constraints) ═══")
+            focus_map = {"exact": "EXACTE MATCH: visual_match 9-10, alleen producten die bijna identiek zijn aan de foto", "style": "STIJL_MATCH: visual_match 6-8, zelfde stijl maar andere uitvoering, breder productaanbod"}
+            context_parts.append(f"FOCUS: {focus_map.get(ua.get('focus',''), 'EXACTE MATCH')}")
+            scale_map = {"item": "ALLEEN ITEM: alleen het hoofdproduct, geen complementaire items, max 1-2 producten", "composition": "COMPOSITIE: hoofdproduct + 2-4 functionele complementen die een logische compositie vormen"}
+            context_parts.append(f"SCHAAL: {scale_map.get(ua.get('scale',''), 'COMPOSITIE')}")
+            space_map = {"existing": "BESTAAND INTERIEUR: kleuren, materialen en stijl moeten harmoniëren met de bestaande interieurcontext op de foto. Geen complete stijlbreuk.", "new": "VRIJ ONTWERP: AI mag een compleet nieuw stijlbeeld kiezen met nieuwe kleuren, materialen en sfeer."}
+            context_parts.append(f"RUIMTE: {space_map.get(ua.get('space',''), 'BESTAAND INTERIEUR')}")
+            styling_map = {"minimal": "MINIMALISTISCH: alleen de essentie, 1-2 kernproducten, geen accessoires, strak en functioneel", "rich": "RIJK & SFEERVOL: 4-7 producten inclusief accessoires, textiel, verlichting, decoratie"}
+            context_parts.append(f"STYLING: {styling_map.get(ua.get('styling',''), 'RIJK & SFEERVOL')}")
+            budget_val = ua.get('budget', 'design')
+            if budget_val == "budget":
+                context_parts.append("BUDGET_SEGMENT: BUDGET. MAX €80 per product. Alleen winkels: IKEA, HEMA, Action, JYSK, Leen Bakker, Xenos. VERBODEN: alle designmerken. Eenvoudige functionele producten.")
+            elif budget_val == "design":
+                context_parts.append("BUDGET_SEGMENT: TOEGANKELIJK DESIGN. €80-€500 per product. VERBODEN: IKEA, HEMA, Action, JYSK, Leen Bakker, Xenos. Toegestaan: Woonexpress, Intratuin, Westwing, fonQ, VT Wonen. Kwaliteit: massief hout, zuiver linnen, designermerken.")
+            elif budget_val == "luxe":
+                context_parts.append("BUDGET_SEGMENT: EXCLUSIEVE LUXE. MIN €500 per product, geen bovengrens. VERBODEN: ALLE retailketens (IKEA, HEMA, Woonexpress, Intratuin standaard, Karwei). Toegestaan: Eichholtz, Artifort, Hay, Vitra, MOOOI, De Bommel exclusief. Designklassiekers, limited editions, ambachtelijk.")
+            context_parts.append("═══ EINDE GEBRUIKERSPARAMETERS ═══")
+
         user_context = "\n".join(context_parts)
 
         # Check cache before calling GPT
-        ack = cache_key(mode, "advise", image_base64, f"{goal}:{request_intent}")
+        ack = cache_key(mode, "advise", image_base64, f"{goal}:{request_intent}:{json.dumps(data.get('user_answers',{}), sort_keys=True)}")
         acached = get_cached_response(ack)
         if acached:
             return jsonify(acached)
