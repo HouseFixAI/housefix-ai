@@ -386,6 +386,10 @@
               .pv-board-del { font-size: 11px; color: var(--text-muted); cursor: pointer; background: none; border: none; padding: 0; }
               .pv-board-del:hover { color: var(--terracotta); }
 
+              /* Tab filtering — class-based, overrides cascade */
+              .segment-content { display: none !important; }
+              .segment-content.seg-active { display: block !important; }
+
               /* Fase 4b: Catalog Carousel */
               .pv-carousel-wrap { margin-bottom: 10px; overflow: hidden; }
               .pv-carousel-scroll { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 4px 0 8px; scrollbar-width: thin; }
@@ -1075,7 +1079,7 @@ function retake() {
       // Product cards per segment with ID attrs for async upgrade
       for(const seg of["budget","middenklasse","premium"]){
         const v=seg===bestSeg?"block":"none";
-        html+='<div class="segment-content" id="seg-'+seg+'" style="display:'+v+'">';
+        html+='<div class="segment-content" id="seg-'+seg+'"'+(seg===bestSeg?' class="segment-content seg-active"':'')+'>';
         const p=r.segments&&r.segments[seg]||[];
         if(p.length){
           p.forEach((x,i)=>{
@@ -1117,8 +1121,8 @@ function retake() {
         document.querySelectorAll(".segment-tab").forEach(t=>t.addEventListener("click",function(){
           document.querySelectorAll(".segment-tab").forEach(x=>x.classList.remove("segment-active"));
           this.classList.add("segment-active");
-          document.querySelectorAll(".segment-content").forEach(c=>c.style.display="none");
-          const e=document.getElementById("seg-"+this.dataset.seg);if(e)e.style.display="block";
+          document.querySelectorAll(".segment-content").forEach(function(x){x.classList.remove("seg-active");});
+          const e=document.getElementById("seg-"+this.dataset.seg);if(e)e.classList.add("seg-active");
         }));
       },0);
       document.getElementById("saveBtn").textContent="Sla boodschappenlijst op";
@@ -1190,9 +1194,10 @@ function retake() {
         const u=p.image_url||"";
         const pal=p.color_palette||["#e8ddd0","#d4c5b5"];
         const fb=Array.isArray(pal)?pal[0]:"#e8ddd0";
+        const fb2=Array.isArray(pal)&&pal.length>1?pal[1]:"#d4c5b5";
         h+='<div class="pv-carousel-card"><div class="pv-carousel-img-wrap">';
-        if(u)h+='<img src="'+u+'" alt="'+escHtml(p.name)+'" class="pv-carousel-img" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.pv-carousel-fallback\').style.display=\'block\'" />';
-        h+='<div class="pv-carousel-fallback" style="background:'+fb+'"></div></div>';
+        if(u)h+='<img src="'+u+'" alt="'+escHtml(p.name)+'" class="pv-carousel-img" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.pv-carousel-fallback\').style.display=\'flex\'" />';
+        h+='<div class="pv-carousel-fallback" style="background:linear-gradient(135deg,'+fb+','+fb2+');display:'+(u?'none':'flex')+'"></div></div>';
         h+='<div class="pv-carousel-price">'+(p.price||"")+'</div></div>';
       });
       h+='</div></div>';

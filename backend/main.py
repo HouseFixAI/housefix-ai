@@ -47,10 +47,10 @@ def _seed_catalog(cur, conn):
                 cur.execute(
                     'INSERT OR IGNORE INTO products '
                     '(id, name, store, category, price_cents, currency, price_segment, '
-                    'color_palette, mood, style_tag, featured, available, last_updated) '
-                    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                    'color_palette, mood, style_tag, featured, available, image_url, last_updated) '
+                    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
                     (pid, name, store, cat, price_cents, 'EUR', seg_name,
-                     pal, mood, style_tag, featured,
+                     pal, mood, style_tag, featured, '',
                      datetime.datetime.now().isoformat()))
                 n += 1
     conn.commit()
@@ -76,13 +76,11 @@ def init_catalog():
         print(f"Catalog: {count} products seeded")
     conn.close()
 
-CATALOG_CONN = None
 def get_catalog():
-    global CATALOG_CONN
-    if CATALOG_CONN is None:
-        CATALOG_CONN = sqlite3.connect(CATALOG_DB)
-        CATALOG_CONN.row_factory = sqlite3.Row
-    return CATALOG_CONN
+    """Thread-safe: fresh connection per call (check_same_thread=False)"""
+    conn = sqlite3.connect(CATALOG_DB, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def search_catalog(q=None, store=None, segment=None, category=None, limit=5):
     conn = get_catalog()
@@ -1890,9 +1888,10 @@ def analyze_image():
                     "Het doel van de gebruiker is hierboven vermeld — pas je hele advies daarop aan."
                 )
 
-            full_prompt = base_prompt + (
-                f"\n\nCONTEXT VAN EERDERE STAP:\n{user_context}\n\n"
-                f"{system_message}"
+            purchase_context = user_context if user_intent == "purchase" else ""
+            full_prompt = (
+                f"\n[[HARD CONSTRAINTS]]\n{purchase_context}\n[[END HARD CONSTRAINTS]]\n\n"
+                f"{base_prompt}\n\n{system_message}"
             )
             response = client.chat.completions.create(
                 model="gpt-4o",
