@@ -1058,18 +1058,21 @@ function retake() {
       currentResult = r;
       ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(el=>{const e=document.getElementById(el);if(e)e.style.display="none";});
       let b="";
-      if(r.is_fallback)b='<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen</div>';
-      else if(r._cached)b='<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt.</div>';
+      if(r.is_fallback)b='<div class="fallback-banner"><span class="fallback-banner-icon">\u2139\ufe0f</span> Dit advies is algemeen</div>';
+      else if(r._cached)b='<div class="cached-banner"><span class="fallback-banner-icon">\ud83d\udd04</span> Eerder advies hergebruikt.</div>';
       let html=b+'<div class="purchase-head">'+(r.object_type||"Interieur")+'</div><div class="purchase-desc">'+(r.description||"")+'</div>';
       if(r.total_estimate)html+='<div class="purchase-total"><span class="purchase-total-label">Totale kosten</span><span class="purchase-total-price">'+r.total_estimate+'</span></div>';
       html+=buildCompositionPreview(r.segments);
+      // Catalog carousel placeholder (filled async)
       html+='<div id="catalogCarousel"></div>';
+      // Segment tabs
       let bestSeg="middenklasse",bestScore=0;
       for(const seg of["budget","middenklasse","premium"]){const p=r.segments&&r.segments[seg]||[];const s=p.reduce((a,b)=>a+(b.visual_match||0),0);if(s>bestScore){bestScore=s;bestSeg=seg;}}
       html+='<div class="segment-tabs">';
-      const lb={budget:"💰 Budget",middenklasse:"✨ Middenklasse",premium:"👑 Premium"};
+      const lb={budget:"\ud83d\udcb0 Budget",middenklasse:"\u2728 Middenklasse",premium:"\ud83d\udc51 Premium"};
       for(const seg of["budget","middenklasse","premium"])html+='<button class="segment-tab'+(seg===bestSeg?" segment-active":"")+'" data-seg="'+seg+'">'+lb[seg]+'</button>';
       html+='</div>';
+      // Product cards per segment with ID attrs for async upgrade
       for(const seg of["budget","middenklasse","premium"]){
         const v=seg===bestSeg?"block":"none";
         html+='<div class="segment-content" id="seg-'+seg+'" style="display:'+v+'">';
@@ -1084,29 +1087,29 @@ function retake() {
             const swatchHtml='<div class="pv-swatch" id="swatch_'+seg+'_'+i+'" style="background:linear-gradient(135deg,'+pal[0]+','+(pal[1]||pal[0])+')"><div class="pv-icon pv-'+cat+'"></div></div>';
             const sid='prod_'+seg+'_'+i;
             html+='<div class="purchase-card'+(feat?" prio-essential":"")+'" id="card_'+seg+'_'+i+'" data-pos="'+pos+'" data-feat="'+feat+'" data-query="'+escHtml(x.query||"")+'">';
-            html+='<div class="pv-row">'+swatchHtml+'<div class="pv-info"><div class="purchase-card-name" id="name_'+seg+'_'+i+'">'+x.name+'</div><div class="purchase-card-price" id="price_'+seg+'_'+i+'">'+x.price+'</div><div class="purchase-card-store" id="store_'+seg+'_'+i+'">🛒 '+x.store+'</div></div></div>';
+            html+='<div class="pv-row">'+swatchHtml+'<div class="pv-info"><div class="purchase-card-name" id="name_'+seg+'_'+i+'">'+x.name+'</div><div class="purchase-card-price" id="price_'+seg+'_'+i+'">'+x.price+'</div><div class="purchase-card-store" id="store_'+seg+'_'+i+'">\ud83d\uded2 '+x.store+'</div></div></div>';
             html+='<div class="purchase-card-why">'+x.why+'</div>';
-            html+='<button class="pv-save" data-pid="'+sid+'" data-name="'+escHtml(x.name)+'" data-price="'+escHtml(x.price)+'" data-store="'+escHtml(x.store)+'" data-cat="'+cat+'" data-pal="'+pal.join(",")+'" data-mood="'+(v.mood||"warm")+'" data-style="'+(v.style_tag||"modern")+'">♡ Bewaren</button>';
+            html+='<button class="pv-save" data-pid="'+sid+'" data-name="'+escHtml(x.name)+'" data-price="'+escHtml(x.price)+'" data-store="'+escHtml(x.store)+'" data-cat="'+cat+'" data-pal="'+pal.join(",")+'" data-mood="'+(v.mood||"warm")+'" data-style="'+(v.style_tag||"modern")+'">\u2661 Bewaren</button>';
             html+='</div>';
           });
         }
         html+='</div>';
       }
-      if(r.shopping_list&&r.shopping_list.length){html+='<div class="purchase-section"><div class="purchase-section-title">📋 Boodschappenlijst</div><div class="purchase-checklist">';r.shopping_list.forEach(i=>{html+='<label class="purchase-check-item"><input type="checkbox" /><span>'+i+'</span></label>';});html+='</div></div>';}
+      if(r.shopping_list&&r.shopping_list.length){html+='<div class="purchase-section"><div class="purchase-section-title">\ud83d\udccb Boodschappenlijst</div><div class="purchase-checklist">';r.shopping_list.forEach(i=>{html+='<label class="purchase-check-item"><input type="checkbox" /><span>'+i+'</span></label>';});html+='</div></div>';}
       const savedCount = JSON.parse(localStorage.getItem("hf_board")||"[]").length;
-      html+='<div style="text-align:center;margin-top:12px"><button class="pv-board-btn" id="showBoardBtn">📋 Mijn bord ('+savedCount+')</button></div>';
+      html+='<div style="text-align:center;margin-top:12px"><button class="pv-board-btn" id="showBoardBtn">\ud83d\udccb Mijn bord ('+savedCount+')</button></div>';
       document.getElementById("resultContent").innerHTML=html;
       document.querySelectorAll(".pv-save").forEach(btn=>{
         btn.addEventListener("click",function(){
           const board=JSON.parse(localStorage.getItem("hf_board")||"[]");
           const existing=board.findIndex(x=>x.pid===this.dataset.pid);
-          if(existing>=0){board.splice(existing,1);this.textContent="♡ Bewaren";this.classList.remove("saved");}
+          if(existing>=0){board.splice(existing,1);this.textContent="\u2661 Bewaren";this.classList.remove("saved");}
           else{
             board.push({pid:this.dataset.pid,name:this.dataset.name,price:this.dataset.price,store:this.dataset.store,category:this.dataset.cat,palette:this.dataset.pal,mood:this.dataset.mood,style_tag:this.dataset.style,savedAt:new Date().toISOString()});
-            this.textContent="❤️ Bewaard";this.classList.add("saved");
+            this.textContent="\u2665 Bewaard";this.classList.add("saved");
           }
           localStorage.setItem("hf_board",JSON.stringify(board));
-          document.getElementById("showBoardBtn").textContent="📋 Mijn bord ("+board.length+")";
+          document.getElementById("showBoardBtn").textContent="\ud83d\udccb Mijn bord ("+board.length+")";
         });
       });
       document.getElementById("showBoardBtn").addEventListener("click",function(){showInspirationBoard();});
@@ -1162,7 +1165,7 @@ function retake() {
       const sw=document.getElementById("swatch_"+seg+"_"+idx);
       if(!sw||!match)return;
       if(match.price&&pe)pe.textContent=match.price;
-      if(match.store&&se)se.textContent="🛒 "+match.store;
+      if(match.store&&se)se.textContent="\ud83d\uded2 "+match.store;
       if(match.image_url){
         const img=document.createElement("img");
         img.src=match.image_url;
@@ -1188,10 +1191,875 @@ function retake() {
         const pal=p.color_palette||["#e8ddd0","#d4c5b5"];
         const fb=Array.isArray(pal)?pal[0]:"#e8ddd0";
         h+='<div class="pv-carousel-card"><div class="pv-carousel-img-wrap">';
-        if(u)h+='<img src="'+u+'" alt="'+escHtml(p.name)+'" class="pv-carousel-img" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.pv-carousel-fallback').style.display='block'" />';
+        if(u)h+='<img src="'+u+'" alt="'+escHtml(p.name)+'" class="pv-carousel-img" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.pv-carousel-fallback\').style.display=\'block\'" />';
         h+='<div class="pv-carousel-fallback" style="background:'+fb+'"></div></div>';
         h+='<div class="pv-carousel-price">'+(p.price||"")+'</div></div>';
       });
       h+='</div></div>';
       c.innerHTML=h;
     }
+
+
+    /* Esc HTML */
+    function escHtml(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+
+    /* Build 3-column composition preview */
+    function buildCompositionPreview(segments){
+      if(!segments)return "";
+      const segs=["budget","middenklasse","premium"];
+      const lbs={budget:"💰 Budget €10-€80",middenklasse:"✨ Design €80-€500",premium:"👑 Luxe €500+"};
+      let html="";
+      // Check if we have any featured products to show composition
+      let hasAny=false;
+      segs.forEach(s=>{const p=segments[s]||[];if(p.find(x=>x.featured))hasAny=true;});
+      if(!hasAny)return "";
+
+      html+='<div class="pv-comp-wrapper"><div class="pv-comp-title">Vergelijk de uitvoeringen</div><div class="pv-comp-scroll">';
+      segs.forEach(s=>{
+        const p=segments[s]||[];
+        const feat=p.find(x=>x.featured)||p[0]||{};
+        const v=feat.visual||{};
+        const pal=v.color_palette||["#e8ddd0","#d4c5b5"];
+        const style_tag=v.style_tag||"modern";
+        html+='<div class="pv-comp-col">';
+        html+='<div class="pv-comp-label">'+lbs[s]+'</div>';
+        html+='<div class="pv-room" style="background:linear-gradient(180deg,'+pal[0]+'30 0%,'+pal[1]+'20 60%,#f5f0ea 100%)">';
+        // Room elements positioned by their data-pos
+        p.forEach(item=>{
+          const pos=item.position||"center";
+          const iv=item.visual||{};
+          const ip=iv.color_palette||["#d4c5b5","#c4b5a5"];
+          const ic=item.category||"accessoire";
+          const leftPos={center:"35%",left:"10%",right:"60%",top:"30%",floor:"20%"};
+          const topPos={center:"40%",left:"35%",right:"35%",top:"5%",floor:"65%"};
+          const size=item.featured?"60px":"40px";
+          html+='<div class="pv-room-item" style="left:'+leftPos[pos]+';top:'+topPos[pos]+';width:'+size+';height:'+size+';background:radial-gradient(circle,'+ip[0]+','+(ip[1]||ip[0])+');border-radius:'+(ic==="plant"?"50% 50% 50% 50% / 60% 60% 40% 40%":"12px")+'"></div>';
+        });
+        html+='</div><div class="pv-comp-total">Totaal: '+(segments[s].reduce((sum,x)=>sum+(parseInt(x.price.replace(/[^0-9]/g,""))||0),0)||"—")+'</div>';
+        html+='</div>';
+      });
+      html+='</div></div>';
+      return html;
+    }
+
+    /* Show inspiration board overlay */
+    function showInspirationBoard(){
+      const board=JSON.parse(localStorage.getItem("hf_board")||"[]");
+      let html='<div class="pv-board-overlay" id="boardOverlay"><div class="pv-board-panel">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-family:Playfair Display,serif;font-size:20px;font-weight:700">📋 Mijn bord</span><button class="pv-board-close" id="boardCloseBtn">✕</button></div>';
+      if(board.length===0)html+='<p style="color:var(--text-muted);text-align:center;padding:20px 0">Nog geen producten opgeslagen. Tik op ♡ bij een product om het te bewaren.</p>';
+      else{
+        html+='<div class="pv-board-grid">';
+        board.forEach((item,i)=>{
+          const pals=(item.palette||"#e8ddd0,#d4c5b5").split(",");
+          html+='<div class="pv-board-item"><div class="pv-board-swatch" style="background:linear-gradient(135deg,'+pals[0]+','+(pals[1]||pals[0])+')"></div>';
+          html+='<div class="pv-board-name">'+item.name+'</div>';
+          html+='<div class="pv-board-price">'+item.price+'</div>';
+          html+='<div class="pv-board-store">'+item.store+'</div>';
+          html+='<button class="pv-board-del" data-idx="'+i+'">Verwijderen</button></div>';
+        });
+        html+='</div>';
+      }
+      html+='</div></div>';
+      // Append to body
+      const div=document.createElement("div");div.innerHTML=html;
+      document.body.appendChild(div.firstElementChild);
+      document.getElementById("boardCloseBtn").addEventListener("click",()=>{
+        document.getElementById("boardOverlay").remove();
+      });
+      document.querySelectorAll(".pv-board-del").forEach(btn=>{
+        btn.addEventListener("click",function(){
+          const idx=parseInt(this.dataset.idx);
+          const board2=JSON.parse(localStorage.getItem("hf_board")||"[]");
+          board2.splice(idx,1);
+          localStorage.setItem("hf_board",JSON.stringify(board2));
+          document.getElementById("boardOverlay").remove();
+          showInspirationBoard();
+          // Update all save buttons
+          document.querySelectorAll(".pv-save").forEach(b=>{
+            const pid=b.dataset.pid;
+            if(board2.find(x=>x.pid===pid)){b.textContent="♥ Bewaard";b.classList.add("saved");}
+            else{b.textContent="♡ Bewaren";b.classList.remove("saved");}
+          });
+          const sb=document.getElementById("showBoardBtn");
+          if(sb)sb.textContent="📋 Mijn bord ("+board2.length+")";
+        });
+      });
+      // Close on overlay click
+      document.getElementById("boardOverlay").addEventListener("click",function(e){if(e.target===this)this.remove();});
+    }
+/* ── Render Identify ── */
+    function renderIdentify(r) {
+      currentResult = r;
+      const id = r.identification || {};
+
+      // Hide damage-mode cards
+      ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(el => {
+        const e = document.getElementById(el);
+        if (e) e.style.display = "none";
+      });
+
+      let bannerHtml = "";
+      if (r.is_fallback) {
+        bannerHtml = `<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen — voor een persoonlijke analyse specifiek voor jouw object hebben we een AI-verbinding nodig.</div>`;
+      } else if (r._cached) {
+        bannerHtml = `<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt.</div>`;
+      }
+
+      let html = bannerHtml;
+
+      // Object type header
+      html += `<div class="identify-head">${r.object_type || "Object"}</div>`;
+      if (id.type) {
+        html += `<div class="identify-sub">${id.type}</div>`;
+      }
+
+      // Identification card
+      html += `<div class="identify-card">`;
+
+      // Style
+      if (id.style) {
+        html += `<div class="identify-row"><div class="identify-label">Stijl</div><div class="identify-value">${id.style}</div></div>`;
+      }
+
+      // Design period
+      if (id.design_period) {
+        html += `<div class="identify-row"><div class="identify-label">Periode</div><div class="identify-value">${id.design_period}</div></div>`;
+      }
+
+      // Materials
+      if (id.materials && id.materials.length) {
+        html += `<div class="identify-row"><div class="identify-label">Materialen</div><div class="identify-value"><div class="identify-tags">`;
+        id.materials.forEach(m => { html += `<span class="identify-tag">${m}</span>`; });
+        html += `</div></div></div>`;
+      }
+
+      // Designer hint
+      if (id.designer_hint) {
+        html += `<div class="identify-row"><div class="identify-label">Ontwerp</div><div class="identify-value">${id.designer_hint}</div></div>`;
+      }
+
+      // Key features
+      if (id.key_features && id.key_features.length) {
+        html += `<div class="identify-row"><div class="identify-label">Kenmerken</div><div class="identify-value"><div class="identify-tags">`;
+        id.key_features.forEach(f => { html += `<span class="identify-tag">${f}</span>`; });
+        html += `</div></div></div>`;
+      }
+
+      // Why special
+      if (id.why_special) {
+        html += `<div class="identify-row"><div class="identify-label">Waarom</div><div class="identify-value">${id.why_special}</div></div>`;
+      }
+
+      html += `</div>`; // close card
+
+      // Description (narrative)
+      if (r.description) {
+        html += `<div class="identify-narrative">${r.description}</div>`;
+      }
+
+      // Style context
+      if (r.style_context) {
+        html += `<div class="identify-context">${r.style_context}</div>`;
+      }
+
+      // Styling tip
+      if (r.styling_tip) {
+        html += `<div class="advice-section"><div class="advice-tip">${r.styling_tip}</div></div>`;
+      }
+
+      document.getElementById("resultContent").innerHTML = html;
+
+      // Update save button
+      const saveBtn = document.getElementById("saveBtn");
+      saveBtn.textContent = "Sla herkenning op";
+      saveBtn.classList.remove("saved");
+    }
+
+    /* ── Show Inspiration Advice (Flowing Story) ── */
+    /* Fase 3: gestructureerde productkaarten + optie-tabs */
+    let _currentOptionIndex = 0;
+    let _storedAdviceData = null;
+    
+    function showInspirationAdvice(r) {
+      currentResult = r;
+      _storedAdviceData = r;
+      _currentOptionIndex = 0;
+
+      // ── Intent-based routing ──
+      if (r.intent === "identify") {
+        renderIdentify(r);
+        return;
+      }
+      if (r.intent === "purchase") {
+        renderPurchase(r);
+        return;
+      }
+      // Fall through to existing style/default flow
+    
+      // Hide damage-mode cards
+      ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = "none";
+      });
+    
+      const container = document.getElementById("resultContent");
+    
+      // ── Fallback / Cache banner ──
+      let bannerHtml = "";
+      if (r.is_fallback) {
+        bannerHtml = `<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen — voor een persoonlijke analyse specifiek voor jouw ruimte hebben we een AI-verbinding nodig.</div>`;
+      } else if (r._cached) {
+        bannerHtml = `<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt — dezelfde foto geeft hetzelfde resultaat.</div>`;
+      }
+    
+      const colorHex = {
+        'wit':'#ffffff','beige':'#f5f0e1','crème':'#fff8e7','zand':'#d4c5a9',
+        'grijs':'#9e9e9e','antraciet':'#404040','zwart':'#222222',
+        'bruin':'#8d6e63','koffie':'#6d4c41','taupe':'#b8a99a',
+        'groen':'#66bb6a','olijfgroen':'#8d9b6a','mint':'#a5d6a7','saliegroen':'#b5c9a3',
+        'blauw':'#64b5f6','lichtblauw':'#90caf9','donkerblauw':'#3949ab','navy':'#1a237e',
+        'rood':'#e57373','bordeaux':'#8e2430','roze':'#f48fb1','lichtroze':'#f8bbd0',
+        'geel':'#ffd54f','mosterd':'#f4c842','oranje':'#ffb74d','koper':'#d4935a',
+        'paars':'#ab47bc','lila':'#ce93d8','goud':'#d4a847','zilver':'#bdbdbd',
+        'hout':'#a58a6f','naturel':'#d4c4a8'
+      };
+    
+      // Helper: render a color chip
+      function colorChip(c) {
+        const low = c.toLowerCase();
+        let hex = '#cccccc';
+        for (const [key, val] of Object.entries(colorHex)) {
+          if (low.includes(key)) { hex = val; break; }
+        }
+        const borderStyle = hex === '#ffffff' ? 'border:1px solid rgba(0,0,0,0.1)' : '';
+        return `<span class="advice-color-chip"><span class="advice-color-dot" style="background:${hex};${borderStyle}"></span>${c}</span>`;
+      }
+    
+      // Helper: render a product store card
+      function storeCard(s) {
+        if (typeof s === 'string') {
+          // Backward compat: split flat string
+          const parts = s.split(' — ');
+          const titlePart = parts[0] || s;
+          const reasonPart = parts.length > 1 ? parts[1] : '';
+          let html = `<div class="advice-store-card">`;
+          html += `<div class="advice-store-product">${titlePart}</div>`;
+          if (reasonPart) html += `<div class="advice-store-reason">${reasonPart}</div>`;
+          html += `</div>`;
+          return html;
+        }
+        // Structured object: store, product, price, why
+        let html = `<div class="advice-store-card">`;
+        html += `<div class="advice-store-name">${s.store || ''}</div>`;
+        html += `<div class="advice-store-product">${s.product || ''}${s.price ? '  <span class="advice-store-price">'+s.price+'</span>' : ''}</div>`;
+        if (s.why) html += `<div class="advice-store-reason">${s.why}</div>`;
+        html += `</div>`;
+        return html;
+      }
+    
+      let html = ``;
+    
+      // ── Style header ──
+      html += `<div class="advice-section"><div class="advice-head">${r.style || "Interieuradvies"}</div>`;
+      if (r.description) html += `<div class="advice-body">${r.description}</div>`;
+      html += `</div>`;
+    
+      // ── Render option tabs (if available) ──
+      const hasOptions = r.options && r.options.length > 1;
+      if (hasOptions) {
+        html += `<div class="advice-section"><div class="advice-subhead">Kies een uitwerking</div>`;
+        html += `<div class="option-tabs" id="optionTabs">`;
+        r.options.forEach((opt, i) => {
+          const activeClass = i === 0 ? ' option-tab-active' : '';
+          const label = i === 0 ? `${opt.name}  ★` : opt.name;
+          html += `<button class="option-tab${activeClass}" data-optidx="${i}" onclick="switchOption(${i})">${label}</button>`;
+        });
+        html += `</div>`;
+        html += `<div class="option-description" id="optionDesc">${r.options[0].description || ''}</div>`;
+        html += `</div>`;
+    
+        // Render first option as default
+        const opt = r.options[0];
+        if (opt.colors && opt.colors.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Kleurenpalet</div><div class="advice-colors" id="optColors">`;
+          opt.colors.forEach(c => { html += colorChip(c); });
+          html += `</div></div>`;
+        }
+        if (opt.materials && opt.materials.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials" id="optMaterials">`;
+          opt.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
+          html += `</div></div>`;
+        }
+        if (opt.stores && opt.stores.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Shopadvies</div><div class="advice-stores" id="optStores">`;
+          opt.stores.forEach(s => { html += storeCard(s); });
+          html += `</div></div>`;
+        }
+      }
+    
+      // ── Fallback: flat fields (no options) ──
+      if (!hasOptions) {
+        if (r.similar_styles && r.similar_styles.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Verwante stijlen</div><div class="advice-materials">`;
+          r.similar_styles.forEach(s => { html += `<span class="advice-material">${s}</span>`; });
+          html += `</div></div>`;
+        }
+        if (r.colors && r.colors.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Kleurenpalet</div><div class="advice-colors">`;
+          r.colors.forEach(c => { html += colorChip(c); });
+          html += `</div></div>`;
+        }
+        if (r.materials && r.materials.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials">`;
+          r.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
+          html += `</div></div>`;
+        }
+        if (r.matching_stores && r.matching_stores.length) {
+          html += `<div class="advice-section"><div class="advice-subhead">Shopadvies</div><div class="advice-stores">`;
+          r.matching_stores.forEach(s => { html += storeCard(s); });
+          html += `</div></div>`;
+        }
+        if (r.primary_action) {
+          html += `<div class="advice-section"><div class="advice-tip" style="background:var(--terracotta-soft);border-color:rgba(196,98,74,0.15)">`;
+          html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Eerst doen</div>`;
+          html += `${r.primary_action}</div></div>`;
+        }
+      }
+    
+      // ── Styling tip (always shown) ──
+      if (r.styling_tip) {
+        html += `<div class="advice-section"><div class="advice-tip">${r.styling_tip}</div></div>`;
+      }
+    
+      container.innerHTML = bannerHtml + html;
+    
+      // Update save button
+      const saveBtn = document.getElementById("saveBtn");
+      saveBtn.textContent = r.styling_tip ? "Sla dit advies op" : "Sla analyse op";
+      saveBtn.classList.remove("saved");
+    }
+    
+    /* ── Switch A/B/C option ── */
+    function switchOption(idx) {
+      const r = _storedAdviceData;
+      if (!r || !r.options || idx >= r.options.length) return;
+      _currentOptionIndex = idx;
+    
+      const opt = r.options[idx];
+    
+      // Update tabs
+      document.querySelectorAll('.option-tab').forEach((tab, i) => {
+        tab.classList.toggle('option-tab-active', i === idx);
+        const label = i === 0 ? `${r.options[i].name}  ★` : r.options[i].name;
+        if (tab.textContent.trim() !== label.replace(/\s+/g,' ').trim()) {
+          tab.textContent = label;
+        }
+      });
+    
+      // Update description
+      const descEl = document.getElementById('optionDesc');
+      if (descEl) descEl.textContent = opt.description || '';
+    
+      // Update colors
+      const colorsEl = document.getElementById('optColors');
+      if (colorsEl && opt.colors) {
+        const colorHex = {
+          'wit':'#ffffff','beige':'#f5f0e1','crème':'#fff8e7','zand':'#d4c5a9',
+          'grijs':'#9e9e9e','antraciet':'#404040','zwart':'#222222',
+          'bruin':'#8d6e63','koffie':'#6d4c41','taupe':'#b8a99a',
+          'groen':'#66bb6a','olijfgroen':'#8d9b6a','mint':'#a5d6a7','saliegroen':'#b5c9a3',
+          'blauw':'#64b5f6','lichtblauw':'#90caf9','donkerblauw':'#3949ab','navy':'#1a237e',
+          'rood':'#e57373','bordeaux':'#8e2430','roze':'#f48fb1','lichtroze':'#f8bbd0',
+          'geel':'#ffd54f','mosterd':'#f4c842','oranje':'#ffb74d','koper':'#d4935a',
+          'paars':'#ab47bc','lila':'#ce93d8','goud':'#d4a847','zilver':'#bdbdbd',
+          'hout':'#a58a6f','naturel':'#d4c4a8'
+        };
+        colorsEl.innerHTML = opt.colors.map(c => {
+          const low = c.toLowerCase();
+          let hex = '#cccccc';
+          for (const [key, val] of Object.entries(colorHex)) {
+            if (low.includes(key)) { hex = val; break; }
+          }
+          const borderStyle = hex === '#ffffff' ? 'border:1px solid rgba(0,0,0,0.1)' : '';
+          return `<span class="advice-color-chip"><span class="advice-color-dot" style="background:${hex};${borderStyle}"></span>${c}</span>`;
+        }).join('');
+      }
+    
+      // Update materials
+      const materialsEl = document.getElementById('optMaterials');
+      if (materialsEl && opt.materials) {
+        materialsEl.innerHTML = opt.materials.map(m => `<span class="advice-material">${m}</span>`).join('');
+      }
+    
+      // Update stores
+      const storesEl = document.getElementById('optStores');
+      if (storesEl && opt.stores) {
+        storesEl.innerHTML = opt.stores.map(s => {
+          if (typeof s === 'string') {
+            const parts = s.split(' — ');
+            return `<div class="advice-store-card"><div class="advice-store-product">${parts[0]||s}</div>${parts.length>1?'<div class="advice-store-reason">'+parts[1]+'</div>':''}</div>`;
+          }
+          return `<div class="advice-store-card"><div class="advice-store-name">${s.store||''}</div><div class="advice-store-product">${s.product||''}${s.price?'  <span class="advice-store-price">'+s.price+'</span>':''}</div>${s.why?'<div class="advice-store-reason">'+s.why+'</div>':''}</div>`;
+        }).join('');
+      }
+    }
+
+    /* ── Add "Try Another Goal" Button ── */
+    function addTryAnotherButton() {
+      const container = document.getElementById("resultsWrap");
+      const existing = document.getElementById("tryAnotherBtn");
+      if (existing) existing.remove();
+
+      const btn = document.createElement("button");
+      btn.id = "tryAnotherBtn";
+      btn.className = "btn-reset-app";
+      btn.textContent = "Probeer een ander doel";
+      btn.style.marginTop = "4px";
+      btn.addEventListener("click", function() {
+        document.getElementById("resultContent").innerHTML = "";
+        showOrientation(currentOrientResult, currentSessionId, currentOrientIsFallback);
+        // Hide damage-mode cards if visible
+        ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = "none";
+        });
+      });
+      container.appendChild(btn);
+    }
+
+/* ── Clarification Questions ── */
+let clarificationAnswers = [];
+
+function showClarification(questions) {
+      clarificationAnswers = [];
+      const container = document.getElementById("resultContent");
+      if (!container) return;
+
+      let html = `<div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Een vraag over uw foto
+        </div>
+        <div class="card-body" id="clarificationBody">`;
+
+  questions.forEach((q, qi) => {
+    html += `<div style="margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:8px">${q.question}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="q-${qi}">`;
+    q.options.forEach((opt, oi) => {
+      html += `<button class="clarify-btn" data-qi="${qi}" data-oi="${oi}" data-q="${q.question}" data-answer="${opt}" style="padding:10px 16px;border-radius:12px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.06);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s" onclick="selectClarify(this)">${opt}</button>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `<button class="cta-btn" id="clarifySubmit" onclick="submitClarification()" disabled style="margin-top:8px;padding:16px;font-size:16px">Analyseer met deze antwoorden</button>
+          </div></div>`;
+
+  container.innerHTML = html;
+}
+
+function selectClarify(btn) {
+  // Deselect siblings
+  const parent = btn.parentElement;
+  parent.querySelectorAll(".clarify-btn").forEach(b => {
+    b.style.background = "rgba(139,92,246,0.06)";
+    b.style.borderColor = "rgba(139,92,246,0.2)";
+    b.style.color = "var(--text-secondary)";
+  });
+  // Select this one
+  btn.style.background = "rgba(139,92,246,0.2)";
+  btn.style.borderColor = "var(--purple)";
+  btn.style.color = "#fff";
+
+  // Track answer
+  const qi = parseInt(btn.dataset.qi);
+  clarificationAnswers[qi] = {
+    question: btn.dataset.q,
+    answer: btn.dataset.answer
+  };
+
+  // Enable button when all answered
+  const submitBtn = document.getElementById("clarifySubmit");
+  if (submitBtn) {
+    const qCount = document.querySelectorAll("[id^='q-']").length;
+    submitBtn.disabled = clarificationAnswers.filter(a => a).length !== qCount;
+  }
+}
+
+async function submitClarification() {
+  const submitBtn = document.getElementById("clarifySubmit");
+  if (submitBtn) submitBtn.disabled = true;
+
+  document.getElementById("loadingWrap").classList.add("active");
+  document.getElementById("resultsWrap").classList.remove("active");
+
+  try {
+    const resp = await fetch("/api/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: imageBase64, answers: clarificationAnswers.filter(a => a), mode: currentMode })
+    });
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+
+    const pResp = await fetch("/api/providers");
+    providers = await pResp.json();
+    showResults(result);
+
+  } catch (e) {
+    alert("⚠️ " + e.message);
+    goHome();
+  }
+
+  document.getElementById("loadingWrap").classList.remove("active");
+  document.getElementById("resultsWrap").classList.add("active");
+}
+
+/* ── Results ── */
+function showResults(r) {
+  // Store current result for save button
+  currentResult = r;
+  const snapshotEl = document.getElementById("snapshot");
+  currentResultImage = snapshotEl.src || "";
+
+  // Reset save button
+  const saveBtn = document.getElementById("saveBtn");
+
+  // Show fallback banner if applicable
+  const resultContent = document.getElementById("resultContent");
+  if (r.is_fallback) {
+    resultContent.innerHTML = `<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen — voor een persoonlijke analyse specifiek voor jouw situatie hebben we een AI-verbinding nodig.</div>`;
+  } else {
+    resultContent.innerHTML = "";
+  }
+
+  // GPT says no damage visible (normal/healthy surface)
+  if (r.no_damage) {
+    document.getElementById("issueCard").style.display = "block";
+    document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+    document.getElementById("resultType").textContent = "✅ Geen schade";
+    document.getElementById("resultDesc").innerHTML = r.message || "✅ Geen schade geconstateerd. Deze muur/oppervlak ziet er constructief goed uit. Er is geen reparatie nodig.";
+    document.getElementById("resultBadge").innerHTML = "";
+    document.getElementById("costCard").style.display = "none";
+    document.getElementById("stepsCard").style.display = "none";
+    document.getElementById("materialsCard").style.display = "none";
+    document.getElementById("providersCard").style.display = "none";
+    return;
+  }
+
+  // Safety warning from GPT (person, animal, or unrelated object)
+  if (r.warning) {
+    document.getElementById("issueCard").style.display = "block";
+    document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+    document.getElementById("resultType").textContent = "⚠️ Niet herkend";
+    document.getElementById("resultDesc").innerHTML = r.warning;
+    document.getElementById("resultBadge").innerHTML = "";
+    document.getElementById("costCard").style.display = "none";
+    document.getElementById("stepsCard").style.display = "none";
+    document.getElementById("materialsCard").style.display = "none";
+    document.getElementById("providersCard").style.display = "none";
+    return;
+  }
+
+  // Inspiration mode results
+  if (currentMode === "inspiration" && r.style) {
+    document.getElementById("issueCard").style.display = "block";
+    document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+    document.getElementById("resultType").textContent = r.style;
+    document.getElementById("resultDesc").textContent = r.description || "";
+    const conf = r.confidence || "medium";
+    const b = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } }[conf] || { c: "badge-medium", l: "Gemiddeld" };
+    document.getElementById("resultBadge").innerHTML = `<span class="badge ${b.c}">${b.l}</span>`;
+
+    // Similar styles
+            if (r.similar_styles && r.similar_styles.length) {
+              const ssHtml = r.similar_styles.map(s => `<span class="material-tag">${s}</span>`).join("");
+              document.getElementById("resultType").innerHTML = r.style + ' <span style="font-size:12px;color:var(--text-muted);font-weight:400;display:block;margin-top:2px">' + ssHtml + '</span>';
+            }
+
+    // Colors — visual swatches with color matching
+            if (r.colors && r.colors.length) {
+              document.getElementById("costCard").style.display = "block";
+              document.getElementById("costCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg> Kleurenpalet';
+              document.querySelector(".cost-box.diy .cost-label").textContent = "Kleuren";
+      // Try to show visual color swatches with a simple color-name matcher
+      const colorHex = {
+        'wit':'#ffffff','beige':'#f5f0e1','crème':'#fff8e7','zand':'#d4c5a9',
+        'grijs':'#9e9e9e','antraciet':'#404040','zwart':'#222222',
+        'bruin':'#8d6e63','koffie':'#6d4c41','taupe':'#b8a99a',
+        'groen':'#66bb6a','olijfgroen':'#8d9b6a','mint':'#a5d6a7','saliegroen':'#b5c9a3',
+        'blauw':'#64b5f6','lichtblauw':'#90caf9','donkerblauw':'#3949ab','navy':'#1a237e',
+        'rood':'#e57373','bordeaux':'#8e2430','roze':'#f48fb1','lichtroze':'#f8bbd0',
+        'geel':'#ffd54f','mosterd':'#f4c842','oranje':'#ffb74d','koper':'#d4935a',
+        'paars':'#ab47bc','lila':'#ce93d8','goud':'#d4a847','zilver':'#bdbdbd',
+        'hout':'#a58a6f','naturel':'#d4c4a8'
+      };
+      const swatches = r.colors.map(c => {
+        const low = c.toLowerCase();
+        let hex = '#cccccc';
+        for (const [key, val] of Object.entries(colorHex)) {
+          if (low.includes(key)) { hex = val; break; }
+        }
+        return `<span class="color-swatch"><span class="color-dot" style="background:${hex};${hex==='#ffffff'?'border:1px solid rgba(255,255,255,0.2)':''}"></span>${c}</span>`;
+      }).join(' ');
+      document.getElementById("costDiy").innerHTML = swatches;
+      document.getElementById("costPro").textContent = "";
+      document.getElementById("costPro").parentElement.style.display = "none";
+    } else {
+      document.getElementById("costCard").style.display = "none";
+    }
+
+    // Styling tip
+            if (r.styling_tip) {
+              document.getElementById("saveBtn").textContent = r.styling_tip;
+              document.getElementById("saveBtn").classList.add("saved");
+            }
+
+    // Materials
+            if (r.materials && r.materials.length) {
+              document.getElementById("materialsCard").style.display = "block";
+              document.getElementById("materialsCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Materialen';
+      document.getElementById("materialsBody").innerHTML = r.materials.map(m => `<span class="material-tag">${m}</span>`).join("");
+      document.getElementById("gammaLink").parentElement.style.display = "block";
+      if (r.gamma_tips && r.gamma_tips.length) {
+        document.getElementById("gammaLink").href = `https://www.gamma.nl/zoeken?q=${encodeURIComponent(r.gamma_tips.join(", "))}`;
+      }
+    } else {
+      document.getElementById("materialsCard").style.display = "none";
+    }
+
+    // Matching stores
+            if (r.matching_stores && r.matching_stores.length) {
+              document.getElementById("stepsCard").style.display = "block";
+              document.getElementById("stepsCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> Shopadvies';
+      document.getElementById("stepsBody").innerHTML = r.matching_stores.map(s =>
+        `<div class="step-item"><div class="step-num">🏪</div><div class="step-txt">${s}</div></div>`
+      ).join("");
+    } else {
+      document.getElementById("stepsCard").style.display = "none";
+    }
+
+    document.getElementById("providersCard").style.display = "none";
+    return;
+  }
+
+  // Damage mode: normal repair analysis
+        // Reset card headers in case inspiration mode changed them
+        document.getElementById("costCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Kostenvergelijking';
+        document.getElementById("stepsCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Stappenplan';
+        document.getElementById("materialsCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Boodschappenlijst';
+  document.getElementById("costPro").parentElement.style.display = "block";
+
+  document.getElementById("issueCard").style.display = "block";
+  document.getElementById("resultThumb").src = document.getElementById("snapshot").src;
+  document.getElementById("resultType").textContent = r.issue_type || "Onbekend";
+  document.getElementById("resultDesc").textContent = r.description || "";
+
+  const conf = r.confidence || "medium";
+  const b = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } }[conf] || b.medium;
+  document.getElementById("resultBadge").innerHTML = `<span class="badge ${b.c}">${b.l} vertrouwen</span>`;
+
+  document.getElementById("costCard").style.display = "block";
+  document.getElementById("costDiy").textContent = r.cost_diy || r.cost_range || "—";
+  document.getElementById("costPro").textContent = r.cost_pro || r.cost_range || "—";
+
+  if (r.steps && r.steps.length) {
+    document.getElementById("stepsCard").style.display = "block";
+    document.getElementById("stepsBody").innerHTML = r.steps.map((s, i) =>
+      `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`
+    ).join("");
+  }
+
+  if (r.materials && r.materials.length) {
+    document.getElementById("materialsCard").style.display = "block";
+    document.getElementById("materialsBody").innerHTML = r.materials.map(m =>
+      `<span class="material-tag">${m}</span>`
+    ).join("");
+    document.getElementById("gammaLink").href = `https://www.gamma.nl/zoeken?q=${encodeURIComponent(r.materials.join(", "))}`;
+  }
+
+  document.getElementById("providersCard").style.display = "block";
+  renderProviders();
+}
+
+function toggleProviders() {
+  const body = document.getElementById("accordionBody");
+  const arrow = document.getElementById("accordionArrow");
+  body.classList.toggle("open");
+  arrow.classList.toggle("open");
+}
+
+function renderProviders(filter) {
+  const list = filter ? providers.filter(p => p.category === filter) : providers;
+  const cats = ["Alles", ...new Set(providers.map(p => p.category))];
+  document.getElementById("provFilters").innerHTML = cats.map(c =>
+    `<button class="filter-btn ${c === (filter || 'Alles') ? 'active' : ''}" onclick="renderProviders('${c === 'Alles' ? '' : c}')">${c}</button>`
+  ).join("");
+  document.getElementById("provGrid").innerHTML = list.map(p => {
+    const full = Math.floor(p.rating);
+    const half = p.rating % 1 >= 0.5;
+    return `<div class="prov-card">
+      <div class="prov-cat">${p.category}</div>
+      <div class="prov-name">${p.name}</div>
+      <div class="prov-meta"><span class="prov-stars">${'★'.repeat(full)}${half ? '½' : ''}</span> ${p.city}</div>
+      <div class="prov-actions">
+        <a class="wa-link" href="https://wa.me/${p.phone}?text=Hallo ${p.name}, ik heb via HouseFix AI een klus en wil graag een offerte." target="_blank">💬 WhatsApp</a>
+        <button class="quote-btn-sm" onclick="alert('Offerte aanvragen is binnenkort beschikbaar!')">📋 Offerte</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function goHome() {
+  stopStream();
+  document.getElementById("resultsWrap").classList.remove("active");
+  document.getElementById("loadingWrap").classList.remove("active");
+  document.getElementById("screenDashboard").classList.remove("hidden");
+  document.querySelector(".dash-footer").style.display = "block";
+  document.getElementById("resultContent").innerHTML = "";
+  const tb = document.getElementById("tryAnotherBtn");
+  if (tb) tb.remove();
+  [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
+    document.getElementById(id).style.display = "none"
+  );
+  // Reset accordion
+  document.getElementById("accordionBody").classList.remove("open");
+  document.getElementById("accordionArrow").classList.remove("open");
+}
+
+/* ── History / Save / Load / Delete ── */
+
+function toggleHistory() {
+  const body = document.getElementById("historyBody");
+  const arrow = document.getElementById("historyArrow");
+  body.classList.toggle("open");
+  arrow.classList.toggle("open");
+}
+
+function saveAnalysis() {
+  if (!currentResult) return;
+
+  const STORAGE_KEY = "housefix_history";
+  const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleString("nl-NL"),
+    mode: currentMode,
+    result: currentResult,
+    image: currentResultImage,
+    title: currentResult.issue_type || currentResult.style || "Onbekend",
+    optionIndex: _currentOptionIndex || 0
+  };
+
+  history.unshift(entry);
+  // Keep max 20 items to avoid localStorage quota
+  if (history.length > 20) history.length = 20;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+
+  // Visual feedback
+  const btn = document.getElementById("saveBtn");
+  btn.textContent = "✅ Opgeslagen!";
+  btn.classList.add("saved");
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const STORAGE_KEY = "housefix_history";
+  const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  const list = document.getElementById("historyList");
+  const empty = document.getElementById("historyEmpty");
+
+  if (history.length === 0) {
+    list.innerHTML = "";
+    empty.style.display = "block";
+    return;
+  }
+
+  empty.style.display = "none";
+  list.innerHTML = history.map((item, idx) => {
+    const modeLabel = item.mode === "inspiration" ? "Interieur" : "Klus Hulp";
+    const modeClass = item.mode === "inspiration" ? "inspiration" : "damage";
+    const thumb = item.image || "";
+    const title = item.title || "Onbekend";
+    return `
+      <div class="history-item" onclick="loadHistoryItem(${idx})">
+        <img class="history-thumb" src="${thumb}" alt="" onerror="this.style.display='none'" />
+        <div class="history-info">
+          <div class="hi-title">${title}</div>
+          <div class="hi-meta"><span class="history-mode-badge ${modeClass}">${modeLabel}</span> ${item.date}</div>
+        </div>
+        <button class="history-del" onclick="event.stopPropagation(); deleteHistoryItem(${idx})">🗑️</button>
+      </div>
+    `;
+  }).join("");
+}
+
+function loadHistoryItem(idx) {
+  const STORAGE_KEY = "housefix_history";
+  const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  const item = history[idx];
+  if (!item) return;
+
+  // Close history
+  document.getElementById("historyBody").classList.remove("open");
+  document.getElementById("historyArrow").classList.remove("open");
+
+  // Go to dashboard first, then simulate results
+  document.getElementById("screenCamera").classList.add("hidden");
+  document.getElementById("loadingWrap").classList.remove("active");
+  document.getElementById("resultsWrap").classList.add("active");
+  document.querySelector(".dash-footer").style.display = "none";
+
+  // Set the snapshot to the stored image
+  const snap = document.getElementById("snapshot");
+  snap.src = item.image;
+  snap.style.display = "none"; // keep hidden, resultThumb will show it
+
+  // Store current state
+  currentResult = item.result;
+  currentResultImage = item.image;
+  currentMode = item.mode;
+
+  // Restore the mode badge display for inspiration/damage
+  document.getElementById("modeDamage").classList.toggle("mode-active", item.mode === "damage");
+  document.getElementById("modeInspiration").classList.toggle("mode-active", item.mode === "inspiration");
+
+  // Use flowing story for inspiration, cards for damage
+  if (item.mode === "inspiration") {
+    showInspirationAdvice(item.result);
+    // Restore selected option if saved
+    if (item.optionIndex && item.optionIndex > 0) {
+      setTimeout(() => switchOption(item.optionIndex), 10);
+    }
+    addTryAnotherButton();
+  } else {
+    showResults(item.result);
+  }
+}
+
+function deleteHistoryItem(idx) {
+  const STORAGE_KEY = "housefix_history";
+  const history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  history.splice(idx, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  renderHistory();
+}
+
+// Render history on page load
+document.addEventListener("DOMContentLoaded", () => {
+  renderHistory();
+  // Register Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/static/sw.js").then(() => {
+      console.log("HouseFix AI PWA registered");
+    }).catch(() => {
+      // Silent fail - PWA is optional
+    });
+  }
+});
+</script>
+</body>
+</html>
