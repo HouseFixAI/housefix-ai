@@ -1067,8 +1067,7 @@ function retake() {
       let html=b+'<div class="purchase-head">'+(r.object_type||"Interieur")+'</div><div class="purchase-desc">'+(r.description||"")+'</div>';
       if(r.total_estimate)html+='<div class="purchase-total"><span class="purchase-total-label">Totale kosten</span><span class="purchase-total-price">'+r.total_estimate+'</span></div>';
       html+=buildCompositionPreview(r.segments);
-      // Catalog carousel placeholder (filled async)
-      html+='<div id="catalogCarousel"></div>';
+
       // Segment tabs
       let bestSeg=r.best_seg||"middenklasse",bestScore=0;
       if(!r.best_seg)for(const seg of["budget","middenklasse","premium"]){const p=r.segments&&r.segments[seg]||[];const s=p.reduce((a,b)=>a+(b.visual_match||0),0);if(s>bestScore){bestScore=s;bestSeg=seg;}}
@@ -1079,6 +1078,7 @@ function retake() {
       // Product cards per segment with ID attrs for async upgrade
       for(const seg of["budget","middenklasse","premium"]){
         html+='<div class="segment-content'+(seg===bestSeg?' seg-active':'')+'" id="seg-'+seg+'">';
+        html+='<div class="seg-carousel" id="carousel-'+seg+'"></div>';
         const p=r.segments&&r.segments[seg]||[];
         if(p.length){
           p.forEach((x,i)=>{
@@ -1186,7 +1186,7 @@ function retake() {
 
     function buildCarousel(seg,prods){
       if(!prods||!prods.length)return;
-      const c=document.getElementById("catalogCarousel");
+      const c=document.getElementById("carousel-"+seg);
       if(!c)return;
       let h='<div class="pv-carousel-wrap"><div class="pv-carousel-scroll">';
       prods.forEach(function(p){
