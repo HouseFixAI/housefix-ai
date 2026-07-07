@@ -6,8 +6,124 @@ import uuid
 import time
 import hashlib
 from openai import OpenAI
+import sqlite3
+import re
+import datetime
 
 app = Flask(__name__)
+
+# ---------------------------------------------------------------------------
+# Product Catalog (standalone SQLite database)
+# ---------------------------------------------------------------------------
+CATALOG_DB = os.path.join(os.path.dirname(__file__), 'product_catalog.db')
+
+def _parse_price_cents(price_str):
+    if not price_str:
+        return 0
+    s = price_str.replace(chr(8364), '').replace(' ', '').replace('+', '').strip()
+    if '-' in s:
+        s = s.split('-')[0].strip()
+    s = s.replace('.', '').replace(',', '.')
+    try:
+        return int(float(s) * 100)
+    except:
+        return 0
+
+def _seed_catalog(cur, conn):
+    n = 0
+    for scenario in FALLBACK_PURCHASE:
+        for seg_name, prods in scenario.get('segments', {}).items():
+            for idx, p in enumerate(prods):
+                name = p['name']
+                store = p['store']
+                price_cents = _parse_price_cents(p['price'])
+                cat = p.get('category', 'accessoire')
+                visual = p.get('visual', {})
+                pal = json.dumps(visual.get('color_palette', []))
+                mood = visual.get('mood', 'warm')
+                style_tag = visual.get('style_tag', 'modern')
+                featured = 1 if p.get('featured') else 0
+                pid = 'prod_' + re.sub(r'[^a-z0-9]', '_', store.lower().strip()) + '_' + str(idx)
+                cur.execute(
+                    'INSERT OR IGNORE INTO products '
+                    '(id, name, store, category, price_cents, currency, price_segment, '
+                    'color_palette, mood, style_tag, featured, available, last_updated) '
+                    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)',
+                    (pid, name, store, cat, price_cents, 'EUR', seg_name,
+                     pal, mood, style_tag, featured,
+                     datetime.datetime.now().isoformat()))
+                n += 1
+    conn.commit()
+    return n
+
+def init_catalog():
+    conn = sqlite3.connect(CATALOG_DB)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS products ('
+        'id TEXT PRIMARY KEY, name TEXT NOT NULL, store TEXT NOT NULL, '
+        'category TEXT, subcategory TEXT, style_tags TEXT, '
+        'price_cents INTEGER, currency TEXT DEFAULT \'EUR\', '
+        'price_segment TEXT, image_url TEXT, product_url TEXT, '
+        'affiliate_url TEXT, affiliate_network TEXT, commission_pct REAL, '
+        'color_palette TEXT, mood TEXT, style_tag TEXT, '
+        'featured INTEGER DEFAULT 0, available INTEGER DEFAULT 1, '
+        'last_updated TEXT)')
+    cur.execute('SELECT COUNT(*) FROM products')
+    if cur.fetchone()[0] == 0:
+        count = _seed_catalog(cur, conn)
+        print(f"Catalog: {count} products seeded")
+    conn.close()
+
+CATALOG_CONN = None
+def get_catalog():
+    global CATALOG_CONN
+    if CATALOG_CONN is None:
+        CATALOG_CONN = sqlite3.connect(CATALOG_DB)
+        CATALOG_CONN.row_factory = sqlite3.Row
+    return CATALOG_CONN
+
+def search_catalog(q=None, store=None, segment=None, category=None, limit=5):
+    conn = get_catalog()
+    cur = conn.cursor()
+    sql = 'SELECT * FROM products WHERE available = 1'
+    params = []
+    if q:
+        sql += ' AND name LIKE ?'
+        params.append('%' + q + '%')
+    if store:
+        sql += ' AND store = ?'
+        params.append(store)
+    if segment:
+        sql += ' AND price_segment = ?'
+        params.append(segment)
+    if category:
+        sql += ' AND category = ?'
+        params.append(category)
+    sql += ' ORDER BY featured DESC, name ASC LIMIT ?'
+    params.append(min(limit, 100))
+    cur.execute(sql, params)
+    results = []
+    for row in cur.fetchall():
+        d = dict(row)
+        pc = d.pop('price_cents', 0) or 0
+        euros = pc // 100
+        cents = pc % 100
+        if cents:
+            d['price'] = chr(8364) + str(euros) + ',' + str(cents).zfill(2)
+        else:
+            d['price'] = chr(8364) + str(euros)
+        for fld in ('color_palette', 'style_tags'):
+            val = d.get(fld)
+            if val:
+                try:
+                    d[fld] = json.loads(val)
+                except:
+                    if fld == 'color_palette':
+                        d[fld] = []
+        results.append(d)
+    return results
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
@@ -1517,6 +1633,11 @@ FALLBACK_PURCHASE = [
     }
 ]
 
+
+
+# Initialize product catalog (after FALLBACK_PURCHASE is defined)
+init_catalog()
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -1524,7 +1645,25 @@ def index():
 
 @app.route("/api/health")
 def health():
-    return jsonify({"status": "ok", "service": "HouseFix AI"})
+    try:
+        n = int(len(search_catalog(limit=999)))
+    except Exception:
+        n = 0
+    return jsonify({"status": "ok", "service": "HouseFix AI", "catalog_products": n})
+
+
+@app.route("/api/products")
+def list_catalog_products():
+    q = request.args.get('q', '').strip() or None
+    store = request.args.get('store', '').strip() or None
+    segment = request.args.get('segment', '').strip() or None
+    category = request.args.get('category', '').strip() or None
+    try:
+        limit = max(1, min(int(request.args.get('limit', 5)), 10))
+    except ValueError:
+        limit = 5
+    products = search_catalog(q=q, store=store, segment=segment, category=category, limit=limit)
+    return jsonify({"products": products, "total": len(products), "query": q or ""})
 
 
 @app.route("/api/providers")
