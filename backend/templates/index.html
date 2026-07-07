@@ -1188,7 +1188,7 @@ function retake() {
         const pal=p.color_palette||["#e8ddd0","#d4c5b5"];
         const fb=Array.isArray(pal)?pal[0]:"#e8ddd0";
         h+='<div class="pv-carousel-card"><div class="pv-carousel-img-wrap">';
-        if(u)h+='<img src="'+u+'" alt="'+escHtml(p.name)+'" class="pv-carousel-img" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.pv-carousel-fallback\').style.display=\'block\'" />';
+        if(u)h+='<img src="'+u+'" alt="'+escHtml(p.name)+'" class="pv-carousel-img" loading="lazy" onerror="this.style.display='none';this.parentNode.querySelector('.pv-carousel-fallback').style.display='block'" />';
         h+='<div class="pv-carousel-fallback" style="background:'+fb+'"></div></div>';
         h+='<div class="pv-carousel-price">'+(p.price||"")+'</div></div>';
       });
