@@ -1756,7 +1756,15 @@ def analyze_image():
             if user_intent == "identify":
                 result = random.choice(FALLBACK_IDENTIFY)
             elif user_intent == "purchase":
-                result = random.choice(FALLBACK_PURCHASE)
+                # Use user_answers to select matching segment from a random scenario
+                fallback_scenario = random.choice(FALLBACK_PURCHASE)
+                ua = data.get("user_answers", {})
+                budget = ua.get("budget", "design")
+                if budget != "design":
+                    seg_map = {"budget": "budget", "luxe": "premium"}
+                    preferred_seg = seg_map.get(budget, "middenklasse")
+                    fallback_scenario["best_seg"] = preferred_seg
+                result = fallback_scenario
             else:
                 result = random.choice(FALLBACK_INSPIRATION)
             result["is_fallback"] = True

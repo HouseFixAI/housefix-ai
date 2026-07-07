@@ -1070,16 +1070,15 @@ function retake() {
       // Catalog carousel placeholder (filled async)
       html+='<div id="catalogCarousel"></div>';
       // Segment tabs
-      let bestSeg="middenklasse",bestScore=0;
-      for(const seg of["budget","middenklasse","premium"]){const p=r.segments&&r.segments[seg]||[];const s=p.reduce((a,b)=>a+(b.visual_match||0),0);if(s>bestScore){bestScore=s;bestSeg=seg;}}
+      let bestSeg=r.best_seg||"middenklasse",bestScore=0;
+      if(!r.best_seg)for(const seg of["budget","middenklasse","premium"]){const p=r.segments&&r.segments[seg]||[];const s=p.reduce((a,b)=>a+(b.visual_match||0),0);if(s>bestScore){bestScore=s;bestSeg=seg;}}
       html+='<div class="segment-tabs">';
       const lb={budget:"\ud83d\udcb0 Budget",middenklasse:"\u2728 Middenklasse",premium:"\ud83d\udc51 Premium"};
       for(const seg of["budget","middenklasse","premium"])html+='<button class="segment-tab'+(seg===bestSeg?" segment-active":"")+'" data-seg="'+seg+'">'+lb[seg]+'</button>';
       html+='</div>';
       // Product cards per segment with ID attrs for async upgrade
       for(const seg of["budget","middenklasse","premium"]){
-        const v=seg===bestSeg?"block":"none";
-        html+='<div class="segment-content" id="seg-'+seg+'"'+(seg===bestSeg?' class="segment-content seg-active"':'')+'>';
+        html+='<div class="segment-content'+(seg===bestSeg?' seg-active':'')+'" id="seg-'+seg+'">';
         const p=r.segments&&r.segments[seg]||[];
         if(p.length){
           p.forEach((x,i)=>{
