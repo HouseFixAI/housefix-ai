@@ -619,6 +619,9 @@ PURCHASE_PROMPT = (
     "  - position: center|left|right|top|floor — waar in de compositie dit product hoort,\n"
     "  - featured: boolean (true voor hoofdproduct, max 1 per segment),\n"
     "  - priority: 1 (essentieel), 2 (belangrijk), 3 (optioneel)\n"
+    "  - query: zoekquery voor de productcatalogus. Combineer product_type + style_tag + kleur/materiaal, "
+    "bv. 'eiken salontafel 100x60 scandinavisch naturel' of 'rotan fauteuil naturel boho'. "
+    "Gebruik Nederlandse termen. Geen winkelnaam in de query.\n"
     "),\n"
     "colors (array van verfkleuren als er geschilderde muren te zien zijn. Elk: name, exact (kleurcode), finish, segment),\n"
     "materials (array van materialen voor DIY-elementen. Elk: name, segment, price, where),\n"
@@ -1005,7 +1008,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "modern"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "lack salontafel 90×55 cm wit modern warm"
                 },
                 {
                     "category": "meubel",
@@ -1024,7 +1028,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "rotan fauteuil naturel scandinavisch warm"
                 }
             ],
             "middenklasse": [
@@ -1045,7 +1050,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "eiken salontafel 100×60 cm conische poten scandinavisch warm"
                 },
                 {
                     "category": "meubel",
@@ -1064,7 +1070,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "handgevlochten rotan fauteuil naturel scandinavisch warm"
                 },
                 {
                     "category": "textiel",
@@ -1083,7 +1090,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "right",
-                    "featured": False
+                    "featured": False,
+                    "query": "linnen kussen 50×50 cm saliegroen scandinavisch warm"
                 },
                 {
                     "category": "verlichting",
@@ -1102,7 +1110,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "top",
-                    "featured": False
+                    "featured": False,
+                    "query": "rotan hanglamp 45 cm naturel scandinavisch warm"
                 },
                 {
                     "category": "meubel",
@@ -1121,7 +1130,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "floor",
-                    "featured": False
+                    "featured": False,
+                    "query": "eiken bijzettafel 45×45 cm scandinavisch warm"
                 }
             ],
             "premium": [
@@ -1142,7 +1152,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "eiken salontafel 120×70 cm met marmeren blad scandinavisch warm"
                 },
                 {
                     "category": "meubel",
@@ -1161,7 +1172,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "rotan fauteuil 'f888' handgevlochten scandinavisch warm"
                 }
             ]
         },
@@ -1226,7 +1238,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "industrieel"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "nordviken tafel 120×80 cm zwart industrieel stoer"
                 },
                 {
                     "category": "meubel",
@@ -1245,7 +1258,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "industrieel"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "eetkamerstoel zwart kunstleer industrieel stoer"
                 }
             ],
             "middenklasse": [
@@ -1266,7 +1280,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "eettafel zwart metaal + eiken blad 200×90 cm scandinavisch warm"
                 },
                 {
                     "category": "meubel",
@@ -1285,7 +1300,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "industrieel"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "eetkamerstoel cognac leder 2-pack industrieel stoer"
                 },
                 {
                     "category": "verlichting",
@@ -1304,7 +1320,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "industrieel"
                     },
                     "position": "right",
-                    "featured": False
+                    "featured": False,
+                    "query": "zwarte industriële hanglamp metaal industrieel stoer"
                 },
                 {
                     "category": "wanddecoratie",
@@ -1323,7 +1340,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "modern"
                     },
                     "position": "top",
-                    "featured": False
+                    "featured": False,
+                    "query": "betonlook wandpanel 120×80 cm modern warm"
                 }
             ],
             "premium": [
@@ -1344,7 +1362,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "eettafel massief eiken met stalen onderstel 240×100 cm scandinavisch warm"
                 },
                 {
                     "category": "meubel",
@@ -1363,7 +1382,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "industrieel"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "eetkamerstoel cognac leder 'about a chair' industrieel stoer"
                 }
             ]
         },
@@ -1433,7 +1453,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "rotan hoofdbord 140 cm scandinavisch warm"
                 },
                 {
                     "category": "textiel",
@@ -1452,7 +1473,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "lendearyll linnen dekbedovertrek beige scandinavisch warm"
                 }
             ],
             "middenklasse": [
@@ -1473,7 +1495,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "rotan hoofdbord 200 cm breed handgevlochten scandinavisch warm"
                 },
                 {
                     "category": "textiel",
@@ -1492,7 +1515,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "linnen dekbedovertrek ivory 240×220 cm scandinavisch warm"
                 },
                 {
                     "category": "wanddecoratie",
@@ -1511,7 +1535,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "boho"
                     },
                     "position": "right",
-                    "featured": False
+                    "featured": False,
+                    "query": "macramé wandkleed 120×80 cm handgeknoopt boho fris"
                 },
                 {
                     "category": "plant",
@@ -1530,7 +1555,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "boho"
                     },
                     "position": "top",
-                    "featured": False
+                    "featured": False,
+                    "query": "vijgenboom 180 cm boho fris"
                 },
                 {
                     "category": "accessoire",
@@ -1549,7 +1575,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "floor",
-                    "featured": False
+                    "featured": False,
+                    "query": "rotan bijzettafel 50 cm rond scandinavisch warm"
                 }
             ],
             "premium": [
@@ -1570,7 +1597,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "center",
-                    "featured": True
+                    "featured": True,
+                    "query": "rotan hoofdbord 220 cm handgevlochten massief frame scandinavisch warm"
                 },
                 {
                     "category": "textiel",
@@ -1589,7 +1617,8 @@ FALLBACK_PURCHASE = [
                         "style_tag": "scandinavisch"
                     },
                     "position": "left",
-                    "featured": False
+                    "featured": False,
+                    "query": "belgisch linnen dekbedovertrek ivory 260×240 cm scandinavisch warm"
                 }
             ]
         },
@@ -1632,8 +1661,6 @@ FALLBACK_PURCHASE = [
         "confidence": "high"
     }
 ]
-
-
 
 # Initialize product catalog (after FALLBACK_PURCHASE is defined)
 init_catalog()
