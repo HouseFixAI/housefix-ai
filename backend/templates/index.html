@@ -80,6 +80,10 @@
           .mode-btn .mode-label { font-size: 13px; font-weight: 700; }
           .mode-btn .mode-sub { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
           .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
+          .mode-reset { display: none; align-items: center; justify-content: center; gap: 6px; margin: 4px auto 0; padding: 8px 18px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-light); color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; width: fit-content; }
+          .mode-reset.visible { display: flex; }
+          .mode-reset:hover { border-color: var(--warm-beige); color: var(--text-secondary); }
+          .mode-reset:active { transform: scale(0.96); }
 
           /* GROUP 2: Middle */
           .dg-2 { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; padding: 4px 0; }
@@ -454,6 +458,7 @@
                 </button>
               </div>
 
+              <div class="mode-reset" id="modeReset" onclick="resetMode()">↺ Terug naar beginscherm</div>
             </div>
 
             <!-- GROUP 2: 3 Explanation cards (middle) -->
@@ -626,7 +631,7 @@
 let imageBase64 = null;
 let providers = [];
 let stream = null;
-let currentMode = "damage";
+let currentMode = null;
 let currentResult = null;
 let currentResultImage = null;
 
@@ -635,18 +640,11 @@ function setMode(mode) {
       currentMode = mode;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
-
-      const ctaText = document.getElementById("ctaText");
-
-      if (mode === "inspiration") {
-        ctaText.textContent = "Scan je interieur";
-      } else {
-        ctaText.textContent = "Scan met camera";
-      }
-    }
-
-/* ── Dashboard → Camera ── */
-function openCamera() {
+      var r = document.getElementById("modeReset");
+      if (mode) { r.classList.add("visible"); } else { r.classList.remove("visible"); }
+      var c = document.getElementById("ctaText");
+      c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
+    }function openCamera() {
   document.getElementById("screenDashboard").classList.add("hidden");
   document.getElementById("screenCamera").classList.remove("hidden");
   startCamera();
@@ -2013,6 +2011,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-</script>
+    function resetMode() {
+      document.getElementById("modeDamage").classList.remove("mode-active");
+      document.getElementById("modeInspiration").classList.remove("mode-active");
+      document.getElementById("modeReset").classList.remove("visible");
+      document.getElementById("ctaText").textContent = "Scan met camera";
+      currentMode = null;
+    }
+  </script>
 </body>
 </html>
