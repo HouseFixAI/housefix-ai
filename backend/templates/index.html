@@ -66,7 +66,11 @@
           .dash-inner { max-width: 480px; margin: 0 auto; padding: 12px 20px 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; width: 100%; overflow-y: auto; overflow-x: hidden; }
 
           /* GROUP 1: Top */
-          .dg-1 { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+          .dg-1 { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; position: relative; }
+          .mode-close { position: absolute; top: -2px; right: 0; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; font-weight: 300; transition: opacity 0.2s ease; z-index: 5; opacity: 0.5; }
+          .mode-close.visible { display: flex; }
+          .mode-close:hover { opacity: 1; }
+          .mode-close:active { transform: scale(0.88); }
           .dash-header { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
           .logo-icon-sm { font-size: 26px; line-height: 1; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--terracotta-soft); border-radius: 10px; }
           .logo-title-sm { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
@@ -80,10 +84,6 @@
           .mode-btn .mode-label { font-size: 13px; font-weight: 700; }
           .mode-btn .mode-sub { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
           .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
-          .mode-reset { display: none; align-items: center; justify-content: center; gap: 6px; margin: 4px auto 0; padding: 8px 18px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border-light); color: var(--text-muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; width: fit-content; }
-          .mode-reset.visible { display: flex; }
-          .mode-reset:hover { border-color: var(--warm-beige); color: var(--text-secondary); }
-          .mode-reset:active { transform: scale(0.96); }
 
           /* GROUP 2: Middle */
           .dg-2 { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; padding: 4px 0; }
@@ -458,7 +458,7 @@
                 </button>
               </div>
 
-              <div class="mode-reset" id="modeReset" onclick="resetMode()">↺ Terug naar beginscherm</div>
+              <div class="mode-close" id="modeClose" onclick="resetMode()">✕</div>
             </div>
 
             <!-- GROUP 2: 3 Explanation cards (middle) -->
@@ -640,7 +640,7 @@ function setMode(mode) {
       currentMode = mode;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
-      var r = document.getElementById("modeReset");
+      var r = document.getElementById("modeClose");
       if (mode) { r.classList.add("visible"); } else { r.classList.remove("visible"); }
       var c = document.getElementById("ctaText");
       c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
@@ -2014,7 +2014,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetMode() {
       document.getElementById("modeDamage").classList.remove("mode-active");
       document.getElementById("modeInspiration").classList.remove("mode-active");
-      document.getElementById("modeReset").classList.remove("visible");
+      document.getElementById("modeClose").classList.remove("visible");
       document.getElementById("ctaText").textContent = "Scan met camera";
       currentMode = null;
     }
