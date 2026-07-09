@@ -67,7 +67,7 @@
 
           /* GROUP 1: Top */
           .dg-1 { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; position: relative; }
-          .menu-btn { position: absolute; top: -2px; right: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; font-weight: 300; transition: opacity 0.2s ease, transform 0.25s ease; z-index: 5; opacity: 0.7; border: none; background: none; padding: 0; }
+          .menu-btn { position: absolute; top: 6px; right: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; font-weight: 300; transition: opacity 0.2s ease, transform 0.25s ease; z-index: 5; opacity: 0.7; border: none; background: none; padding: 0; }
           .menu-btn:hover { opacity: 1; }
           .menu-btn:active { transform: scale(0.88); }
           .menu-btn .mb-icon { transition: transform 0.25s ease; }
@@ -105,7 +105,6 @@
           .hc-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
           .hc-card-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.55)); }
           .hc-card-label { position: absolute; bottom: 14px; left: 16px; right: 16px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 2; }
-          .hc-card-sub { position: absolute; bottom: 14px; left: 16px; right: 16px; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 400; z-index: 2; }
           .info-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
           .info-icon { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
           .info-content { flex: 1; min-width: 0; }
@@ -2054,7 +2053,7 @@ document.addEventListener("DOMContentLoaded", () => {
       var html = "";
       for (var i = 0; i < list.length; i++) {
         var c = list[i];
-        html += '<div class="hc-card' + (clickable ? " clickable" : "") + '"' + (clickable && c.a ? ' onclick="' + c.a + '"' : "") + '><div class="hc-card-bg" style="background:' + c.bg + '"></div><div class="hc-card-overlay"></div><div class="hc-card-label">' + c.t + '</div><div class="hc-card-sub">' + c.s + '</div></div>';
+        html += '<div class="hc-card' + (clickable ? " clickable" : "") + '"' + (clickable && c.a ? ' onclick="' + c.a + '"' : "") + '><div class="hc-card-bg" style="background:' + c.bg + '"></div><div class="hc-card-overlay"></div><div class="hc-card-label">' + c.t + '</div></div>';
       }
       scroll.innerHTML = html;
     }
