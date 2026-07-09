@@ -67,10 +67,20 @@
 
           /* GROUP 1: Top */
           .dg-1 { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; position: relative; }
-          .mode-close { position: absolute; top: -2px; right: 0; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; font-weight: 300; transition: opacity 0.2s ease; z-index: 5; opacity: 0.5; }
-          .mode-close.visible { display: flex; }
-          .mode-close:hover { opacity: 1; }
-          .mode-close:active { transform: scale(0.88); }
+          .menu-btn { position: absolute; top: -2px; right: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; font-weight: 300; transition: opacity 0.2s ease, transform 0.25s ease; z-index: 5; opacity: 0.7; border: none; background: none; padding: 0; }
+          .menu-btn:hover { opacity: 1; }
+          .menu-btn:active { transform: scale(0.88); }
+          .menu-btn .mb-icon { transition: transform 0.25s ease; }
+          .sp-overlay { position: fixed; inset: 0; z-index: 998; pointer-events: none; }
+          .sp-overlay.active { pointer-events: auto; }
+          .sp-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s; }
+          .sp-overlay.active .sp-bg { opacity: 1; }
+          .sp-panel { position: absolute; top: 0; right: 0; width: 75%; max-width: 280px; height: 100%; background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 60px 20px 24px; overflow-y: auto; }
+          .sp-overlay.active .sp-panel { transform: translateX(0); }
+          .sp-item { display: flex; align-items: center; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--border-light); font-size: 14px; font-weight: 600; color: var(--text-primary); cursor: pointer; }
+          .sp-item:last-child { border-bottom: none; }
+          .sp-item .sp-icon { font-size: 18px; }
+          .sp-close { position: absolute; top: 16px; right: 16px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; border: none; background: none; }
           .dash-header { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
           .logo-icon-sm { font-size: 26px; line-height: 1; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: var(--terracotta-soft); border-radius: 10px; }
           .logo-title-sm { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
@@ -82,23 +92,20 @@
           .mode-btn.mode-active { border-color: var(--terracotta); background: var(--terracotta-soft); box-shadow: 0 0 0 1px var(--terracotta); color: var(--terracotta); }
           .mode-btn .mode-icon { font-size: 18px; margin-bottom: 2px; }
           .mode-btn .mode-label { font-size: 13px; font-weight: 700; }
-          .mode-btn .mode-sub { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
-          .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
 
           /* GROUP 2: Middle */
           .dg-2 { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; padding: 4px 0; overflow: hidden; }
           .hc-wrap { padding: 0 4px; overflow: hidden; width: 100%; }
           .hc-scroll { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 4px 16px 8px; scrollbar-width: none; }
           .hc-scroll::-webkit-scrollbar { display: none; }
-          .hc-card { flex: 0 0 280px; height: 200px; border-radius: 16px; scroll-snap-align: center; position: relative; overflow: hidden; cursor: default; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+          .hc-card { flex: 0 0 260px; height: 160px; border-radius: 16px; scroll-snap-align: center; position: relative; overflow: hidden; cursor: default; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
           .hc-card.clickable { cursor: pointer; }
           .hc-card.clickable:hover { transform: scale(1.02); box-shadow: 0 4px 18px rgba(0,0,0,0.1); }
           .hc-card.clickable:active { transform: scale(0.97); }
           .hc-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
-          .hc-card-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 45%; background: linear-gradient(transparent, rgba(0,0,0,0.6)); }
-          .hc-card-label { position: absolute; bottom: 34px; left: 16px; right: 16px; color: #fff; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 2; }
-          .hc-card-sub { position: absolute; bottom: 14px; left: 16px; right: 16px; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 400; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          .hc-hint { text-align: center; font-size: 12px; color: var(--text-muted); padding: 2px 0 0; letter-spacing: 0.3px; }
+          .hc-card-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.55)); }
+          .hc-card-label { position: absolute; bottom: 14px; left: 16px; right: 16px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 2; }
+          .hc-card-sub { position: absolute; bottom: 14px; left: 16px; right: 16px; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 400; z-index: 2; }
           .info-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
           .info-icon { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
           .info-content { flex: 1; min-width: 0; }
@@ -444,35 +451,27 @@
                 </div>
               </div>
 
-              <div class="trust-capsule fade-slide-up stagger-1">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8a9b7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                €14.250 bespaard door gebruikers
-              </div>
-
               <div class="mode-selector fade-slide-up stagger-1">
                 <button class="mode-btn" id="modeDamage" onclick="setMode('damage')">
                   <span class="mode-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                   </span>
                   <span class="mode-label">Klus Hulp</span>
-                  <span class="mode-sub">Schade & reparatie</span>
                 </button>
                 <button class="mode-btn" id="modeInspiration" onclick="setMode('inspiration')">
                   <span class="mode-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                   </span>
                   <span class="mode-label">Interieur</span>
-                  <span class="mode-sub">Stijl & inspiratie</span>
                 </button>
               </div>
 
-              <div class="mode-close" id="modeClose" onclick="resetMode()">✕</div>
+              <button class="menu-btn" id="menuBtn" onclick="handleMenuClick()"><span class="mb-icon" id="menuIcon">☰</span></button>
             </div>
 
             <!-- GROUP 2: Carousel -->
             <div class="hc-wrap">
               <div class="hc-scroll" id="hcScroll"></div>
-              <div class="hc-hint" id="hcHint">Kies een wereld om te starten</div>
             </div>
             <div class="dg-3">
 
@@ -648,8 +647,7 @@ function setMode(mode) {
       currentMode = mode;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
-      var r = document.getElementById("modeClose");
-      if (mode) { r.classList.add("visible"); } else { r.classList.remove("visible"); }
+      var mb = document.getElementById("menuIcon"); mb.textContent = mode ? "✖" : "☰";
       var c = document.getElementById("ctaText");
       c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
     }function openCamera() {
@@ -2023,7 +2021,7 @@ document.addEventListener("DOMContentLoaded", () => {
       buildCarousel("neutral");
       document.getElementById("modeDamage").classList.remove("mode-active");
       document.getElementById("modeInspiration").classList.remove("mode-active");
-      document.getElementById("modeClose").classList.remove("visible");
+      document.getElementById("menuIcon").textContent = "☰";
       document.getElementById("ctaText").textContent = "Scan met camera";
       currentMode = null;
     }
@@ -2052,7 +2050,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function buildCarousel(mode) {
       var list = mode ? hcCards[mode] : hcCards.neutral;
       var scroll = document.getElementById("hcScroll");
-      var hint = document.getElementById("hcHint");
       scroll.innerHTML = "";
       var clickable = mode === "damage" || mode === "inspiration";
       for (var i = 0; i < list.length; i++) {
@@ -2063,9 +2060,24 @@ document.addEventListener("DOMContentLoaded", () => {
         card.innerHTML = '<div class="hc-card-bg" style="background:'+c.bg+'"></div><div class="hc-card-overlay"></div><div class="hc-card-label">'+c.t+'</div><div class="hc-card-sub">'+c.s+'</div>';
         scroll.appendChild(card);
       }
-      hint.textContent = clickable ? "" : "Kies een wereld om te starten";
     }
     buildCarousel("neutral");
+      function handleMenuClick() {
+      var icon = document.getElementById("menuIcon");
+      if (icon.textContent === "✖") { resetMode(); }
+      else { document.getElementById("spOverlay").classList.add("active"); }
+    }
+    function closeServicePanel() { document.getElementById("spOverlay").classList.remove("active"); }
   </script>
+  <div class="sp-overlay" id="spOverlay">
+    <div class="sp-bg" onclick="closeServicePanel()"></div>
+    <div class="sp-panel">
+      <button class="sp-close" onclick="closeServicePanel()">✖</button>
+      <div class="sp-item"><span class="sp-icon">📖</span> Hoe werkt HouseFix?</div>
+      <div class="sp-item"><span class="sp-icon">❓</span> Veelgestelde vragen (FAQ)</div>
+      <div class="sp-item"><span class="sp-icon">💬</span> Directe Hulplijn / Support</div>
+      <div class="sp-item"><span class="sp-icon">🛡️</span> Veiligheid & Privacy</div>
+    </div>
+  </div>
 </body>
 </html>
