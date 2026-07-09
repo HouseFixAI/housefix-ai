@@ -462,7 +462,7 @@
                   <span class="mode-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                   </span>
-                  <span class="mode-label">Interieur</span>
+                  <span class="mode-label">Interieur & Design</span>
                 </button>
               </div>
 
@@ -2050,16 +2050,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function buildCarousel(mode) {
       var list = mode ? hcCards[mode] : hcCards.neutral;
       var scroll = document.getElementById("hcScroll");
-      scroll.innerHTML = "";
       var clickable = mode === "damage" || mode === "inspiration";
+      var html = "";
       for (var i = 0; i < list.length; i++) {
         var c = list[i];
-        var card = document.createElement("div");
-        card.className = "hc-card" + (clickable ? " clickable" : "");
-        if (clickable && c.a) card.setAttribute("onclick", c.a);
-        card.innerHTML = '<div class="hc-card-bg" style="background:'+c.bg+'"></div><div class="hc-card-overlay"></div><div class="hc-card-label">'+c.t+'</div><div class="hc-card-sub">'+c.s+'</div>';
-        scroll.appendChild(card);
+        html += '<div class="hc-card' + (clickable ? " clickable" : "") + '"' + (clickable && c.a ? ' onclick="' + c.a + '"' : "") + '><div class="hc-card-bg" style="background:' + c.bg + '"></div><div class="hc-card-overlay"></div><div class="hc-card-label">' + c.t + '</div><div class="hc-card-sub">' + c.s + '</div></div>';
       }
+      scroll.innerHTML = html;
     }
     buildCarousel("neutral");
       function handleMenuClick() {
