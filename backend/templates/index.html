@@ -86,7 +86,19 @@
           .mode-btn.mode-active .mode-sub { color: var(--text-secondary); }
 
           /* GROUP 2: Middle */
-          .dg-2 { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; padding: 4px 0; }
+          .dg-2 { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; padding: 4px 0; overflow: hidden; }
+          .hc-wrap { padding: 0 4px; overflow: hidden; width: 100%; }
+          .hc-scroll { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 4px 16px 8px; scrollbar-width: none; }
+          .hc-scroll::-webkit-scrollbar { display: none; }
+          .hc-card { flex: 0 0 260px; height: 160px; border-radius: 16px; scroll-snap-align: center; position: relative; overflow: hidden; cursor: default; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+          .hc-card.clickable { cursor: pointer; }
+          .hc-card.clickable:hover { transform: scale(1.02); box-shadow: 0 4px 18px rgba(0,0,0,0.1); }
+          .hc-card.clickable:active { transform: scale(0.97); }
+          .hc-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+          .hc-card-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(transparent, rgba(0,0,0,0.55)); }
+          .hc-card-label { position: absolute; bottom: 14px; left: 16px; right: 16px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.2); z-index: 2; }
+          .hc-card-sub { position: absolute; bottom: 14px; left: 16px; right: 16px; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 400; z-index: 2; }
+          .hc-hint { text-align: center; font-size: 12px; color: var(--text-muted); padding: 2px 0 0; letter-spacing: 0.3px; }
           .info-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
           .info-icon { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
           .info-content { flex: 1; min-width: 0; }
@@ -457,7 +469,11 @@
               <div class="mode-close" id="modeClose" onclick="resetMode()">✕</div>
             </div>
 
-            <!-- GROUP 2: 3 Explanation cards (middle) -->
+            <!-- GROUP 2: Carousel -->
+            <div class="hc-wrap">
+              <div class="hc-scroll" id="hcScroll"></div>
+              <div class="hc-hint" id="hcHint">Kies een wereld om te starten</div>
+            </div>
             <div class="dg-3">
 
               <input type="file" accept="image/*" id="galleryInput" style="display:none" onchange="handleGalleryFile(event)" />
@@ -628,6 +644,7 @@ let currentResultImage = null;
 
 /* ── Mode Selector ── */
 function setMode(mode) {
+      buildCarousel(mode);
       currentMode = mode;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
@@ -2003,12 +2020,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
     function resetMode() {
+      buildCarousel("neutral");
       document.getElementById("modeDamage").classList.remove("mode-active");
       document.getElementById("modeInspiration").classList.remove("mode-active");
       document.getElementById("modeClose").classList.remove("visible");
       document.getElementById("ctaText").textContent = "Scan met camera";
       currentMode = null;
     }
+  
+    var hcCards = {
+      neutral: [
+        {bg:"linear-gradient(135deg, #667eea, #764ba2)", t:"Woonkamer", s:"Modern interieur"},
+        {bg:"linear-gradient(135deg, #f093fb, #f5576c)", t:"Renovatie", s:"Voor & na"},
+        {bg:"linear-gradient(135deg, #4facfe, #00f2fe)", t:"Badkamer", s:"Stijlvol bad"},
+        {bg:"linear-gradient(135deg, #43e97b, #38f9d7)", t:"Tuin", s:"Buitenleven"},
+        {bg:"linear-gradient(135deg, #fa709a, #fee140)", t:"Keuken", s:"Kookinspiratie"}
+      ],
+      damage: [
+        {bg:"linear-gradient(135deg, #2c2c2c, #555)", t:"Analyseer Schade", s:"Maak foto → directe analyse", a:"openCamera()"},
+        {bg:"linear-gradient(135deg, #434343, #000)", t:"Kosten Schatting", s:"Directe prijsindicatie", a:"openCamera()"},
+        {bg:"linear-gradient(135deg, #3a3a3a, #1a1a1a)", t:"Reparatieplan", s:"Stap-voor-stap reparatie", a:"openCamera()"},
+        {bg:"linear-gradient(135deg, #555, #2c2c2c)", t:"Materialenlijst", s:"Wat heb je nodig?", a:"openCamera()"}
+      ],
+      inspiration: [
+        {bg:"linear-gradient(135deg, #c471ed, #f64f59)", t:"Scan voor Kleurenpalet", s:"AI herkent elke tint", a:"openCamera()"},
+        {bg:"linear-gradient(135deg, #12c2e9, #c471ed)", t:"Vind dit Meubel", s:"Zoek & bestel direct", a:"openCamera()"},
+        {bg:"linear-gradient(135deg, #f093fb, #4facfe)", t:"Stijl mijn Kamer", s:"AI maakt moodboard", a:"openCamera()"},
+        {bg:"linear-gradient(135deg, #fa709a, #667eea)", t:"Raamdecoratie", s:"Gordijnen & jaloezieën", a:"openCamera()"}
+      ]
+    };
+    function buildCarousel(mode) {
+      var list = mode ? hcCards[mode] : hcCards.neutral;
+      var scroll = document.getElementById("hcScroll");
+      var hint = document.getElementById("hcHint");
+      scroll.innerHTML = "";
+      var clickable = mode === "damage" || mode === "inspiration";
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        var card = document.createElement("div");
+        card.className = "hc-card" + (clickable ? " clickable" : "");
+        if (clickable && c.a) card.setAttribute("onclick", c.a);
+        card.innerHTML = '<div class="hc-card-bg" style="background:'+c.bg+'"></div><div class="hc-card-overlay"></div><div class="hc-card-label">'+c.t+'</div><div class="hc-card-sub">'+c.s+'</div>';
+        scroll.appendChild(card);
+      }
+      hint.textContent = clickable ? "" : "Kies een wereld om te starten";
+    }
+    buildCarousel("neutral");
   </script>
 </body>
 </html>
