@@ -101,7 +101,7 @@
           .hc-card { flex: 0 0 260px; height: 160px; border-radius: 16px; scroll-snap-align: center; position: relative; overflow: hidden; cursor: default; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 2px 10px rgba(0,0,0,0.06); background: #1F1E1C; border: 1px solid rgba(51, 49, 46, 0.15); }
           .hc-card.clickable { cursor: pointer; }
           .hc-card.clickable:hover, .hc-card.clickable:active { transform: scale(1.03); box-shadow: 0 12px 24px rgba(0,0,0,0.35); }
-          .hc-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; }
+          .hc-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: saturate(1.08) contrast(1.05); }
           .hc-card-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.85) 100%); }
           .hc-card-label { position: absolute; bottom: 14px; left: 16px; right: 16px; color: #FFFFFF; font-size: 15px; font-weight: 700; letter-spacing: 0.3px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 2; }
           .info-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
@@ -2026,23 +2026,23 @@ document.addEventListener("DOMContentLoaded", () => {
   
     var hcCards = {
       neutral: [
-        {bg:"url(https://images.unsplash.com/photo-1618220179428-22790b461013?w=500&h=300&fit=crop)", t:"Woonkamer"},
-        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=500&h=300&fit=crop)", t:"Renovatie & Bouw"},
-        {bg:"url(https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&h=300&fit=crop)", t:"Badkamer"},
-        {bg:"url(https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=500&h=300&fit=crop)", t:"Tuin"},
-        {bg:"url(https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&h=300&fit=crop)", t:"Keuken & Sanitair"}
+        {bg:"url(https://images.unsplash.com/photo-1618220179428-22790b461013?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Woonkamer"},
+        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Renovatie & Bouw"},
+        {bg:"url(https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Badkamer"},
+        {bg:"url(https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Tuin"},
+        {bg:"url(https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Keuken & Sanitair"}
       ],
       damage: [
-        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=500&h=300&fit=crop)", t:"Analyseer Schade", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=300&fit=crop)", t:"Kosten Schatting", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=500&h=300&fit=crop)", t:"Reparatieplan", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1504148455328-c376907d081c?w=500&h=300&fit=crop)", t:"Materialenlijst", a:"openCamera()"}
+        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Analyseer Schade", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Kosten Schatting", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Reparatieplan", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Materialenlijst", a:"openCamera()"}
       ],
       inspiration: [
-        {bg:"url(https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=500&h=300&fit=crop)", t:"Scan voor Kleurenpalet", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=300&fit=crop)", t:"Vind dit Meubel", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=500&h=300&fit=crop)", t:"Stijl mijn Kamer", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&h=300&fit=crop)", t:"Raamdecoratie", a:"openCamera()"}
+        {bg:"url(https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Scan voor Kleurenpalet", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Vind dit Meubel", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Stijl mijn Kamer", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Raamdecoratie", a:"openCamera()"}
       ]
     };
     function buildCarousel(mode) {
