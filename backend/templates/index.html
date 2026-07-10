@@ -180,13 +180,25 @@
           .viewfinder-content { text-align: center; color: rgba(255,255,255,0.4); }
           .viewfinder-content .big-icon { font-size: 52px; margin-bottom: 12px; display: block; }
           .viewfinder-content p { font-size: 14px; }
-          .cam-actions { display: flex; gap: 10px; }
-          .cam-actions button, .cam-actions label { flex: 1; padding: 16px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; border: none; cursor: pointer; text-align: center; transition: all 0.2s; }
-          .btn-capture { background: #fff; color: #000; }
-          .btn-capture:active { transform: scale(0.97); }
-          .btn-analyze-go { background: var(--terracotta); color: #fff; box-shadow: 0 2px 8px rgba(196,98,74,0.3); }
-          .btn-analyze-go:disabled { opacity: 0.4; box-shadow: none; }
-          .btn-back { background: rgba(255,255,255,0.1); color: #fff; flex: 0.4; font-size: 20px; }
+          .cam-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; z-index: 10; transition: opacity 0.2s; }
+          .cam-close:hover { opacity: 1; }
+          .cam-close:active { opacity: 0.5; }
+          .shutter-btn { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease; }
+          .shutter-btn:active { transform: scale(0.92); }
+          .shutter-ring { width: 60px; height: 60px; border-radius: 50%; border: 3px solid rgba(0,0,0,0.15); pointer-events: none; }
+          .shutter-btn-analyze { padding: 14px 32px; border-radius: 24px; background: #fff; color: #000; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
+          .shutter-btn-analyze:disabled { opacity: 0.3; }
+          .shutter-btn-analyze:active { transform: scale(0.97); }
+          .shutter-btn-retake { padding: 14px 24px; border-radius: 24px; background: rgba(255,255,255,0.15); color: #fff; font-size: 14px; font-weight: 600; border: none; cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s; }
+          .shutter-btn-retake:active { transform: scale(0.97); }
+
+          
+          .cam-actions { display: flex; justify-content: center; align-items: center; padding: 24px 0 32px; }
+          
+          
+          
+          
+          
           .btn-retake { background: rgba(255,255,255,0.12); color: #fff; flex: 0.4; }
           .btn-gallery { background: rgba(255,255,255,0.15); color: #fff; flex: 0.6; }
           .btn-gallery:active { background: rgba(255,255,255,0.25); }
@@ -519,7 +531,7 @@
           <canvas id="canvas"></canvas>
           <img id="snapshot" />
 
-          <div class="cam-badge">Maak een foto van het probleem</div>
+          <div class="cam-badge">Richt de camera op de schade</div>
 
           <div class="cam-overlay">
             <div class="viewfinder" id="viewfinder">
@@ -531,14 +543,12 @@
               </div>
             </div>
 
-            <div class="cam-actions" id="camActions">
-              <button class="btn-capture" id="btnCapture" onclick="capture()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Foto maken
+            <button class="cam-close" id="camCloseBtn" onclick="closeCamera()" aria-label="Sluit camera">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>Analyseren</button>
-              <button class="btn-back" onclick="closeCamera()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <div class="cam-actions" id="camActions">
+              <button class="shutter-btn" id="btnCapture" onclick="capture()" aria-label="Maak foto">
+                <div class="shutter-ring"></div>
               </button>
             </div>
           </div>
@@ -739,8 +749,8 @@ function showPreview(url) {
   document.getElementById("btnCapture") && (document.getElementById("btnCapture").style.display = "none");
   document.getElementById("btnRetake") && (document.getElementById("btnRetake").style.display = "none");
   document.getElementById("camActions").innerHTML =
-    '<button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()">🔍 Analyseren</button>' +
-    '<button class="btn-back" onclick="retake()">↩ Opnieuw</button>';
+    '<button class="shutter-btn-analyze" id="btnAnalyze" onclick="analyze()">Analyseren</button>' +
+    '<button class="shutter-btn-retake" id="btnRetake" onclick="retake()">Opnieuw</button>';
 }
 
 function retake() {
@@ -748,11 +758,10 @@ function retake() {
   document.getElementById("video").style.display = "block";
   document.getElementById("snapshot").style.display = "none";
   document.getElementById("viewfinder").style.display = "flex";
-  document.querySelector(".cam-badge").textContent = "📸 Maak een foto van het probleem";
+  document.querySelector(".cam-badge").textContent = "📸 Richt de camera op de schade";
   document.getElementById("camActions").innerHTML =
-    '<button class="btn-capture" onclick="capture()">📸 Foto maken</button>' +
-    '<button class="btn-analyze-go" id="btnAnalyze" onclick="analyze()" disabled>🔍 Analyseren</button>' +
-    '<button class="btn-back" onclick="closeCamera()">✕</button>';
+    '<button class="shutter-btn" id="btnCapture" onclick="capture()" aria-label="Maak foto"><div class="shutter-ring"></div></button>' +
+    '<button class="shutter-btn-analyze" id="btnAnalyze" onclick="analyze()" disabled>Analyseren</button>';
 }
 
 /* ── Analyze ── */
