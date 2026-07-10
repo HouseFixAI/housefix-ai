@@ -180,7 +180,7 @@
           .viewfinder-content { text-align: center; color: rgba(255,255,255,0.4); }
           .viewfinder-content .big-icon { font-size: 52px; margin-bottom: 12px; display: block; }
           .viewfinder-content p { font-size: 14px; }
-          .cam-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; z-index: 10; transition: opacity 0.2s; }
+          .cam-close { position: absolute; top: 24px; right: 24px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: #FFFFFF; cursor: pointer; z-index: 99999; transition: opacity 0.2s; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
           .cam-close:hover { opacity: 1; }
           .cam-close:active { opacity: 0.5; }
           .shutter-btn { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; transition: transform 0.15s ease; }
@@ -533,7 +533,6 @@
           <canvas id="canvas"></canvas>
           <img id="snapshot" />
 
-          <div class="cam-badge">Richt de camera op de schade</div>
 
           <div class="cam-overlay">
             <div class="viewfinder" id="viewfinder">
@@ -750,7 +749,7 @@ function showPreview(url) {
   document.getElementById("snapshot").src = url;
   document.getElementById("snapshot").style.display = "block";
   document.getElementById("viewfinder").style.display = "none";
-  document.querySelector(".cam-badge").textContent = "✅ Foto gemaakt!";
+  document.querySelector(".toast").textContent = "";
   document.getElementById("btnCapture") && (document.getElementById("btnCapture").style.display = "none");
   document.getElementById("btnRetake") && (document.getElementById("btnRetake").style.display = "none");
   document.getElementById("camActions").innerHTML =
@@ -763,7 +762,7 @@ function retake() {
   document.getElementById("video").style.display = "block";
   document.getElementById("snapshot").style.display = "none";
   document.getElementById("viewfinder").style.display = "flex";
-  document.querySelector(".cam-badge").textContent = "📸 Maak een nieuwe foto";
+  document.querySelector(".toast").textContent = "";
   document.getElementById("camActions").innerHTML =
     '<button class="shutter-btn" id="btnCapture" onclick="capture()" aria-label="Maak foto"><div class="shutter-ring"></div></button>';
 }
