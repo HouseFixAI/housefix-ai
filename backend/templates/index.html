@@ -665,6 +665,7 @@ function setMode(mode) {
 
 function closeCamera() {
   stopStream();
+  retake();
   document.getElementById("screenCamera").classList.add("hidden");
   document.getElementById("screenDashboard").classList.remove("hidden");
 }
@@ -1875,6 +1876,7 @@ function renderProviders(filter) {
 
 function goHome() {
   stopStream();
+  retake();
   document.getElementById("resultsWrap").classList.remove("active");
   document.getElementById("loadingWrap").classList.remove("active");
   document.getElementById("screenDashboard").classList.remove("hidden");
