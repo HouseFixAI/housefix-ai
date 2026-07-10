@@ -426,6 +426,8 @@
 
           .footer { text-align: center; padding: 20px 24px; color: var(--text-muted); font-size: 12px; }
           .dash-footer { display: block; text-align: center; padding: 8px 24px 12px; color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+          .toast { position: fixed; bottom: 0; left: 0; right: 0; padding: 14px 20px; background: #1F1E1C; color: #FFFFFF; font-size: 14px; font-weight: 500; text-align: center; transform: translateY(100%); opacity: 0; transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.35s ease; z-index: 999; pointer-events: none; }
+          .toast.active { transform: translateY(0); opacity: 1; }
 
           /* ── Transition animation ── */
           .fade-slide-up { animation: fadeSlideUp 0.5s ease-out forwards; }
@@ -640,6 +642,8 @@
 
     </div>
 
+
+          <div class="toast" id="toast"></div>
 <script>
 let imageBase64 = null;
 let providers = [];
@@ -658,6 +662,7 @@ function setMode(mode) {
       var c = document.getElementById("ctaText");
       c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
     }function openCamera() {
+  if (!currentMode) { showToast("Kies eerst een modus bovenin"); return; }
   document.getElementById("screenDashboard").classList.add("hidden");
   document.getElementById("screenCamera").classList.remove("hidden");
   startCamera();
@@ -1143,6 +1148,14 @@ function retake() {
       }
     }
 
+    function showToast(msg) {
+      var t = document.getElementById("toast");
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add("active");
+      if (window._toastTimer) clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function(){ t.classList.remove("active"); }, 2500);
+    }
     function buildCarousel(seg,prods){
       if(!prods||!prods.length)return;
       const c=document.getElementById("carousel-"+seg);
