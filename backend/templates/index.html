@@ -662,7 +662,7 @@ function setMode(mode) {
       var c = document.getElementById("ctaText");
       c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
     }function openCamera() {
-  if (!currentMode) { showToast("Kies eerst een modus bovenin"); return; }
+  if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
   document.getElementById("screenDashboard").classList.add("hidden");
   document.getElementById("screenCamera").classList.remove("hidden");
   startCamera();
