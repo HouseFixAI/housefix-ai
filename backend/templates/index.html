@@ -757,10 +757,9 @@ function retake() {
   document.getElementById("video").style.display = "block";
   document.getElementById("snapshot").style.display = "none";
   document.getElementById("viewfinder").style.display = "flex";
-  document.querySelector(".cam-badge").textContent = "📸 Richt de camera op de schade";
+  document.querySelector(".cam-badge").textContent = "📸 Maak een nieuwe foto";
   document.getElementById("camActions").innerHTML =
-    '<button class="shutter-btn" id="btnCapture" onclick="capture()" aria-label="Maak foto"><div class="shutter-ring"></div></button>' +
-    '<button class="shutter-btn-analyze" id="btnAnalyze" onclick="analyze()" disabled>Analyseren</button>';
+    '<button class="shutter-btn" id="btnCapture" onclick="capture()" aria-label="Maak foto"><div class="shutter-ring"></div></button>';
 }
 
 /* ── Analyze ── */
