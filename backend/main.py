@@ -1841,6 +1841,8 @@ def analyze_image():
         session = get_session(session_id)
 
         # Build context from session
+        request_intent = data.get("user_intent", "")
+        user_intent = request_intent
         context_parts = []
         if session:
             orient = session.get('orient', {})
