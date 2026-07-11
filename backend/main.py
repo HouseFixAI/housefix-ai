@@ -12,6 +12,20 @@ import datetime
 
 app = Flask(__name__)
 
+@app.errorhandler(404)
+@app.errorhandler(405)
+@app.errorhandler(500)
+def json_error_handler(e):
+    """Return JSON for all errors, never HTML."""
+    return jsonify({"status": "error", "message": str(e), "code": e.code if hasattr(e, 'code') else 500}), e.code if hasattr(e, 'code') else 500
+
+@ app.errorhandler(Exception)
+def json_unhandled_handler(e):
+    """Catch-all: any unhandled exception returns JSON."""
+    app.logger.error(f"Unhandled error: {e}")
+    return jsonify({"status": "error", "message": "Internal server error"}), 500
+
+
 # ---------------------------------------------------------------------------
 # Product Catalog (standalone SQLite database)
 # ---------------------------------------------------------------------------
@@ -1752,6 +1766,8 @@ def analyze_image():
             session_id = create_session(image_base64, fallback)
             return jsonify({"orient": fallback, "session_id": session_id, "is_fallback": True})
         elif mode == "inspiration" and step == "advise":
+            if not data.get("session_id"):
+                data["session_id"] = ""
             user_intent = data.get("user_intent", "")
             if user_intent == "identify":
                 result = random.choice(FALLBACK_IDENTIFY)

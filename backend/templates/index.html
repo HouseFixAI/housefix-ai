@@ -970,16 +970,22 @@ function retake() {
       document.getElementById("loadingWrap").classList.add("active");
       document.getElementById("resultsWrap").classList.remove("active");
       try {
-        const body = { image: imageBase64, mode: "inspiration", step: "advise", session_id: currentSessionId, user_intent: intent };
+        const body = { image: imageBase64, mode: "inspiration", step: "advise", session_id: currentSessionId || "", user_intent: intent };
         if (userAnswers) body.user_answers = userAnswers;
         const resp = await fetch("/api/analyze", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
         });
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error(errText.substring(0, 100));
+        }
         const result = await resp.json();
         if (result.error) throw new Error(result.error);
-        const pResp = await fetch("/api/providers");
-        providers = await pResp.json();
+        try {
+          const pResp = await fetch("/api/providers");
+          if (pResp.ok) providers = await pResp.json();
+        } catch (e) { /* providers non-blocking */ }
         document.getElementById("loadingWrap").classList.remove("active");
         document.getElementById("resultsWrap").classList.add("active");
         document.querySelector(".dash-footer").style.display = "none";
