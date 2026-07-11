@@ -822,9 +822,7 @@ function retake() {
 
         const pResp = await fetch("/api/providers");
         providers = await pResp.json();
-        showResults(result);
-
-      } catch (e) {
+        renderResults(currentMode, result);      } catch (e) {
         alert("⚠️ " + e.message);
         goHome();
       }
@@ -968,7 +966,7 @@ function retake() {
         document.getElementById("loadingWrap").classList.remove("active");
         document.getElementById("resultsWrap").classList.add("active");
         document.querySelector(".dash-footer").style.display = "none";
-        showInspirationAdvice(result);
+        renderResults(intent, result);
         addTryAnotherButton();
       } catch (e) { alert("⚠️ " + e.message); goHome(); }
     }
@@ -1692,7 +1690,19 @@ async function submitClarification() {
 }
 
 /* ── Results ── */
-function showResults(r) {
+function renderResults(intent, data) {
+      // Intent-driven result dispatcher
+      switch (intent) {
+        case "purchase":
+        case "identify":
+        case "style":
+          showInspirationAdvice(data);
+          break;
+        default:
+          showResults(data);
+      }
+    }
+    function showResults(r) {
   // Store current result for save button
   currentResult = r;
   const snapshotEl = document.getElementById("snapshot");
