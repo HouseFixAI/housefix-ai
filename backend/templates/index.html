@@ -1745,27 +1745,30 @@ function renderResults(intent, data) {
     }
 
     function renderColorPalette(r) {
-      // ── Color palette renderer for "Scan voor Kleurenpalet" intent ──
-      var container = document.getElementById("resultContent");
-      var bannerHtml = "";
-      if (r.is_fallback) {
-        bannerHtml = '<div class="fallback-banner"><span class="fallback-banner-icon">ℹ️</span> Dit advies is algemeen — voor een persoonlijk kleuradvies hebben we een AI-verbinding nodig.</div>';
+      // ---- Color palette renderer - "Scan voor Kleurenpalet" ----
+      // Kleur-eerst, rustige flow, geen losse kaarten
+
+      // Set the photo thumbnail
+      var snap = document.getElementById("snapshot");
+      if (snap && snap.src) {
+        document.getElementById("resultThumb").src = snap.src;
       }
+
+      var container = document.getElementById("resultContent");
+      var html = "";
+
+      // Fallback banner
+      if (r.is_fallback) {
+        html += '<div class="fallback-banner" style="margin-bottom:16px"><span class="fallback-banner-icon">&#x2139;&#xFE0F;</span> Dit advies is algemeen &mdash; voor een persoonlijk kleuradvies hebben we een AI-verbinding nodig.</div>';
+      }
+
+      // Title: "Jouw kleurenpalet"
+      html += '<div class="res-type" style="font-size:22px;margin-bottom:20px;text-align:center">Jouw kleurenpalet</div>';
+
+      // ---- Large color blocks (48px each, full-width) ----
       var colors = r.colors || [];
-      var styleName = r.style || "Kleurenpalet";
-      var desc = r.description || "";
-      var vibe = r.vibe || "";
-      var html = bannerHtml;
-      // Header
-      html += '<div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:24px">';
-      html += '<div class="res-type" style="font-size:22px;margin-bottom:4px">' + styleName + '</div>';
-      if (vibe) html += '<div style="margin-bottom:12px"><span class="badge" style="background:var(--sage-soft);color:var(--sage)">' + vibe + '</span></div>';
-      if (desc) html += '<div class="res-desc" style="font-size:14px;margin-bottom:8px;line-height:1.5">' + desc + '</div>';
-      // Color swatches
+      var colorHex = {"wit":"#ffffff","cr\u00e8me":"#f5f0e1","beige":"#e8dcc8","lichtgrijs":"#d5d5d5","grijs":"#9e9e9e","antraciet":"#404040","zwart":"#222222","bruin":"#8d6e63","koffie":"#6d4c41","taupe":"#b8a99a","groen":"#66bb6a","olijfgroen":"#8d9b6a","mint":"#a5d6a7","saliegroen":"#b5c9a3","blauw":"#64b5f6","lichtblauw":"#90caf9","donkerblauw":"#3949ab","navy":"#1a237e","rood":"#e57373","bordeaux":"#8e2430","roze":"#f48fb1","lichtroze":"#f8bbd0","geel":"#ffd54f","mosterd":"#f4c842","oranje":"#ffb74d","koper":"#d4935a","paars":"#ab47bc","lila":"#ce93d8","goud":"#d4a847","zilver":"#bdbdbd","hout":"#a58a6f","naturel":"#d4c4a8"};
       if (colors.length) {
-        html += '<div class="advice-subhead" style="font-size:13px;margin:16px 0 8px;color:var(--text-muted)">Kleurenpalet</div>';
-        html += '<div class="advice-colors">';
-        var colorHex = {"wit":"#ffffff","crème":"#f5f0e1","beige":"#e8dcc8","lichtgrijs":"#d5d5d5","grijs":"#9e9e9e","antraciet":"#404040","zwart":"#222222","bruin":"#8d6e63","koffie":"#6d4c41","taupe":"#b8a99a","groen":"#66bb6a","olijfgroen":"#8d9b6a","mint":"#a5d6a7","saliegroen":"#b5c9a3","blauw":"#64b5f6","lichtblauw":"#90caf9","donkerblauw":"#3949ab","navy":"#1a237e","rood":"#e57373","bordeaux":"#8e2430","roze":"#f48fb1","lichtroze":"#f8bbd0","geel":"#ffd54f","mosterd":"#f4c842","oranje":"#ffb74d","koper":"#d4935a","paars":"#ab47bc","lila":"#ce93d8","goud":"#d4a847","zilver":"#bdbdbd","hout":"#a58a6f","naturel":"#d4c4a8"};
         for (var ci = 0; ci < colors.length; ci++) {
           var c = colors[ci];
           var low = c.toLowerCase();
@@ -1773,34 +1776,46 @@ function renderResults(intent, data) {
           for (var key in colorHex) {
             if (low.indexOf(key) >= 0) { hex = colorHex[key]; break; }
           }
-          var borderStyle = (hex === "#ffffff" || hex === "#f5f0e1" || hex === "#e8dcc8") ? ' border:1px solid rgba(0,0,0,0.08);' : '';
-          html += '<span class="color-swatch"><span class="color-dot" style="background:' + hex + ';' + borderStyle + 'width:28px;height:28px;border-radius:8px;display:inline-block;vertical-align:middle;margin-right:6px;box-shadow:0 1px 3px rgba(0,0,0,0.1)"></span>' + c + '</span>';
+          // Text color: white on dark backgrounds, dark on light
+          var textColor = (hex === "#ffffff" || hex === "#f5f0e1" || hex === "#e8dcc8" || hex === "#d5d5d5" || hex === "#d4c4a8" || hex === "#b8a99a") ? "#2c2c2c" : "#ffffff";
+          var borderStyle = (hex === "#ffffff") ? ' border:1px solid rgba(0,0,0,0.08);' : '';
+          html += '<div style="height:48px;width:100%;background:' + hex + ';' + borderStyle + 'border-radius:10px;margin-bottom:6px;display:flex;align-items:center;padding:0 16px;box-sizing:border-box;font-size:13px;font-weight:600;color:' + textColor + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</div>';
+        }
+      }
+
+      // ---- Affirmation ----
+      html += '<div style="text-align:center;font-size:14px;color:var(--text-secondary);margin:16px 0 20px;line-height:1.5">Deze kleuren passen perfect bij jouw ruimte.</div>';
+
+      // ---- Styling tip (compact, voor de verfadviezen) ----
+      if (r.styling_tip) {
+        html += '<div style="padding:14px 18px;border-radius:12px;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);font-size:14px;color:var(--text-primary);line-height:1.5;margin-bottom:20px">&#x1F4A1; ' + r.styling_tip + '</div>';
+      }
+
+      // ---- Paint tips (compact, per kleur) ----
+      if (r.paint_tips && r.paint_tips.length) {
+        html += '<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Bijpassende verfkleuren</div>';
+        for (var pi = 0; pi < r.paint_tips.length; pi++) {
+          var pt = r.paint_tips[pi];
+          // Match a color icon from the paint tip text
+          var tipHex = "#cccccc";
+          if (pt.product) {
+            var pLow = pt.product.toLowerCase();
+            for (var key in colorHex) {
+              if (pLow.indexOf(key) >= 0) { tipHex = colorHex[key]; break; }
+            }
+          }
+          var tipBorder = (tipHex === "#ffffff" || tipHex === "#f5f0e1") ? ' border:1px solid rgba(0,0,0,0.08);' : '';
+          html += '<div style="display:flex;align-items:center;padding:10px 14px;border-radius:10px;border:1px solid var(--border-light);margin-bottom:6px;background:var(--bg-card)">';
+          html += '<span style="width:16px;height:16px;border-radius:4px;background:' + tipHex + ';' + tipBorder + 'flex-shrink:0;margin-right:12px"></span>';
+          html += '<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;color:var(--sage)">' + (pt.store || "") + '</div>';
+          html += '<div style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (pt.product || "") + '</div></div>';
+          if (pt.price) html += '<div style="font-size:13px;font-weight:700;color:var(--terracotta);flex-shrink:0;margin-left:8px">' + pt.price + '</div>';
+          html += '</div>';
         }
         html += '</div>';
       }
-      html += '</div></div>';
 
-      // Affiliate: paint brand suggestions
-      if (r.paint_tips && r.paint_tips.length) {
-        html += '<div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:24px">';
-        html += '<div style="font-family:Playfair Display,serif;font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:12px">Verf & verfkleuren</div>';
-        for (var pi = 0; pi < r.paint_tips.length; pi++) {
-          var pt = r.paint_tips[pi];
-          html += '<div class="advice-store-card" style="margin-bottom:8px">';
-          html += '<div class="advice-store-name">' + (pt.store || "") + '</div>';
-          html += '<div class="advice-store-product">' + (pt.product || "") + (pt.price ? ' <span class="advice-store-price">' + pt.price + '</span>' : '') + '</div>';
-          if (pt.why) html += '<div class="advice-store-reason">' + pt.why + '</div>';
-          html += '</div>';
-        }
-        html += '</div></div>';
-      }
-
-      // Styling tip
-      if (r.styling_tip) {
-        html += '<div class="card" style="margin-bottom:16px"><div class="card-body" style="padding:24px"><div class="advice-tip">' + r.styling_tip + '</div></div></div>';
-      }
-
-      container.innerHTML = bannerHtml + html;
+      container.innerHTML = html;
       var saveBtn = document.getElementById("saveBtn");
       saveBtn.textContent = r.styling_tip ? "Sla dit advies op" : "Sla analyse op";
       saveBtn.classList.remove("saved");
