@@ -486,7 +486,7 @@
                 </button>
               </div>
 
-              <button class="menu-btn" id="menuBtn" onclick="handleMenuClick()"><span class="mb-icon" id="menuIcon">☰</span></button>
+              <button class="menu-btn" onclick="var e=document.getElementById('historyToggle');if(e)e.click()"><span class="mb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.9"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span></button><button class="menu-btn" id="menuBtn" onclick="handleMenuClick()"><span class="mb-icon" id="menuIcon">☰</span></button>
             </div>
 
             <!-- GROUP 2: Carousel -->
@@ -512,19 +512,7 @@
                 </button>
               </div>
 
-              <div class="history-section" id="historySection">
-                <div class="history-header" onclick="toggleHistory()">
-                  <span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Opgeslagen scans
-                  </span>
-                  <span class="history-arrow" id="historyArrow">▼</span>
-                </div>
-                <div class="history-body" id="historyBody">
-                  <div class="history-empty" id="historyEmpty">Nog geen scans opgeslagen</div>
-                  <div id="historyList"></div>
-                </div>
-              </div>
+
 
               <div class="dash-footer">
                 </div>
@@ -2015,19 +2003,20 @@ function renderProviders(filter) {
 
 
 /* —— Last Result Badge (dismissable) —— */
+/* —— Last Result Floating Pill —— */
 function showLastResultBadge() {
-  const existing = document.getElementById("lastResultBadge");
+  const existing = document.getElementById("lastResultPill");
   if (existing) existing.remove();
   if (!lastResult) return;
   const container = document.getElementById("screenDashboard");
   if (!container) return;
-  const badge = document.createElement("div");
-  badge.id = "lastResultBadge";
-  badge.style.cssText = "margin:0 18px 12px;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);display:flex;align-items:center;gap:8px;cursor:pointer;transition:all 0.25s ease;opacity:0;transform:translateY(-8px)";
-  badge.onmouseover = function() { this.style.borderColor = "rgba(255,255,255,0.2)"; this.style.background = "rgba(255,255,255,0.06)"; };
-  badge.onmouseout = function() { this.style.borderColor = "rgba(255,255,255,0.08)"; this.style.background = "rgba(255,255,255,0.03)"; };
-  badge.innerHTML = "<div style=\"flex:1;display:flex;align-items:center;gap:10px;min-width:0\" onclick=\"document.getElementById(\'lastResultBadge\').click();\"><span style=\"font-size:12px;flex-shrink:0;color:rgba(255,255,255,0.4)\">\u25B6</span><span style=\"font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);letter-spacing:0.5px\">BEKIJK LAATSTE KLEURENPALET</span></div><span style=\"font-size:14px;color:rgba(255,255,255,0.2);cursor:pointer;padding:4px;flex-shrink:0;transition:color 0.15s\" onclick=\"event.stopPropagation();dismissLastResult()\" onmouseover=\"this.style.color=\'rgba(255,255,255,0.5)\';\" onmouseout=\"this.style.color=\'rgba(255,255,255,0.2)\';\">\u2715</span>";
-  badge.onclick = function() {
+  const pill = document.createElement("div");
+  pill.id = "lastResultPill";
+  pill.style.cssText = "position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:#1F1E1C;color:#FFFFFF;padding:10px 20px 10px 24px;border-radius:100px;border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:12px;z-index:999;cursor:pointer;font-size:13px;font-weight:700;letter-spacing:0.8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.3s ease,transform 0.3s ease";
+  pill.onmouseover = function() { this.style.borderColor = "rgba(255,255,255,0.25)"; };
+  pill.onmouseout = function() { this.style.borderColor = "rgba(255,255,255,0.1)"; };
+  pill.innerHTML = "<span style=\"flex:1;white-space:nowrap\">LAATSTE SCAN</span><span style=\"font-size:12px;opacity:0.6;margin-left:2px\">\u25B6</span><span style=\"font-size:14px;color:rgba(255,255,255,0.2);cursor:pointer;padding:2px 0 2px 8px;flex-shrink:0;transition:color 0.15s\" onclick=\"event.stopPropagation();dismissLastResult()\" onmouseover=\"this.style.color=\'rgba(255,255,255,0.5)\';\" onmouseout=\"this.style.color=\'rgba(255,255,255,0.2)\';\">\u2715</span>";
+  pill.onclick = function() {
     if (lastResult) {
       document.getElementById("screenDashboard").classList.add("hidden");
       document.getElementById("resultsWrap").classList.add("active");
@@ -2035,23 +2024,18 @@ function showLastResultBadge() {
       renderResults(lastResultIntent || "damage", lastResult);
     }
   };
-  const modeEl = document.getElementById("modeDamage");
-  if (modeEl && modeEl.parentNode) {
-    modeEl.parentNode.parentNode.insertBefore(badge, modeEl.parentNode.nextSibling);
-  } else {
-    container.insertBefore(badge, container.firstChild);
-  }
+  document.body.appendChild(pill);
   requestAnimationFrame(function() {
-    badge.style.opacity = "1";
-    badge.style.transform = "translateY(0)";
+    pill.style.opacity = "1";
+    pill.style.transform = "translateX(-50%) translateY(0)";
   });
 }
 function dismissLastResult() {
-  const badge = document.getElementById("lastResultBadge");
-  if (badge) {
-    badge.style.opacity = "0";
-    badge.style.transform = "translateY(-8px)";
-    setTimeout(function() { badge.remove(); }, 300);
+  const pill = document.getElementById("lastResultPill");
+  if (pill) {
+    pill.style.opacity = "0";
+    pill.style.transform = "translateX(-50%) translateY(20px)";
+    setTimeout(function() { pill.remove(); }, 300);
   }
   lastResult = null;
   lastResultIntent = null;
