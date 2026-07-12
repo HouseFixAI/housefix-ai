@@ -211,8 +211,8 @@
           .results-wrap { display: none; flex-direction: column; background: var(--bg-primary); position: relative; z-index: 1; height: 100dvh; overflow: hidden; }
           .results-wrap.active { display: flex; }
           .results-header { display: flex; align-items: center; height: 48px; padding: 0 16px; flex-shrink: 0; background: #1F1E1C; border-bottom: 0.5px solid rgba(255,255,255,0.06); gap: 4px; }
-          .header-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 18px; cursor: pointer; border-radius: 8px; transition: all 0.15s; flex-shrink: 0; }
-          .header-btn:hover { color: rgba(255,255,255,0.7); }
+          .header-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.9); font-size: 18px; cursor: pointer; border-radius: 8px; transition: all 0.15s; flex-shrink: 0; }
+          .header-btn:hover { color: #FFFFFF; }
           .header-btn:active { transform: scale(0.92); }
           .header-title { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; }
           .results-body { flex: 1; overflow-y: auto; padding: 16px 20px 20px; -webkit-overflow-scrolling: touch; }
@@ -577,7 +577,7 @@
         <div class="results-header">
           <button class="header-btn" id="backBtn" onclick="goHome()" aria-label="Terug">←</button>
           <div class="header-title" id="headerTitle"></div>
-          <button class="header-btn" id="shareBtn" onclick="shareResults()" aria-label="Deel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+          <button class="header-btn" id="shareBtn" onclick="shareResults()" aria-label="Deel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.9"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
           <button class="header-btn" id="menuBtn" onclick="toggleMenu()" aria-label="Menu">☰</button>
         </div>
 
@@ -669,8 +669,8 @@ let currentMode = null;
 let currentIntent = null;
 let currentResult = null;
 let currentResultImage = null;
-let lastResult = null;
-let lastResultIntent = null;
+let lastResult = JSON.parse(sessionStorage.getItem("hf_lastResult") || "null");
+let lastResultIntent = sessionStorage.getItem("hf_lastResultIntent") || null;
 
 /* ── Mode Selector ── */
 function setMode(mode) {
@@ -684,6 +684,7 @@ function setMode(mode) {
     }
     function openCameraForIntent(intent) {
       lastResult = null; lastResultIntent = null;
+      sessionStorage.removeItem("hf_lastResult"); sessionStorage.removeItem("hf_lastResultIntent");
       currentIntent = intent;
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
       document.getElementById("screenDashboard").classList.add("hidden");
@@ -692,6 +693,7 @@ function setMode(mode) {
     }
     function openCamera() {
       lastResult = null; lastResultIntent = null;
+      sessionStorage.removeItem("hf_lastResult"); sessionStorage.removeItem("hf_lastResultIntent");
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
       document.getElementById("screenDashboard").classList.add("hidden");
       document.getElementById("screenCamera").classList.remove("hidden");
@@ -1006,6 +1008,8 @@ function retake() {
         if (result.error) throw new Error(result.error);
         lastResult = result;
         lastResultIntent = intent;
+        sessionStorage.setItem("hf_lastResult", JSON.stringify(result));
+        sessionStorage.setItem("hf_lastResultIntent", intent);
         try {
           const pResp = await fetch("/api/providers");
           if (pResp.ok) providers = await pResp.json();
@@ -2051,6 +2055,8 @@ function dismissLastResult() {
   }
   lastResult = null;
   lastResultIntent = null;
+  sessionStorage.removeItem("hf_lastResult");
+  sessionStorage.removeItem("hf_lastResultIntent");
 }
 /* —— Share Results —— */
 async function shareResults() {
