@@ -149,11 +149,6 @@
           .dash-footer { display: block; text-align: center; padding: 4px 24px 8px; color: var(--text-muted); font-size: 11px; }
 
           /* ── Save Button ── */
-          .save-section { padding: 6px 0; }
-          .save-btn { display: block; width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--sage-soft); background: var(--sage-soft); color: var(--sage); font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
-          .save-btn:hover { background: rgba(138,155,122,0.18); border-color: rgba(138,155,122,0.3); }
-          .save-btn:active { transform: scale(0.98); }
-          .save-btn.saved { background: var(--sage-soft); border-color: var(--sage); color: var(--sage); cursor: default; }
 
           /* ── Trust bar bottom ── */
           .dash-bottom { text-align: center; padding-top: 8px; }
@@ -213,8 +208,23 @@
           .loading-wrap .sub { color: var(--text-secondary); font-size: 14px; margin-top: 6px; }
 
           /* ── Results ── */
-          .results-wrap { display: none; padding: 20px; gap: 16px; flex-direction: column; background: var(--bg-primary); position: relative; z-index: 1; min-height: 100vh; }
+          .results-wrap { display: none; flex-direction: column; background: var(--bg-primary); position: relative; z-index: 1; height: 100dvh; overflow: hidden; }
           .results-wrap.active { display: flex; }
+          .results-header { display: flex; align-items: center; height: 48px; padding: 0 16px; flex-shrink: 0; background: #1F1E1C; border-bottom: 0.5px solid rgba(255,255,255,0.06); gap: 4px; }
+          .header-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; border-radius: 8px; transition: all 0.15s; flex-shrink: 0; }
+          .header-btn:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); }
+          .header-btn:active { transform: scale(0.92); }
+          .header-title { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; }
+          .results-body { flex: 1; overflow-y: auto; padding: 16px 20px 20px; -webkit-overflow-scrolling: touch; }
+          .results-footer { flex-shrink: 0; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: linear-gradient(to top, rgba(31,30,28,0.98) 60%, transparent); display: flex; flex-direction: column; gap: 8px; }
+          .footer-btn-primary { display: block; width: 100%; padding: 15px; border: none; border-radius: 14px; background: #1F1E1C; color: #FFFFFF; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; }
+          .footer-btn-primary:hover { background: #2C2A28; }
+          .footer-btn-primary:active { transform: scale(0.98); }
+          .footer-btn-primary.saved { opacity: 0.6; }
+          .footer-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+          .footer-btn-secondary { padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+          .footer-btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: #FFFFFF; background: rgba(255,255,255,0.05); }
+          .footer-btn-secondary:active { transform: scale(0.97); }
           .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm); }
           .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
           .card-header .emoji { font-size: 16px; }
@@ -273,8 +283,6 @@
           .accordion-body.open { max-height: 2000px; opacity: 1; margin-top: 12px; }
           .accordion-inner { padding: 0; }
 
-          .btn-reset-app { display: block; width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1.5px dashed var(--border-light); background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: all 0.3s; }
-              .btn-reset-app:hover { border-color: var(--terracotta); color: var(--terracotta); }
 
               .goal-btn { display: block; width: 100%; padding: 14px 18px; border-radius: var(--radius-sm); border: 1.5px solid var(--border-light); background: var(--bg-card); cursor: pointer; text-align: left; transition: all 0.2s; }
                   .goal-btn:hover { border-color: var(--terracotta); background: var(--terracotta-soft); }
@@ -566,77 +574,87 @@
 
       <!-- ═══ RESULTS ═══ -->
       <div class="results-wrap" id="resultsWrap">
-
-        <div id="resultContent"></div>
-
-        <div class="card" id="issueCard" style="display:none">
-          <div class="card-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            Analyse
-          </div>
-          <div class="card-body">
-            <img class="res-thumb" id="resultThumb" />
-            <div class="res-type" id="resultType"></div>
-            <div class="res-desc" id="resultDesc"></div>
-            <div style="margin-top:10px"><span id="resultBadge"></span></div>
-          </div>
+        <div class="results-header">
+          <button class="header-btn" id="backBtn" onclick="goHome()" aria-label="Terug">←</button>
+          <div class="header-title" id="headerTitle"></div>
+          <button class="header-btn" id="shareBtn" onclick="shareResults()" aria-label="Deel">⤴️</button>
+          <button class="header-btn" id="menuBtn" onclick="toggleMenu()" aria-label="Menu">☰</button>
         </div>
 
-        <div class="card" id="costCard" style="display:none">
-          <div class="card-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Kostenvergelijking
+        <div class="results-body" id="resultsBody">
+          <div id="resultContent"></div>
+
+          <div class="card" id="issueCard" style="display:none">
+            <div class="card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Analyse
+            </div>
+            <div class="card-body">
+              <img class="res-thumb" id="resultThumb" />
+              <div class="res-type" id="resultType"></div>
+              <div class="res-desc" id="resultDesc"></div>
+              <div style="margin-top:10px"><span id="resultBadge"></span></div>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="cost-compare">
-              <div class="cost-box diy">
-                <div class="cost-label">Zelf doen</div>
-                <div class="cost-num" id="costDiy"></div>
-                <div class="cost-sub">alleen materiaal</div>
+
+          <div class="card" id="costCard" style="display:none">
+            <div class="card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Kostenvergelijking
+            </div>
+            <div class="card-body">
+              <div class="cost-compare">
+                <div class="cost-box diy">
+                  <div class="cost-label">Zelf doen</div>
+                  <div class="cost-num" id="costDiy"></div>
+                  <div class="cost-sub">alleen materiaal</div>
+                </div>
+                <div class="cost-box pro">
+                  <div class="cost-label">Laten doen</div>
+                  <div class="cost-num" id="costPro"></div>
+                  <div class="cost-sub">incl. voorrijkosten</div>
+                </div>
               </div>
-              <div class="cost-box pro">
-                <div class="cost-label">Laten doen</div>
-                <div class="cost-num" id="costPro"></div>
-                <div class="cost-sub">incl. voorrijkosten</div>
+            </div>
+          </div>
+
+          <div class="card" id="stepsCard" style="display:none">
+            <div class="card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Stappenplan
+            </div>
+            <div class="card-body" id="stepsBody"></div>
+          </div>
+
+          <div class="card" id="materialsCard" style="display:none">
+            <div class="card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              Materialen
+            </div>
+            <div class="card-body" id="materialsBody"></div>
+            <div style="padding:0 18px 18px"><a class="gamma-link" id="gammaLink" href="#" target="_blank">Bestel bij Gamma</a></div>
+          </div>
+
+          <div class="card" id="providersCard" style="display:none">
+            <button class="accordion-btn" id="accordionToggle" onclick="toggleProviders()">
+              Professionele vakman nodig? Bekijk lokale experts <span class="arrow" id="accordionArrow">▼</span>
+            </button>
+            <div class="accordion-body" id="accordionBody">
+              <div class="accordion-inner">
+                <div class="filter-bar" id="provFilters" style="padding:0 0 12px 0"></div>
+                <div class="prov-grid" id="provGrid"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="card" id="stepsCard" style="display:none">
-          <div class="card-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            Stappenplan
-          </div>
-          <div class="card-body" id="stepsBody"></div>
-        </div>
-
-        <div class="card" id="materialsCard" style="display:none">
-          <div class="card-header">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-            Materialen
-          </div>
-          <div class="card-body" id="materialsBody"></div>
-          <div style="padding:0 18px 18px"><a class="gamma-link" id="gammaLink" href="#" target="_blank">Bestel bij Gamma</a></div>
-        </div>
-
-        <div class="card" id="providersCard" style="display:none">
-          <button class="accordion-btn" id="accordionToggle" onclick="toggleProviders()">
-            Professionele vakman nodig? Bekijk lokale experts <span class="arrow" id="accordionArrow">▼</span>
-          </button>
-          <div class="accordion-body" id="accordionBody">
-            <div class="accordion-inner">
-              <div class="filter-bar" id="provFilters" style="padding:0 0 12px 0"></div>
-              <div class="prov-grid" id="provGrid"></div>
-            </div>
+        <div class="results-footer">
+          <button class="footer-btn-primary" id="saveBtn" onclick="saveAnalysis()">Sla dit advies op</button>
+          <div class="footer-btn-grid">
+            <button class="footer-btn-secondary" onclick="goHome()">📸 Nieuwe scan</button>
+            <button class="footer-btn-secondary" onclick="goHome()">🏠 Home</button>
           </div>
         </div>
-
-        <div class="save-section">
-          <button class="save-btn" id="saveBtn" onclick="saveAnalysis()">Sla analyse op</button>
-        </div>
-
-        <button class="btn-reset-app" onclick="goHome()">Terug naar start</button>
       </div>
 
     </div>
@@ -990,7 +1008,6 @@ function retake() {
         document.getElementById("resultsWrap").classList.add("active");
         document.querySelector(".dash-footer").style.display = "none";
         renderResults(intent, result);
-        addTryAnotherButton();
       } catch (e) { alert("⚠️ " + e.message); goHome(); }
     }
 
@@ -1023,7 +1040,6 @@ function retake() {
 
         // Show the advice result with a "try another" button
         showInspirationAdvice(result);
-        addTryAnotherButton();
 
       } catch (e) {
         alert("⚠️ " + e.message);
@@ -1601,35 +1617,7 @@ function retake() {
       }
     }
 
-    /* ── Add "Try Another Goal" Button ── */
-    function addTryAnotherButton() {
-      const container = document.getElementById("resultsWrap");
-      const existing = document.getElementById("tryAnotherBtn");
-      if (existing) existing.remove();
 
-      const btn = document.createElement("button");
-      btn.id = "tryAnotherBtn";
-      btn.className = "btn-reset-app";
-      // Dynamische tekst: met orientatie-data → ander doel, zonder → nieuwe scan
-      btn.textContent = currentOrientResult ? "Probeer een ander doel" : "Maak een nieuwe scan";
-      btn.style.marginTop = "4px";
-      btn.addEventListener("click", function() {
-        document.getElementById("resultContent").innerHTML = "";
-        if (currentOrientResult) {
-          // Normale flow: ga terug naar orientatie
-          showOrientation(currentOrientResult, currentSessionId, currentOrientIsFallback);
-        } else {
-          // Stateless flow: ga terug naar dashboard
-          goHome();
-        }
-        // Hide damage-mode cards if visible
-        ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.style.display = "none";
-        });
-      });
-      container.appendChild(btn);
-    }
 
 /* ── Clarification Questions ── */
 let clarificationAnswers = [];
@@ -2014,6 +2002,24 @@ function renderProviders(filter) {
   }).join("");
 }
 
+
+/* —— Share Results —— */
+async function shareResults() {
+  const text = document.getElementById("resultContent")?.innerText || "Mijn kleurenpalet op HouseFix";
+  const url = window.location.href;
+  if (navigator.share) {
+    try { await navigator.share({ title: "HouseFix - Mijn kleurenpalet", text: text, url: url }); } catch(e) {}
+  } else {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("✅ Link gekopieerd!");
+    } catch(e) {}
+  }
+}
+function toggleMenu() {
+  showToast("☰ Menu komt binnenkort");
+}
+
 function goHome() {
   currentIntent = null;
   stopStream();
@@ -2023,8 +2029,7 @@ function goHome() {
   document.getElementById("screenDashboard").classList.remove("hidden");
   document.querySelector(".dash-footer").style.display = "block";
   document.getElementById("resultContent").innerHTML = "";
-  const tb = document.getElementById("tryAnotherBtn");
-  if (tb) tb.remove();
+  // tryAnotherBtn verwijderd (vervangen door footer)
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
     document.getElementById(id).style.display = "none"
   );
@@ -2139,7 +2144,6 @@ function loadHistoryItem(idx) {
     if (item.optionIndex && item.optionIndex > 0) {
       setTimeout(() => switchOption(item.optionIndex), 10);
     }
-    addTryAnotherButton();
   } else {
     showResults(item.result);
   }
