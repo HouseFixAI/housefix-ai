@@ -552,6 +552,59 @@ IDENTIFY_PROMPT = (
     "confidence (high/medium/low — wees eerlijk. Als je twijfelt over de herkomst of het ontwerp, zeg dat dan. 'medium' met uitleg is beter dan 'high' zonder onderbouwing)."
 )
 
+# —— COLOR PALETTE PROMPT ——
+COLOR_PALETTE_PROMPT = (
+    "Je bent een ervaren interieurstylist met oog voor kleur en materiaal. "
+    "Een gebruiker heeft een foto gestuurd en wil weten welk KLEURENPALET "
+    "en welke VERF-/MATERIAALADVIEZEN bij deze ruimte of dit object passen.\n\n"
+    "Jouw taak: analyseer de dominante kleuren in de foto en geef een compleet "
+    "kleuradvies met verfkleuren en materialen.\n\n"
+    "STAP 1 \u2014 BEPAAL HET KLEURENPALET: Welke 4-8 kleuren domineren de foto? "
+    "Noem ze in het Nederlands \u2014 dit zijn de kleuren die een verfproducent "
+    "zou beschrijven. Wees specifiek: 'saliegroen' in plaats van 'groen', "
+    "'mosterdgeel' in plaats van 'geel'.\n\n"
+    "STAP 2 \u2014 BEPAAL DE STIJL EN SFEER: Welke interieurstijl past bij dit palet? "
+    "(Japandi, Scandinavian, Rustiek, Industrieel, Boho, Modern, etc.) "
+    "Wat is de sfeer? (rustiek warm, minimalistisch koel, speels eclectisch)\n\n"
+    "STAP 3 \u2014 VERF- EN MATERIAALADVIES: Geef 2-4 concrete suggesties voor "
+    "verfkleuren, behang, of materiaal die bij dit palet passen. "
+    "Vermeld steeds: winkel/merk, productnaam, richtprijs, en WAAROM het past.\n\n"
+    "STAP 4 \u2014 STYLINGTIP: Geef 1 concrete stylingtip die de kleuren in de ruimte "
+    "laat spreken \u2014 geen shopadvies, maar een tip over presentatie.\n\n"
+    "ABSOLUTELY FORBIDDEN:\n"
+    "\u2022 Geef GEEN design-historie, ontwerpernamen, jaartallen, museum-context.\n"
+    "\u2022 Zoek NIET naar schade, reparaties of gebreken.\n"
+    "\u2022 Geef GEEN productkoppelingen voor meubels (dat is purchase-intent).\n"
+    "\u2022 Geef GEEN stappenplannen of DIY-instructies.\n"
+    "\u2022 Als je een persoon, gezicht of dier ziet: stop en retourneer "
+    "{\"error\": \"\u26a0\ufe0f HouseFix AI kan geen gezichten of dieren analyseren.\"}\n"
+    "\u2022 Als de foto volledig ongerelateerd is (auto, eten, landschap): stop en retourneer "
+    "{\"error\": \"\U0001f50d Dit is niet herkend als interieur- of designfoto.\"}\n\n"
+    "ALLOWED verf- en materiaalmerken:\n"
+    "Wanden/plafond: Histor, Sigma, Flexa, Sikkens, Farrow & Ball, Annie Sloan, "
+    "Crown, Boss Paint, Levis, V33, ALABASTINE\n"
+    "Hout/meubelverf: V33, Boell, Annie Sloan, Dicco, Seprim\n"
+    "Behang: Eijffinger, Rasch, BN International, NLXL\n"
+    "Vloeren: Quick-Step, Parketdiscounter, HORNBACH\n\n"
+    "Return valid JSON with these keys:\n"
+    "intent (altijd 'identify'),\n"
+    "colors (lijst van 4-8 Nederlandse kleurnamen uit de foto, bv "
+    "[\"saliegroen\", \"cr\u00e8me\", \"eiken\", \"koper\", \"antraciet\", \"taupe\"]),\n"
+    "style (stijlbenaming in het Nederlands, bv 'Japandi / Scandinavian modern'),\n"
+    "vibe (sfeer in 1-2 woorden, bv 'rustiek warm' of 'minimalistisch koel'),\n"
+    "description (1 natuurlijke alinea die het kleurenpalet en de sfeer beschrijft, "
+    "alsof je het aan een vriend uitlegt die binnenloopt. Welke kleuren vallen op? "
+    "Welk gevoel geeft de combinatie?),\n"
+    "paint_tips (lijst van 2-4 objecten met: store (winkel/merk), product "
+    "(productnaam), price (richtprijs met \u20ac-teken, bv '\u20ac45,00 per liter'), "
+    "why (waarom dit product past bij dit palet/in deze ruimte \u2014 1 zin)),\n"
+    "styling_tip (1 korte, concrete stylingtip die kleuren laat spreken, "
+    "bv 'Verwissel je witte kussens voor mosterdgele exemplaren \u2014 dat "
+    "trekt het saliegroen van de muren naar voren'),\n"
+    "confidence (high/medium/low \u2014 wees eerlijk. 'medium' met uitleg is beter "
+    "dan 'high' zonder onderbouwing)."
+)
+
 # ── PURCHASE PROMPT ──
 PURCHASE_PROMPT = (
     "You are een high-end interieur- en designadviseur met oog voor kwaliteit. Een "
@@ -1896,10 +1949,10 @@ def analyze_image():
 
             # Select prompt based on user intent
             if user_intent == "identify":
-                base_prompt = IDENTIFY_PROMPT
+                base_prompt = COLOR_PALETTE_PROMPT
                 system_message = (
-                    "Je bent een designexpert die objecten identificeert. "
-                    "Gebruik de context en het doel om je analyse te personaliseren."
+                    "Je bent een interieurstylist die kleurenpaletten analyseert. "
+                    "Gebruik de foto om een compleet kleuradvies te geven."
                 )
             elif user_intent == "purchase":
                 base_prompt = PURCHASE_PROMPT
@@ -1941,7 +1994,7 @@ def analyze_image():
                 parsed = json.loads(json_match.group())
                 if isinstance(parsed, dict) and "error" in parsed:
                     return jsonify({"warning": parsed["error"]})
-                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed or "identification" in parsed or "intent" in parsed):
+                if isinstance(parsed, dict) and ("style" in parsed or "issue_type" in parsed or "identification" in parsed or "intent" in parsed or "colors" in parsed):
                     set_cached_response(ack, parsed)
                     return jsonify(parsed)
         except Exception as e:

@@ -1610,11 +1610,18 @@ function retake() {
       const btn = document.createElement("button");
       btn.id = "tryAnotherBtn";
       btn.className = "btn-reset-app";
-      btn.textContent = "Probeer een ander doel";
+      // Dynamische tekst: met orientatie-data → ander doel, zonder → nieuwe scan
+      btn.textContent = currentOrientResult ? "Probeer een ander doel" : "Maak een nieuwe scan";
       btn.style.marginTop = "4px";
       btn.addEventListener("click", function() {
         document.getElementById("resultContent").innerHTML = "";
-        showOrientation(currentOrientResult, currentSessionId, currentOrientIsFallback);
+        if (currentOrientResult) {
+          // Normale flow: ga terug naar orientatie
+          showOrientation(currentOrientResult, currentSessionId, currentOrientIsFallback);
+        } else {
+          // Stateless flow: ga terug naar dashboard
+          goHome();
+        }
         // Hide damage-mode cards if visible
         ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(id => {
           const el = document.getElementById(id);
@@ -1714,17 +1721,26 @@ async function submitClarification() {
 
 /* ── Results ── */
 function renderResults(intent, data) {
-      // Intent-driven result dispatcher
-      switch (intent) {
-        case "purchase":
-        case "identify":
-          renderColorPalette(data);
-          break;
-        case "style":
-          showInspirationAdvice(data);
-          break;
-        default:
-          showResults(data);
+      // Data-driven result dispatcher (Fase 3)
+      // Check data shape first, fall back to intent-based routing
+      if (data.colors && data.colors.length) {
+        // Color palette data → palet renderer (stateless identify flow)
+        renderColorPalette(data);
+      } else if (data.identification) {
+        // Design identification data → identification renderer (future intent)
+        showResults(data);
+      } else {
+        // Intent-driven fallback
+        switch (intent) {
+          case "purchase":
+            renderColorPalette(data);
+            break;
+          case "style":
+            showInspirationAdvice(data);
+            break;
+          default:
+            showResults(data);
+        }
       }
     }
 
