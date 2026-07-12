@@ -211,18 +211,19 @@
           .results-wrap { display: none; flex-direction: column; background: var(--bg-primary); position: relative; z-index: 1; height: 100dvh; overflow: hidden; }
           .results-wrap.active { display: flex; }
           .results-header { display: flex; align-items: center; height: 48px; padding: 0 16px; flex-shrink: 0; background: #1F1E1C; border-bottom: 0.5px solid rgba(255,255,255,0.06); gap: 4px; }
-          .header-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; border-radius: 8px; transition: all 0.15s; flex-shrink: 0; }
-          .header-btn:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); }
+          .header-btn { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 18px; cursor: pointer; border-radius: 8px; transition: all 0.15s; flex-shrink: 0; }
+          .header-btn:hover { color: rgba(255,255,255,0.7); }
           .header-btn:active { transform: scale(0.92); }
+          .header-btn-share { font-size: 16px; color: rgba(255,255,255,0.3); }
           .header-title { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 0.3px; }
           .results-body { flex: 1; overflow-y: auto; padding: 16px 20px 20px; -webkit-overflow-scrolling: touch; }
           .results-footer { flex-shrink: 0; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); background: linear-gradient(to top, rgba(31,30,28,0.98) 60%, transparent); display: flex; flex-direction: column; gap: 8px; }
-          .footer-btn-primary { display: block; width: 100%; padding: 15px; border: none; border-radius: 14px; background: #1F1E1C; color: #FFFFFF; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; }
-          .footer-btn-primary:hover { background: #2C2A28; }
+          .footer-btn-primary { display: block; width: 100%; padding: 14px; border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; background: transparent; color: #FFFFFF; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-align: center; letter-spacing: 0.8px; }
+          .footer-btn-primary:hover { border-color: rgba(255,255,255,0.4); color: #FFFFFF; }
           .footer-btn-primary:active { transform: scale(0.98); }
-          .footer-btn-primary.saved { opacity: 0.6; }
+          .footer-btn-primary.saved { opacity: 0.4; }
           .footer-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-          .footer-btn-secondary { padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
+          .footer-btn-secondary { padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; letter-spacing: 0.5px; }
           .footer-btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: #FFFFFF; background: rgba(255,255,255,0.05); }
           .footer-btn-secondary:active { transform: scale(0.97); }
           .card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm); }
@@ -577,7 +578,7 @@
         <div class="results-header">
           <button class="header-btn" id="backBtn" onclick="goHome()" aria-label="Terug">←</button>
           <div class="header-title" id="headerTitle"></div>
-          <button class="header-btn" id="shareBtn" onclick="shareResults()" aria-label="Deel">⤴️</button>
+          <button class="header-btn" id="shareBtn" class="header-btn header-btn-share" onclick="shareResults()" aria-label="Deel">⤴️</button>
           <button class="header-btn" id="menuBtn" onclick="toggleMenu()" aria-label="Menu">☰</button>
         </div>
 
@@ -649,10 +650,10 @@
         </div>
 
         <div class="results-footer">
-          <button class="footer-btn-primary" id="saveBtn" onclick="saveAnalysis()">Sla dit advies op</button>
+          <button class="footer-btn-primary" id="saveBtn" onclick="saveAnalysis()">ADVIES OPSLAAN</button>
           <div class="footer-btn-grid">
-            <button class="footer-btn-secondary" onclick="goHome()">📸 Nieuwe scan</button>
-            <button class="footer-btn-secondary" onclick="goHome()">🏠 Home</button>
+            <button class="footer-btn-secondary" onclick="goHome()">NIEUWE SCAN</button>
+            <button class="footer-btn-secondary" onclick="goHome()">HOME</button>
           </div>
         </div>
       </div>
@@ -669,6 +670,8 @@ let currentMode = null;
 let currentIntent = null;
 let currentResult = null;
 let currentResultImage = null;
+let lastResult = null;
+let lastResultIntent = null;
 
 /* ── Mode Selector ── */
 function setMode(mode) {
@@ -681,6 +684,7 @@ function setMode(mode) {
       c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
     }
     function openCameraForIntent(intent) {
+      lastResult = null; lastResultIntent = null;
       currentIntent = intent;
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
       document.getElementById("screenDashboard").classList.add("hidden");
@@ -688,6 +692,7 @@ function setMode(mode) {
       startCamera();
     }
     function openCamera() {
+      lastResult = null; lastResultIntent = null;
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
       document.getElementById("screenDashboard").classList.add("hidden");
       document.getElementById("screenCamera").classList.remove("hidden");
@@ -1000,6 +1005,8 @@ function retake() {
         }
         const result = await resp.json();
         if (result.error) throw new Error(result.error);
+        lastResult = result;
+        lastResultIntent = intent;
         try {
           const pResp = await fetch("/api/providers");
           if (pResp.ok) providers = await pResp.json();
@@ -1548,7 +1555,7 @@ function retake() {
     
       // Update save button
       const saveBtn = document.getElementById("saveBtn");
-      saveBtn.textContent = r.styling_tip ? "Sla dit advies op" : "Sla analyse op";
+      saveBtn.textContent = r.styling_tip ? "ADVIES OPSLAAN" : "ANALYSE OPSLAAN";
       saveBtn.classList.remove("saved");
     }
     
@@ -1776,7 +1783,7 @@ function renderResults(intent, data) {
 
       // ---- Styling tip (compact, voor de verfadviezen) ----
       if (r.styling_tip) {
-        html += '<div style="padding:14px 18px;border-radius:12px;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);font-size:14px;color:var(--text-primary);line-height:1.5;margin-bottom:20px">&#x1F4A1; ' + r.styling_tip + '</div>';
+        html += '<div style="padding:14px 18px;border-radius:12px;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);font-size:14px;color:var(--text-primary);line-height:1.5;margin-bottom:20px">' + r.styling_tip + '</div>';
       }
 
       // ---- Paint tips (compact, per kleur) ----
@@ -1805,7 +1812,7 @@ function renderResults(intent, data) {
 
       container.innerHTML = html;
       var saveBtn = document.getElementById("saveBtn");
-      saveBtn.textContent = r.styling_tip ? "Sla dit advies op" : "Sla analyse op";
+      saveBtn.textContent = r.styling_tip ? "ADVIES OPSLAAN" : "ANALYSE OPSLAAN";
       saveBtn.classList.remove("saved");
     }
     function showResults(r) {
@@ -2003,6 +2010,36 @@ function renderProviders(filter) {
 }
 
 
+
+/* —— Last Result Badge —— */
+function showLastResultBadge() {
+  const existing = document.getElementById("lastResultBadge");
+  if (existing) existing.remove();
+  if (!lastResult) return;
+  const container = document.getElementById("screenDashboard");
+  if (!container) return;
+  const badge = document.createElement("div");
+  badge.id = "lastResultBadge";
+  badge.style.cssText = "margin:12px 18px;padding:12px 18px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.2s";
+  badge.onmouseover = function() { this.style.borderColor = "rgba(255,255,255,0.25)"; this.style.background = "rgba(255,255,255,0.06)"; };
+  badge.onmouseout = function() { this.style.borderColor = "rgba(255,255,255,0.1)"; this.style.background = "rgba(255,255,255,0.03)"; };
+  badge.innerHTML = `<span style='font-size:16px;flex-shrink:0'>▶</span><span><span style='font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);display:block;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px'>LAATSTE RESULTAAT</span><span style='font-size:14px;font-weight:600;color:#FFFFFF'>" + (lastResultIntent === "identify" ? "Kleurenpalet" : lastResultIntent || "Analyse") + "</span></span>`;
+  badge.onclick = function() {
+    if (lastResult) {
+      document.getElementById("screenDashboard").classList.add("hidden");
+      document.getElementById("resultsWrap").classList.add("active");
+      document.querySelector(".dash-footer").style.display = "none";
+      renderResults(lastResultIntent || "damage", lastResult);
+    }
+  };
+  // Insert right after mode selector buttons
+  const modeEl = document.getElementById("modeDamage");
+  if (modeEl && modeEl.parentNode) {
+    modeEl.parentNode.parentNode.insertBefore(badge, modeEl.parentNode.nextSibling);
+  } else {
+    container.insertBefore(badge, container.firstChild);
+  }
+}
 /* —— Share Results —— */
 async function shareResults() {
   const text = document.getElementById("resultContent")?.innerText || "Mijn kleurenpalet op HouseFix";
@@ -2028,6 +2065,7 @@ function goHome() {
   document.getElementById("loadingWrap").classList.remove("active");
   document.getElementById("screenDashboard").classList.remove("hidden");
   document.querySelector(".dash-footer").style.display = "block";
+  showLastResultBadge();
   document.getElementById("resultContent").innerHTML = "";
   // tryAnotherBtn verwijderd (vervangen door footer)
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
