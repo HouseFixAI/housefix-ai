@@ -1425,134 +1425,7 @@ function retake() {
         bannerHtml = `<div class="cached-banner"><span class="fallback-banner-icon">🔄</span> Eerder advies hergebruikt — dezelfde foto geeft hetzelfde resultaat.</div>`;
       }
     
-      const colorHex = {
-        'wit':'#ffffff','beige':'#f5f0e1','crème':'#fff8e7','zand':'#d4c5a9',
-        'grijs':'#9e9e9e','antraciet':'#404040','zwart':'#222222',
-        'bruin':'#8d6e63','koffie':'#6d4c41','taupe':'#b8a99a',
-        'groen':'#66bb6a','olijfgroen':'#8d9b6a','mint':'#a5d6a7','saliegroen':'#b5c9a3',
-        'blauw':'#64b5f6','lichtblauw':'#90caf9','donkerblauw':'#3949ab','navy':'#1a237e',
-        'rood':'#e57373','bordeaux':'#8e2430','roze':'#f48fb1','lichtroze':'#f8bbd0',
-        'geel':'#ffd54f','mosterd':'#f4c842','oranje':'#ffb74d','koper':'#d4935a',
-        'paars':'#ab47bc','lila':'#ce93d8','goud':'#d4a847','zilver':'#bdbdbd',
-        'hout':'#a58a6f','naturel':'#d4c4a8'
-      };
-    
-      // Helper: render a color chip
-      function colorChip(c) {
-        const low = c.toLowerCase();
-        let hex = '#cccccc';
-        for (const [key, val] of Object.entries(colorHex)) {
-          if (low.includes(key)) { hex = val; break; }
-        }
-        const borderStyle = hex === '#ffffff' ? 'border:1px solid rgba(0,0,0,0.1)' : '';
-        return `<span class="advice-color-chip"><span class="advice-color-dot" style="background:${hex};${borderStyle}"></span>${c}</span>`;
-      }
-    
-      // Helper: render a product store card
-      function storeCard(s) {
-        if (typeof s === 'string') {
-          // Backward compat: split flat string
-          const parts = s.split(' — ');
-          const titlePart = parts[0] || s;
-          const reasonPart = parts.length > 1 ? parts[1] : '';
-          let html = `<div class="advice-store-card">`;
-          html += `<div class="advice-store-product">${titlePart}</div>`;
-          if (reasonPart) html += `<div class="advice-store-reason">${reasonPart}</div>`;
-          html += `</div>`;
-          return html;
-        }
-        // Structured object: store, product, price, why
-        let html = `<div class="advice-store-card">`;
-        html += `<div class="advice-store-name">${s.store || ''}</div>`;
-        html += `<div class="advice-store-product">${s.product || ''}${s.price ? '  <span class="advice-store-price">'+s.price+'</span>' : ''}</div>`;
-        if (s.why) html += `<div class="advice-store-reason">${s.why}</div>`;
-        html += `</div>`;
-        return html;
-      }
-    
-      let html = ``;
-    
-      // ── Style header ──
-      html += `<div class="advice-section"><div class="advice-head">${r.style || "Interieuradvies"}</div>`;
-      if (r.description) html += `<div class="advice-body">${r.description}</div>`;
-      html += `</div>`;
-    
-      // ── Render option tabs (if available) ──
-      const hasOptions = r.options && r.options.length > 1;
-      if (hasOptions) {
-        html += `<div class="advice-section"><div class="advice-subhead">Kies een uitwerking</div>`;
-        html += `<div class="option-tabs" id="optionTabs">`;
-        r.options.forEach((opt, i) => {
-          const activeClass = i === 0 ? ' option-tab-active' : '';
-          const label = i === 0 ? `${opt.name}  ★` : opt.name;
-          html += `<button class="option-tab${activeClass}" data-optidx="${i}" onclick="switchOption(${i})">${label}</button>`;
-        });
-        html += `</div>`;
-        html += `<div class="option-description" id="optionDesc">${r.options[0].description || ''}</div>`;
-        html += `</div>`;
-    
-        // Render first option as default
-        const opt = r.options[0];
-        if (opt.colors && opt.colors.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Kleurenpalet</div><div class="advice-colors" id="optColors">`;
-          opt.colors.forEach(c => { html += colorChip(c); });
-          html += `</div></div>`;
-        }
-        if (opt.materials && opt.materials.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials" id="optMaterials">`;
-          opt.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
-          html += `</div></div>`;
-        }
-        if (opt.stores && opt.stores.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Shopadvies</div><div class="advice-stores" id="optStores">`;
-          opt.stores.forEach(s => { html += storeCard(s); });
-          html += `</div></div>`;
-        }
-      }
-    
-      // ── Fallback: flat fields (no options) ──
-      if (!hasOptions) {
-        if (r.similar_styles && r.similar_styles.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Verwante stijlen</div><div class="advice-materials">`;
-          r.similar_styles.forEach(s => { html += `<span class="advice-material">${s}</span>`; });
-          html += `</div></div>`;
-        }
-        if (r.colors && r.colors.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Kleurenpalet</div><div class="advice-colors">`;
-          r.colors.forEach(c => { html += colorChip(c); });
-          html += `</div></div>`;
-        }
-        if (r.materials && r.materials.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials">`;
-          r.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
-          html += `</div></div>`;
-        }
-        if (r.matching_stores && r.matching_stores.length) {
-          html += `<div class="advice-section"><div class="advice-subhead">Shopadvies</div><div class="advice-stores">`;
-          r.matching_stores.forEach(s => { html += storeCard(s); });
-          html += `</div></div>`;
-        }
-        if (r.primary_action) {
-          html += `<div class="advice-section"><div class="advice-tip" style="background:var(--terracotta-soft);border-color:rgba(196,98,74,0.15)">`;
-          html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Eerst doen</div>`;
-          html += `${r.primary_action}</div></div>`;
-        }
-      }
-    
-      // ── Styling tip (always shown) ──
-      if (r.styling_tip) {
-        html += `<div class="advice-section"><div class="advice-tip">${r.styling_tip}</div></div>`;
-      }
-    
-      container.innerHTML = bannerHtml + html;
-    
-      // Update save button
-      const saveBtn = document.getElementById("saveBtn");
-      saveBtn.textContent = r.styling_tip ? "ADVIES OPSLAAN" : "ANALYSE OPSLAAN";
-      saveBtn.classList.remove("saved");
-    }
-    
-    /* ── Switch A/B/C option ── */
+      /* ── Switch A/B/C option ── */
     function switchOption(idx) {
       const r = _storedAdviceData;
       if (!r || !r.options || idx >= r.options.length) return;
@@ -1755,19 +1628,15 @@ function renderResults(intent, data) {
 
       // ---- Large color blocks (48px each, full-width) ----
       var colors = r.colors || [];
-      var colorHex = {"wit":"#ffffff","cr\u00e8me":"#f5f0e1","beige":"#e8dcc8","lichtgrijs":"#d5d5d5","grijs":"#9e9e9e","antraciet":"#404040","zwart":"#222222","bruin":"#8d6e63","koffie":"#6d4c41","taupe":"#b8a99a","groen":"#66bb6a","olijfgroen":"#8d9b6a","mint":"#a5d6a7","saliegroen":"#b5c9a3","blauw":"#64b5f6","lichtblauw":"#90caf9","donkerblauw":"#3949ab","navy":"#1a237e","rood":"#e57373","bordeaux":"#8e2430","roze":"#f48fb1","lichtroze":"#f8bbd0","geel":"#ffd54f","mosterd":"#f4c842","oranje":"#ffb74d","koper":"#d4935a","paars":"#ab47bc","lila":"#ce93d8","goud":"#d4a847","zilver":"#bdbdbd","hout":"#a58a6f","naturel":"#d4c4a8"};
-      if (colors.length) {
+            if (colors.length) {
         for (var ci = 0; ci < colors.length; ci++) {
           var c = colors[ci];
-          var low = c.toLowerCase();
-          var hex = "#cccccc";
-          for (var key in colorHex) {
-            if (low.indexOf(key) >= 0) { hex = colorHex[key]; break; }
-          }
+          if (typeof c === "string") { c = {name: c}; }
+          var hex = (c.hex || nameToHex(c.name || ""));
           // Text color: white on dark backgrounds, dark on light
           var textColor = (hex === "#ffffff" || hex === "#f5f0e1" || hex === "#e8dcc8" || hex === "#d5d5d5" || hex === "#d4c4a8" || hex === "#b8a99a") ? "#2c2c2c" : "#ffffff";
           var borderStyle = (hex === "#ffffff") ? ' border:1px solid rgba(0,0,0,0.08);' : '';
-          html += '<div style="height:48px;width:100%;background:' + hex + ';' + borderStyle + 'border-radius:10px;margin-bottom:6px;display:flex;align-items:center;padding:0 16px;box-sizing:border-box;font-size:13px;font-weight:600;color:' + textColor + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</div>';
+          html += '<div style="height:48px;width:100%;background:' + hex + ';' + borderStyle + 'border-radius:10px;margin-bottom:6px;display:flex;align-items:center;padding:0 16px;box-sizing:border-box;font-size:13px;font-weight:600;color:' + textColor + '">' + (c.name.charAt(0).toUpperCase() + c.name.slice(1)) + '</div>';
         }
       }
 
@@ -1785,13 +1654,7 @@ function renderResults(intent, data) {
         for (var pi = 0; pi < r.paint_tips.length; pi++) {
           var pt = r.paint_tips[pi];
           // Match a color icon from the paint tip text
-          var tipHex = "#cccccc";
-          if (pt.product) {
-            var pLow = pt.product.toLowerCase();
-            for (var key in colorHex) {
-              if (pLow.indexOf(key) >= 0) { tipHex = colorHex[key]; break; }
-            }
-          }
+          var tipHex = (pt.hex || nameToHex(pt.name || pt.product));
           var tipBorder = (tipHex === "#ffffff" || tipHex === "#f5f0e1") ? ' border:1px solid rgba(0,0,0,0.08);' : '';
           html += '<div style="display:flex;align-items:center;padding:10px 14px;border-radius:10px;border:1px solid var(--border-light);margin-bottom:6px;background:var(--bg-card)">';
           html += '<span style="width:16px;height:16px;border-radius:4px;background:' + tipHex + ';' + tipBorder + 'flex-shrink:0;margin-right:12px"></span>';
@@ -2004,6 +1867,17 @@ function renderProviders(filter) {
 
 
 
+
+function nameToHex(name) {
+  const s = name.toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) { hash = s.charCodeAt(i) + ((hash << 5) - hash); }
+  let r = (hash >> 16) & 0xFF, g = (hash >> 8) & 0xFF, b = hash & 0xFF;
+  if (r < 0x33) r = (r + 0x88) >> 1;
+  if (g < 0x33) g = (g + 0x88) >> 1;
+  if (b < 0x33) b = (b + 0x88) >> 1;
+  return "#" + [r, g, b].map(c => c.toString(16).padStart(2, "0")).join("");
+}
 /* —— Last Result Badge (dismissable) —— */
 /* —— Last Result Floating Pill —— */
 function showLastResultBadge() {
@@ -2259,7 +2133,9 @@ document.addEventListener("DOMContentLoaded", () => {
       else { document.getElementById("spOverlay").classList.add("active"); }
     }
     function closeServicePanel() { document.getElementById("spOverlay").classList.remove("active"); }
-  </script>
+  
+}
+</script>
   <div class="sp-overlay" id="spOverlay">
     <div class="sp-bg" onclick="closeServicePanel()"></div>
     <div class="sp-panel">
