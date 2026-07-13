@@ -452,7 +452,22 @@
             .prov-grid { grid-template-columns: 1fr; }
             .cost-compare { grid-template-columns: 1fr; }
           }
-        </style>
+        .fi-list { margin: 0 0 16px; }
+.fi-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 4px; border-radius: 10px; cursor: pointer; transition: background 0.15s; text-decoration: none; color: inherit; }
+.fi-item:hover { background: var(--bg-hover); }
+.fi-swatch { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-muted); overflow: hidden; }
+.fi-swatch img { width: 100%; height: 100%; object-fit: cover; }
+.fi-info { flex: 1; min-width: 0; }
+.fi-name { font-size: 14px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi-meta { font-size: 12px; color: var(--text-muted); }
+.fi-meta em { font-style: normal; color: var(--terracotta); font-weight: 600; }
+.fi-arrow { font-size: 14px; color: var(--text-muted); flex-shrink: 0; opacity: 0.5; }
+.fi-item:hover .fi-arrow { opacity: 1; color: var(--terracotta); }
+.fi-why { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.fi-more { display: block; width: 100%; padding: 10px; text-align: center; font-size: 13px; color: var(--terracotta); background: none; border: none; cursor: pointer; border-radius: 8px; transition: background 0.15s; }
+.fi-more:hover { background: var(--bg-hover); }
+.fi-ar-placeholder { display: none; }
+</style>
 </head>
 <body>
 
@@ -1255,6 +1270,70 @@ function retake() {
     }
 
     /* Show inspiration board overlay */
+    
+    function showAllItems() {
+      var items = document.querySelectorAll(".fi-item");
+      for (var i = 0; i < items.length; i++) { items[i].style.display = "flex"; }
+      var btn = document.getElementById("fiMoreBtn");
+      if (btn) btn.style.display = "none";
+    }
+    function renderFindItem(r) {
+      // ---- Product finder: "Vind dit Meubel" ----
+      // Compact, visueel, product-eerst
+      currentResult = r;
+      var snap = document.getElementById("snapshot");
+      if (snap && snap.src) {
+        document.getElementById("resultThumb").src = snap.src;
+      }
+      var container = document.getElementById("resultContent");
+      var html = "";
+
+      // Fallback banner
+      if (r.is_fallback) {
+        html += '<div class="fallback-banner" style="margin-bottom:16px"><span class="fallback-banner-icon">&#x2139;&#xFE0F;</span> Dit advies is algemeen &mdash; voor een persoonlijk advies hebben we een AI-verbinding nodig.</div>';
+      }
+
+      // Title + object name
+      html += '<div class="res-type" style="font-size:22px;margin-bottom:4px;text-align:center">Jouw meubel</div>';
+      html += '<div style="text-align:center;font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:12px;line-height:1.3">' + escHtml(r.object_type || "Meubel") + '</div>';
+
+      // FUTURE: AR-section placeholder (invisible in v1)
+      html += '<div class="fi-ar-placeholder"></div>';
+
+      // Alternatives list
+      var alts = r.alternatives || [];
+      if (alts.length) {
+        html += '<div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;padding:0 4px">Vergelijkbaar</div>';
+        html += '<div class="fi-list">';
+        var maxShow = 3;
+        for (var ai = 0; ai < alts.length; ai++) {
+          var a = alts[ai];
+          var hidden = ai >= maxShow ? ' style="display:none"' : '';
+          html += '<a class="fi-item"' + hidden + ' href="' + escHtml(a.url || "#") + '" target="_blank" rel="sponsored" onclick="event.stopPropagation()">';
+          html += '<div class="fi-swatch">' + escHtml((a.name || "?")[0].toUpperCase()) + '</div>';
+          html += '<div class="fi-info">';
+          html += '<div class="fi-name">' + escHtml(a.name || "Onbekend") + '</div>';
+          html += '<div class="fi-meta">' + escHtml(a.price || "") + (a.store ? ' <em>·</em> ' + escHtml(a.store) : "") + '</div>';
+          if (a.why) html += '<div class="fi-why">' + escHtml(a.why) + '</div>';
+          html += '</div>';
+          html += '<span class="fi-arrow">➞</span>';
+          html += '</a>';
+        }
+        if (alts.length > maxShow) {
+          html += '<button class="fi-more" id="fiMoreBtn" onclick="showAllItems()">Toon meer (' + (alts.length - maxShow) + ' extra)</button>';
+        }
+        html += '</div>';
+      }
+
+      // Styling tip (1 line)
+      if (r.styling_tip) {
+        html += '<div style="padding:10px 14px;border-radius:10px;margin:8px 0 16px;font-size:13px;color:var(--text-primary);line-height:1.4;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.12)">' + r.styling_tip + '</div>';
+      }
+
+      container.innerHTML = html;
+      document.getElementById("saveBtn").textContent = "MEUBEL OPSLAAN";
+    }
+
     function showInspirationBoard(){
       const board=JSON.parse(localStorage.getItem("hf_board")||"[]");
       let html='<div class="pv-board-overlay" id="boardOverlay"><div class="pv-board-panel">';
@@ -1405,6 +1484,10 @@ function retake() {
       }
       if (r.intent === "purchase") {
         renderPurchase(r);
+        return;
+      }
+      if (r.intent === "find_item") {
+        renderFindItem(r);
         return;
       }
       // Fall through to existing style/default flow
@@ -1722,6 +1805,9 @@ function renderResults(intent, data) {
         switch (intent) {
           case "purchase":
             renderColorPalette(data);
+            break;
+          case "find_item":
+            renderFindItem(data);
             break;
           case "style":
             showInspirationAdvice(data);
@@ -2236,7 +2322,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       inspiration: [
         {bg:"url(https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Scan voor Kleurenpalet", a:"openCameraForIntent('identify')"},
-        {bg:"url(https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Vind dit Meubel", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Vind dit Meubel", a:"openCameraForIntent('find_item')"},
         {bg:"url(https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Stijl mijn Kamer", a:"openCamera()"},
         {bg:"url(https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Raamdecoratie", a:"openCamera()"}
       ]
