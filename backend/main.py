@@ -1860,6 +1860,8 @@ def analyze_image():
                     preferred_seg = seg_map.get(budget, "middenklasse")
                     fallback_scenario["best_seg"] = preferred_seg
                 result = fallback_scenario
+            elif user_intent == "find_item":
+                result = {"intent": "find_item", "object_type": "Meubel niet herkend", "alternatives": [], "styling_tip": "Probeer een andere foto met beter licht en minder obstakels.", "can_visualize": False, "confidence": "low"}
             else:
                 result = random.choice(FALLBACK_INSPIRATION)
             result["is_fallback"] = True
@@ -1985,6 +1987,13 @@ def analyze_image():
                 system_message = (
                     "Je bent een praktische interieuradviseur voor aankoopadvies. "
                     "Gebruik de context om productadvies op maat te geven."
+                )
+            elif user_intent == "find_item":
+                base_prompt = FIND_ITEM_PROMPT
+                system_message = (
+                    "Je bent een interieur-stylist die meubels herkent en "
+                    "vergelijkbare producten adviseert. Gebruik de foto om het meubel "
+                    "te identificeren en koopbare alternatieven te geven."
                 )
             else:
                 base_prompt = INSPIRATION_PROMPT
