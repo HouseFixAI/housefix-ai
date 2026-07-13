@@ -467,6 +467,13 @@
 .fi-more { display: block; width: 100%; padding: 10px; text-align: center; font-size: 13px; color: var(--terracotta); background: none; border: none; cursor: pointer; border-radius: 8px; transition: background 0.15s; }
 .fi-more:hover { background: var(--bg-hover); }
 .fi-ar-placeholder { display: none; }
+
+.fi-hover-card { transition: box-shadow 0.2s, transform 0.2s; }
+.fi-hover-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+
+.fi-hover-card { transition: box-shadow 0.2s, transform 0.2s; }
+.fi-hover-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+.fi-more:hover { border-color: var(--terracotta) !important; background: var(--terracotta-soft) !important; }
 </style>
 </head>
 <body>
@@ -1279,7 +1286,7 @@ function retake() {
     }
     function renderFindItem(r) {
       // ---- Product finder: "Vind dit Meubel" ----
-      // Compact, visueel, product-eerst
+      // Premium productdiscovery — grote foto's, duidelijke prijzen
       currentResult = r;
       var snap = document.getElementById("snapshot");
       if (snap && snap.src) {
@@ -1288,50 +1295,45 @@ function retake() {
       var container = document.getElementById("resultContent");
       var html = "";
 
-      // Fallback banner
-      if (r.is_fallback) {
-        html += '<div class="fallback-banner" style="margin-bottom:16px"><span class="fallback-banner-icon">&#x2139;&#xFE0F;</span> Dit advies is algemeen &mdash; voor een persoonlijk advies hebben we een AI-verbinding nodig.</div>';
-      }
+      // Product name (subtiel, als heading)
+      html += '<div style="font-size:18px;font-weight:700;font-family:Georgia,serif;color:var(--text-primary);margin-bottom:2px;line-height:1.25">' + escHtml(r.object_type || "Meubel") + '</div>';
+      html += '<div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">' + (r.alternatives ? r.alternatives.length + ' alternatieven gevonden' : '') + '</div>';
 
-      // Title + object name
-      html += '<div class="res-type" style="font-size:22px;margin-bottom:4px;text-align:center">Jouw meubel</div>';
-      html += '<div style="text-align:center;font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:12px;line-height:1.3">' + escHtml(r.object_type || "Meubel") + '</div>';
-
-      // FUTURE: AR-section placeholder (invisible in v1)
-      html += '<div class="fi-ar-placeholder"></div>';
-
-      // Alternatives list
+      // Alternatives — premium product cards
       var alts = r.alternatives || [];
       if (alts.length) {
-        html += '<div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;padding:0 4px">Vergelijkbaar</div>';
-        html += '<div class="fi-list">';
         var maxShow = 3;
         for (var ai = 0; ai < alts.length; ai++) {
           var a = alts[ai];
           var hidden = ai >= maxShow ? ' style="display:none"' : '';
-          html += '<a class="fi-item"' + hidden + ' href="' + escHtml(a.url || "#") + '" target="_blank" rel="sponsored" onclick="event.stopPropagation()">';
-          html += '<div class="fi-swatch">' + escHtml((a.name || "?")[0].toUpperCase()) + '</div>';
-          html += '<div class="fi-info">';
-          html += '<div class="fi-name">' + escHtml(a.name || "Onbekend") + '</div>';
-          html += '<div class="fi-meta">' + escHtml(a.price || "") + (a.store ? ' <em>·</em> ' + escHtml(a.store) : "") + '</div>';
-          if (a.why) html += '<div class="fi-why">' + escHtml(a.why) + '</div>';
+          var pal = ['#e8ddd0','#d4c5b5'];
+          // Product image: use image_url if available, fallback to gradient + initial
+          var imgHtml = a.image_url
+            ? '<img src="' + escHtml(a.image_url) + '" alt="' + escHtml(a.name || "") + '" style="width:100%;height:100%;object-fit:cover;display:block" />'
+            : '<div style="width:100%;height:100%;background:linear-gradient(135deg,' + pal[0] + ',' + pal[1] + ');display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:rgba(0,0,0,0.15);font-family:Georgia,serif">' + escHtml((a.name || "?")[0].toUpperCase()) + '</div>';
+          html += '<a class="purchase-card fi-hover-card"' + hidden + ' href="' + escHtml(a.url || "#") + '" target="_blank" rel="sponsored" style="display:block;text-decoration:none;color:inherit;border-radius:14px;overflow:hidden;border:1px solid var(--border-light);background:var(--bg-card);margin-bottom:12px">';
+          // Image hero (140px)
+          html += '<div style="width:100%;height:140px;overflow:hidden;background:var(--bg-secondary);position:relative">' + imgHtml + '</div>';
+          // Info below image
+          html += '<div style="padding:12px 14px 14px">';
+          html += '<div style="font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.25;margin-bottom:4px">' + escHtml(a.name || "Onbekend") + '</div>';
+          if (a.price || a.store) html += '<div style="font-size:15px;font-weight:700;color:var(--terracotta);margin-bottom:2px">' + escHtml(a.price || "") + (a.store ? ' <span style="font-weight:400;font-size:13px;color:var(--text-muted)">· ' + escHtml(a.store) + '</span>' : "") + '</div>';
           html += '</div>';
-          html += '<span class="fi-arrow">➞</span>';
           html += '</a>';
         }
         if (alts.length > maxShow) {
-          html += '<button class="fi-more" id="fiMoreBtn" onclick="showAllItems()">Toon meer (' + (alts.length - maxShow) + ' extra)</button>';
+          html += '<button class="fi-more" id="fiMoreBtn" onclick="showAllItems()" style="display:block;width:100%;padding:12px;text-align:center;font-size:14px;font-weight:600;color:var(--terracotta);background:none;border:1.5px dashed var(--border-light);border-radius:12px;cursor:pointer;transition:all 0.2s;margin-top:2px" >Toon alle ' + alts.length + ' alternatieven <span style="font-size:11px;opacity:0.6">↓</span></button>';
         }
-        html += '</div>';
       }
 
-      // Styling tip (1 line)
-      if (r.styling_tip) {
-        html += '<div style="padding:10px 14px;border-radius:10px;margin:8px 0 16px;font-size:13px;color:var(--text-primary);line-height:1.4;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.12)">' + r.styling_tip + '</div>';
+      // Styling tip — alleen als kort en beeldend
+      if (r.styling_tip && r.styling_tip.length < 100) {
+        html += '<div style="padding:12px 14px;border-radius:12px;margin:6px 0 0;font-size:13px;color:var(--text-secondary);line-height:1.5;background:var(--bg-secondary);border:1px solid var(--border-light)">';
+        html += '<span style="font-size:14px;margin-right:6px">✨</span>' + r.styling_tip + '</div>';
       }
 
       container.innerHTML = html;
-      document.getElementById("saveBtn").textContent = "MEUBEL OPSLAAN";
+      document.getElementById("saveBtn").textContent = "♡ MEUBEL OPSLAAN";
     }
 
     function showInspirationBoard(){
