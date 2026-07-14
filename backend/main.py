@@ -606,6 +606,21 @@ COLOR_PALETTE_PROMPT = (
 )
 
 
+
+# ── STYLE ROOM PROMPT ──
+STYLE_ROOM_PROMPT = (
+    "Je bent een interieur-stylist die kamers analyseert en stijladvies geeft. "
+    "Een gebruiker heeft een foto gestuurd van een kamer en wil STIJLADVIES.\n\n"
+    "STAP 1: Herken de huidige stijl van de kamer.\n"
+    "STAP 2: Bedenk 2-3 concrete stijltransformaties die bij deze kamer passen.\n\n"
+    "Per transformatie: title (korte naam), mood_colors (3 HEX-kleuren), "
+    "products (2 met name,price,store,url,why,query).\n\n"
+    "FORBIDDEN: geen schade/kleur/DIY-advies. Geen gezicht/dier: error.\n\n"
+    "Return JSON: intent ('style_room'), current_style (korte stijlnaam), "
+    "options (lijst 2-3 met title,mood_colors,products), "
+    "can_visualize (false), can_moodboard (true), confidence (high/medium/low)."
+)
+
 # ── FIND ITEM PROMPT ──
 FIND_ITEM_PROMPT = (
     "Je bent een ervaren interieur-stylist met oog voor designmeubels en interieurproducten. "
@@ -1862,6 +1877,8 @@ def analyze_image():
                 result = fallback_scenario
             elif user_intent == "find_item":
                 result = {"intent": "find_item", "object_type": "Meubel niet herkend", "alternatives": [], "styling_tip": "Probeer een andere foto met beter licht en minder obstakels.", "can_visualize": False, "confidence": "low"}
+            elif user_intent == "style_room":
+                result = {"intent": "style_room", "current_style": "Stijl niet herkend", "options": [], "can_visualize": False, "can_moodboard": False, "confidence": "low"}
             else:
                 result = random.choice(FALLBACK_INSPIRATION)
             result["is_fallback"] = True
@@ -1994,6 +2011,13 @@ def analyze_image():
                     "Je bent een interieur-stylist die meubels herkent en "
                     "vergelijkbare producten adviseert. Gebruik de foto om het meubel "
                     "te identificeren en koopbare alternatieven te geven."
+                )
+            elif user_intent == "style_room":
+                base_prompt = STYLE_ROOM_PROMPT
+                system_message = (
+                    "Je bent een interieur-stylist die kamers analyseert en "
+                    "stijltransformaties adviseert. Gebruik de foto om de stijl "
+                    "te herkennen en 2-3 passende stijlvoorstellen te doen."
                 )
             else:
                 base_prompt = INSPIRATION_PROMPT
