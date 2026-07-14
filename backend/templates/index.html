@@ -89,7 +89,9 @@
           .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
           .mode-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 14px 10px; border-radius: 14px; background: var(--bg-card); border: 1.5px solid var(--border-light); cursor: pointer; transition: all 0.3s ease; color: var(--text-secondary); width: 100%; min-height: 64px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
           .mode-btn:hover { border-color: var(--warm-beige); background: var(--bg-card-hover); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-          .mode-btn.mode-active { border-color: var(--terracotta); background: var(--terracotta-soft); box-shadow: 0 0 0 1px var(--terracotta), 0 2px 8px rgba(196,98,74,0.1); color: var(--terracotta); }
+          .mode-btn.mode-active { border-color: var(--terracotta); background: var(--terracotta-soft); box-shadow: 0 0 0 1px var(--terracotta), 0 2px 8px rgba(196,98,74,0.1); color: var(--terracotta); position: relative; }
+          .mode-active-bar { height: 3px; border-radius: 2px; background: var(--terracotta); margin-top: 8px; transition: opacity 0.3s; }
+          .mode-btn.mode-active::after { content: ""; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; border-radius: 2px; background: var(--terracotta); }
           .mode-btn .mode-icon { font-size: 20px; margin-bottom: 2px; }
           .mode-btn .mode-label { font-size: 14px; font-weight: 700; }
 
@@ -2367,6 +2369,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("modeInspiration").classList.remove("mode-active");
       document.getElementById("menuIcon").textContent = "☰";
       document.getElementById("ctaText").textContent = "Scan met camera";
+      document.getElementById("modeActiveBar").style.opacity = "0";
       currentMode = null;
     }
   
