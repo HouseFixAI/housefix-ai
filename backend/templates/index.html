@@ -1092,6 +1092,8 @@ function retake() {
         /* ── Render Purchase ── */
     function renderPurchase(r) {
       currentResult = r;
+      var snap = document.getElementById("snapshot");
+      if (snap && snap.src) currentResultImage = snap.src;
       ["issueCard","costCard","stepsCard","materialsCard","providersCard"].forEach(el=>{const e=document.getElementById(el);if(e)e.style.display="none";});
       let b="";
       if(r.is_fallback)b='<div class="fallback-banner"><span class="fallback-banner-icon">\u2139\ufe0f</span> Dit advies is algemeen</div>';
@@ -1290,6 +1292,7 @@ function retake() {
       var snap = document.getElementById("snapshot");
       if (snap && snap.src) {
         document.getElementById("resultThumb").src = snap.src;
+        currentResultImage = snap.src;
       }
       var container = document.getElementById("resultContent");
       var html = "";
@@ -1338,6 +1341,7 @@ function retake() {
       var snap = document.getElementById("snapshot");
       if (snap && snap.src) {
         document.getElementById("resultThumb").src = snap.src;
+        currentResultImage = snap.src;
       }
       var container = document.getElementById("resultContent");
       var html = "";
@@ -1522,6 +1526,8 @@ function retake() {
     
     function showInspirationAdvice(r) {
       currentResult = r;
+      var snap = document.getElementById("snapshot");
+      if (snap && snap.src) currentResultImage = snap.src;
       _storedAdviceData = r;
       _currentOptionIndex = 0;
 
@@ -1876,6 +1882,9 @@ function renderResults(intent, data) {
     function renderColorPalette(r) {
       // ---- Color palette renderer - "Scan voor Kleurenpalet" ----
       // Kleur-eerst, rustige flow, geen losse kaarten
+      currentResult = r;
+      var snap = document.getElementById("snapshot");
+      if (snap && snap.src) currentResultImage = snap.src;
 
       // Set the photo thumbnail
       var snap = document.getElementById("snapshot");
@@ -2242,7 +2251,7 @@ function saveAnalysis() {
     mode: currentMode,
     result: currentResult,
     image: currentResultImage,
-    title: currentResult.issue_type || currentResult.style || "Onbekend",
+    title: currentResult.issue_type || currentResult.style || currentResult.object_type || currentResult.current_style || "Onbekend",
     optionIndex: _currentOptionIndex || 0
   };
 
