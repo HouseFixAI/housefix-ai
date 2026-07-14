@@ -1358,15 +1358,14 @@ function retake() {
           var imgHtml = a.image_url
             ? '<img src="' + escHtml(a.image_url) + '" alt="' + escHtml(a.name || "") + '" style="width:100%;height:100%;object-fit:cover;display:block" />'
             : '<div style="width:100%;height:100%;background:linear-gradient(135deg,' + pal[0] + ',' + pal[1] + ');display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:rgba(0,0,0,0.15);font-family:Georgia,serif">' + escHtml((a.name || "?")[0].toUpperCase()) + '</div>';
-          html += '<a class="purchase-card fi-hover-card"' + hidden + ' href="' + escHtml(a.url || "#") + '" target="_blank" rel="sponsored" style="display:block;text-decoration:none;color:inherit;border-radius:14px;overflow:hidden;border:1px solid var(--border-light);background:var(--bg-card);margin-bottom:12px">';
-          // Image hero (140px)
-          html += '<div style="width:100%;height:140px;overflow:hidden;background:var(--bg-secondary);position:relative">' + imgHtml + '</div>';
-          // Info below image
-          html += '<div style="padding:12px 14px 14px">';
-          html += '<div style="font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.25;margin-bottom:4px">' + escHtml(a.name || "Onbekend") + '</div>';
-          if (a.price || a.store) html += '<div style="font-size:15px;font-weight:700;color:var(--terracotta);margin-bottom:2px">' + escHtml(a.price || "") + (a.store ? ' <span style="font-weight:400;font-size:13px;color:var(--text-muted)">· ' + escHtml(a.store) + '</span>' : "") + '</div>';
-          html += '</div>';
-          html += '</a>';
+          html += '<a class="purchase-card fi-hover-card"' + hidden + ' href="' + escHtml(a.url || "#") + '" target="_blank" rel="sponsored" style="display:block;text-decoration:none;color:inherit;border-radius:14px;overflow:hidden;border:1px solid var(--border-light);background:var(--bg-card);margin-bottom:10px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,0.04)">';
+          // Image hero (160px)
+          html += '<div style="width:100%;height:160px;overflow:hidden;background:var(--bg-secondary)">' + imgHtml + '</div>';
+          // Premium overlay with name + price
+          html += '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.65));padding:32px 14px 12px">';
+          html += '<div style="font-size:15px;font-weight:600;color:#fff;font-family:Georgia,serif;line-height:1.25;margin-bottom:2px">' + escHtml(a.name || "Onbekend") + '</div>';
+          if (a.price || a.store) html += '<div style="font-size:14px;font-weight:500;color:rgba(255,255,255,0.85)">' + escHtml(a.price || "") + (a.store ? ' <span style="font-weight:400;color:rgba(255,255,255,0.5)">· ' + escHtml(a.store) + '</span>' : "") + '</div>';
+          html += '</div></a>';
         }
         if (alts.length > maxShow) {
           html += '<button class="fi-more" id="fiMoreBtn" onclick="showAllItems()" style="display:block;width:100%;padding:12px;text-align:center;font-size:14px;font-weight:600;color:var(--terracotta);background:none;border:1.5px dashed var(--border-light);border-radius:12px;cursor:pointer;transition:all 0.2s;margin-top:2px" >Toon alle ' + alts.length + ' alternatieven <span style="font-size:11px;opacity:0.6">↓</span></button>';
