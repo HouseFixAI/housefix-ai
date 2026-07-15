@@ -703,6 +703,7 @@ let providers = [];
 let stream = null;
 let currentMode = null;
 let currentIntent = null;
+let selectedCarouselIntent = null;
 let currentResult = null;
 let currentResultImage = null;
 let lastResult = JSON.parse(sessionStorage.getItem("hf_lastResult") || "null");
@@ -722,6 +723,7 @@ function setMode(mode) {
       lastResult = null; lastResultIntent = null;
       sessionStorage.removeItem("hf_lastResult"); sessionStorage.removeItem("hf_lastResultIntent");
       currentIntent = intent;
+      selectedCarouselIntent = intent;
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
       document.getElementById("screenDashboard").classList.add("hidden");
       document.getElementById("screenCamera").classList.remove("hidden");
@@ -731,7 +733,7 @@ function setMode(mode) {
       lastResult = null; lastResultIntent = null;
       sessionStorage.removeItem("hf_lastResult"); sessionStorage.removeItem("hf_lastResultIntent");
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
-      currentIntent = currentMode === "damage" ? "identify_issue" : "identify";
+      currentIntent = selectedCarouselIntent || (currentMode === "damage" ? "identify_issue" : "identify");
       document.getElementById("screenDashboard").classList.add("hidden");
       document.getElementById("screenCamera").classList.remove("hidden");
       startCamera();
