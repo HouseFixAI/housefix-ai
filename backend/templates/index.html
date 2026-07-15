@@ -77,6 +77,28 @@
           .sp-overlay.active .sp-bg { opacity: 1; }
           .sp-panel { position: absolute; top: 0; right: 0; width: 75%; max-width: 280px; height: 100%; background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 60px 20px 24px; overflow-y: auto; }
           .sp-overlay.active .sp-panel { transform: translateX(0); }
+          .history-overlay { position: fixed; inset: 0; z-index: 999; pointer-events: none; }
+          .history-overlay.active { pointer-events: auto; }
+          .history-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.25); opacity: 0; transition: opacity 0.3s; }
+          .history-overlay.active .history-bg { opacity: 1; }
+          .history-panel { position: absolute; top: 0; right: 0; width: 82%; max-width: 320px; height: 100%; background: #fff; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+          .history-overlay.active .history-panel { transform: translateX(0); }
+          .history-panel-close { position: absolute; top: 16px; left: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 20px; border: none; background: none; border-radius: 50%; transition: background 0.2s; }
+          .history-panel-close:hover { background: #f5f0eb; }
+          .history-panel-title { font-family: Georgia, serif; font-size: 18px; color: #33312E; text-align: center; margin: 16px 0 20px; padding-top: 12px; }
+          .history-panel-list { flex: 1; overflow-y: auto; }
+          .history-card { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 10px; background: #faf7f2; border-radius: 14px; cursor: pointer; transition: all 0.2s; }
+          .history-card:hover { background: #f5f0eb; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+          .history-card-thumb { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: #e8ddd0; flex-shrink: 0; }
+          .history-card-info { flex: 1; min-width: 0; }
+          .history-card-title { font-size: 13px; font-weight: 600; color: #33312E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+          .history-card-meta { font-size: 11px; color: #999; margin-top: 2px; }
+          .history-card-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+          .history-card-badge.damage { background: rgba(196, 98, 74, 0.1); color: #c4624a; }
+          .history-card-badge.inspiration { background: #e3ede6; color: #6b9e7a; }
+          .history-card-del { background: none; border: none; color: #ccc; font-size: 14px; cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: all 0.2s; flex-shrink: 0; }
+          .history-card-del:hover { color: #c4624a; background: rgba(196, 98, 74, 0.1); }
+          .history-panel-empty { text-align: center; padding: 40px 20px; color: #999; font-size: 13px; }
           .sp-item { display: flex; align-items: center; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--border-light); font-size: 14px; font-weight: 600; color: var(--text-primary); cursor: pointer; }
           .sp-item:last-child { border-bottom: none; }
           .sp-item .sp-icon { font-size: 18px; }
@@ -540,18 +562,7 @@
 
 
 
-              <div class="history-section" id="historySection">
-                <div class="history-header" id="historyHeader" onclick="toggleHistory()">
-                  <span>&#x1f4cb; Geschiedenis</span>
-                  <span class="history-arrow" id="historyArrow">&#x25b8;</span>
-                </div>
-                <div class="history-body" id="historyBody">
-                  <div class="history-empty" id="historyEmpty" style="display:block">Nog geen opgeslagen analyses</div>
-                  <div id="historyList"></div>
-                </div>
-              </div>
-
-              <div class="dash-footer">
+<div class="dash-footer">
                 </div>
 
             </div>
@@ -2247,10 +2258,11 @@ function goHome() {
 /* ── History / Save / Load / Delete ── */
 
 function toggleHistory() {
-  const body = document.getElementById("historyBody");
-  const arrow = document.getElementById("historyArrow");
-  body.classList.toggle("open");
-  arrow.classList.toggle("open");
+  document.getElementById("historyOverlay").classList.toggle("active");
+  renderHistory();
+}
+function closeHistoryPanel() {
+  document.getElementById("historyOverlay").classList.remove("active");
 }
 
 function saveAnalysis() {
@@ -2320,8 +2332,7 @@ function loadHistoryItem(idx) {
   if (!item) return;
 
   // Close history
-  document.getElementById("historyBody").classList.remove("open");
-  document.getElementById("historyArrow").classList.remove("open");
+  document.getElementById("historyOverlay").classList.remove("active");
 
   // Go to dashboard first, then simulate results
   document.getElementById("screenCamera").classList.add("hidden");
@@ -2433,6 +2444,15 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="sp-item"><span class="sp-icon">❓</span> Veelgestelde vragen (FAQ)</div>
       <div class="sp-item"><span class="sp-icon">💬</span> Directe Hulplijn / Support</div>
       <div class="sp-item"><span class="sp-icon">🛡️</span> Veiligheid & Privacy</div>
+    </div>
+  </div>
+  <div class="history-overlay" id="historyOverlay">
+    <div class="history-bg" onclick="closeHistoryPanel()"></div>
+    <div class="history-panel">
+      <button class="history-panel-close" onclick="closeHistoryPanel()">←</button>
+      <div class="history-panel-title">Geschiedenis</div>
+      <div class="history-panel-empty" id="historyEmpty" style="display:none">Nog geen opgeslagen analyses</div>
+      <div class="history-panel-list" id="historyList"></div>
     </div>
   </div>
 </body>
