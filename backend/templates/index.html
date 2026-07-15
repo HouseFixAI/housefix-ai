@@ -703,6 +703,7 @@ let stream = null;
 let currentMode = null;
 let currentIntent = null;
 let selectedCarouselIntent = null;
+let _fromHistory = false;
 let currentResult = null;
 let currentResultImage = null;
 let lastResult = JSON.parse(sessionStorage.getItem("hf_lastResult") || "null");
@@ -2243,8 +2244,14 @@ function goHome() {
   retake();
   document.getElementById("resultsWrap").classList.remove("active");
   document.getElementById("loadingWrap").classList.remove("active");
-  document.getElementById("screenDashboard").classList.remove("hidden");
   document.querySelector(".dash-footer").style.display = "block";
+  if (_fromHistory) {
+    _fromHistory = false;
+    document.getElementById("historyOverlay").classList.add("active");
+    renderHistory();
+  } else {
+    document.getElementById("screenDashboard").classList.remove("hidden");
+  }
   showLastResultBadge();
   document.getElementById("resultContent").innerHTML = "";
   // tryAnotherBtn verwijderd (vervangen door footer)
@@ -2264,6 +2271,7 @@ function toggleHistory() {
 }
 function closeHistoryPanel() {
   document.getElementById("historyOverlay").classList.remove("active");
+  document.getElementById("screenDashboard").classList.remove("hidden");
 }
 
 function saveAnalysis() {
@@ -2334,6 +2342,7 @@ function loadHistoryItem(idx) {
 
   // Close history
   document.getElementById("historyOverlay").classList.remove("active");
+  _fromHistory = true;
 
   // Go to dashboard first, then simulate results
   document.getElementById("screenCamera").classList.add("hidden");
