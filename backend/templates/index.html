@@ -81,12 +81,11 @@
           .history-overlay.active { pointer-events: auto; }
           .history-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.25); opacity: 0; transition: opacity 0.3s; }
           .history-overlay.active .history-bg { opacity: 1; }
-          .history-panel { position: absolute; top: 0; right: 0; width: 82%; max-width: 320px; height: 100%; background: #fff; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
+          .history-panel { position: absolute; top: 0; right: 0; width: 75%; max-width: 280px; height: 100%; background: var(--bg-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 60px 20px 24px; overflow-y: auto; }
           .history-overlay.active .history-panel { transform: translateX(0); }
-          .history-panel-close { position: absolute; top: 16px; left: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 20px; border: none; background: none; border-radius: 50%; transition: background 0.2s; }
-          .history-panel-close:hover { background: #f5f0eb; }
+          .history-panel-close { position: absolute; top: 16px; right: 16px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #33312E; font-size: 16px; border: none; background: none; }
           .history-panel-title { font-family: Georgia, serif; font-size: 18px; color: #33312E; text-align: center; margin: 16px 0 20px; padding-top: 12px; }
-          .history-panel-list { flex: 1; overflow-y: auto; }
+          .history-panel-list { overflow-y: auto; }
           .history-card { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 10px; background: #faf7f2; border-radius: 14px; cursor: pointer; transition: all 0.2s; }
           .history-card:hover { background: #f5f0eb; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
           .history-card-thumb { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: #e8ddd0; flex-shrink: 0; }
@@ -2452,7 +2451,7 @@ document.addEventListener("DOMContentLoaded", () => {
   <div class="history-overlay" id="historyOverlay">
     <div class="history-bg" onclick="closeHistoryPanel()"></div>
     <div class="history-panel">
-      <button class="history-panel-close" onclick="closeHistoryPanel()">←</button>
+      <button class="history-panel-close" onclick="closeHistoryPanel()">✕</button>
       <div class="history-panel-title">Geschiedenis</div>
       <div class="history-panel-empty" id="historyEmpty" style="display:none">Nog geen opgeslagen analyses</div>
       <div class="history-panel-list" id="historyList"></div>
