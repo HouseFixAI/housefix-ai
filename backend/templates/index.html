@@ -709,6 +709,7 @@ function setMode(mode) {
       lastResult = null; lastResultIntent = null;
       sessionStorage.removeItem("hf_lastResult"); sessionStorage.removeItem("hf_lastResultIntent");
       if (!currentMode) { showToast("Kies eerst Klus Hulp of Interieur"); return; }
+      currentIntent = currentMode === "damage" ? "identify_issue" : "identify";
       document.getElementById("screenDashboard").classList.add("hidden");
       document.getElementById("screenCamera").classList.remove("hidden");
       startCamera();
@@ -747,7 +748,7 @@ function openGallery() {
 }
 
 /* ── Standalone gallery picker from dashboard ── */
-function openGalleryPicker() {
+function openGalleryPicker() { currentIntent = currentMode ? (currentMode === "damage" ? "identify_issue" : "identify") : null;
   document.getElementById("galleryInput").click();
 }
 
@@ -822,9 +823,9 @@ function retake() {
       document.getElementById("screenCamera").classList.add("hidden");
       document.getElementById("loadingWrap").classList.add("active");
 
-      // Inspiration mode: skip orientation if intent already known from card
-      if (currentMode === "inspiration" && currentIntent) {
-        // Direct to advise step with known intent
+      // Intent flow: direct naar advise stap voor beide modes
+      if (currentIntent) {
+        // Beide modes via intent flow
         doSubmitIntent(currentIntent);
         currentIntent = null;
         return;
@@ -1008,7 +1009,7 @@ function retake() {
       document.getElementById("loadingWrap").classList.add("active");
       document.getElementById("resultsWrap").classList.remove("active");
       try {
-        const body = { image: imageBase64, mode: "inspiration", step: "advise", session_id: currentSessionId || "", user_intent: intent };
+        const body = { image: imageBase64, mode: currentMode, step: "advise", session_id: currentSessionId || "", user_intent: intent };
         if (userAnswers) body.user_answers = userAnswers;
         const resp = await fetch("/api/analyze", {
           method: "POST", headers: { "Content-Type": "application/json" },
