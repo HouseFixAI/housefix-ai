@@ -2105,7 +2105,7 @@ function showResults(r) {
     return;
   }
 
-  // Damage mode: normal repair analysis - render all in #resultContent as single HTML string
+  // ── Damage mode: premium flowing story (matching Interieur & Design) ──
   const snapSrc = document.getElementById("snapshot").src || "";
   const diyCost = r.cost_diy || r.cost_range || "\u2014";
   const proCost = r.cost_pro || r.cost_range || "\u2014";
@@ -2114,60 +2114,76 @@ function showResults(r) {
   const conf = r.confidence || "medium";
   const badgeMap = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } };
   const b = badgeMap[conf] || badgeMap.medium;
-  const badgeHtml = `<span class="badge ${b.c}">${b.l} vertrouwen</span>`;
 
-  // Issue card
-  html += `<div class="card" style="margin-bottom:14px"><div class="card-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyse</div><div class="card-body"><div class="res-type">${issueType}</div><div class="res-desc">${desc}</div><div style="margin-top:10px">${badgeHtml}</div></div></div>`;
+  // Issue section — flowing story style
+  html += `<div class="advice-section">`;
+  html += `<div class="identify-head">${issueType}</div>`;
+  html += `<div class="identify-sub">${b.l} vertrouwen</div>`;
+  html += `<div class="identify-context">${desc}</div>`;
+  html += `</div>`;
 
-  // Cost card
-  html += `<div class="card" style="margin-bottom:14px"><div class="card-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Kostenvergelijking</div><div class="card-body"><div class="cost-compare"><div class="cost-box diy"><div class="cost-label">Zelf doen</div><div class="cost-num">${diyCost}</div><div class="cost-sub">alleen materiaal</div></div><div class="cost-box pro"><div class="cost-label">Laten doen</div><div class="cost-num">${proCost}</div><div class="cost-sub">incl. voorrijkosten</div></div></div></div></div>`;
-
-  // Steps card
-  if (r.steps && r.steps.length) {
-    html += `<div class="card" style="margin-bottom:14px"><div class="card-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Stappenplan</div><div class="card-body">`;
-    r.steps.forEach((s, i) => {
-      html += `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`;
-    });
+  // Cost section — premium total like purchase-total
+  if (diyCost !== "\u2014" || proCost !== "\u2014") {
+    html += `<div class="advice-divider"></div>`;
+    html += `<div class="advice-section"><div class="advice-subhead">Kostenvergelijking</div>`;
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">`;
+    html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center"><div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Zelf doen</div><div style="font-size:24px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">alleen materiaal</div></div>`;
+    html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center"><div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Laten doen</div><div style="font-size:24px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">incl. voorrijkosten</div></div>`;
     html += `</div></div>`;
   }
 
-  // Materials card
-  if (r.materials && r.materials.length) {
-    const gammaTips = (r.gamma_tips && r.gamma_tips.length) ? r.gamma_tips.join(", ") : r.materials.join(", ");
-    html += `<div class="card" style="margin-bottom:14px"><div class="card-header"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Materialen</div><div class="card-body">`;
-    r.materials.forEach(m => { html += `<span class="material-tag">${m}</span>`; });
-    html += `</div><div style="padding:0 18px 18px"><a class="gamma-link" href="https://www.gamma.nl/zoeken?q=${encodeURIComponent(gammaTips)}" target="_blank">Bestel bij Gamma</a></div></div>`;
+  // Steps section — flowing story
+  if (r.steps && r.steps.length) {
+    html += `<div class="advice-divider"></div>`;
+    html += `<div class="advice-section"><div class="advice-subhead">Stappenplan</div>`;
+    r.steps.forEach((s, i) => {
+      html += `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`;
+    });
+    html += `</div>`;
   }
 
-  // Providers card
-  html += `<div class="card" style="margin-bottom:14px"><button class="accordion-btn" id="accordionToggle" onclick="toggleProviders()">Professionele vakman nodig? Bekijk lokale experts <span class="arrow" id="accordionArrow">\u25bc</span></button><div class="accordion-body" id="accordionBody"><div class="accordion-inner"><div class="filter-bar" id="provFilters" style="padding:0 0 12px 0"></div><div class="prov-grid" id="provGrid"></div></div></div></div>`;
+  // Materials section — premium advice-material chips
+  if (r.materials && r.materials.length) {
+    html += `<div class="advice-divider"></div>`;
+    html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials">`;
+    r.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
+    html += `</div>`;
+    const gammaTips = (r.gamma_tips && r.gamma_tips.length) ? r.gamma_tips.join(", ") : r.materials.join(", ");
+    html += `<div style="margin-top:10px"><a class="gamma-link" href="https://www.gamma.nl/zoeken?q=${encodeURIComponent(gammaTips)}" target="_blank">Bestel bij Gamma</a></div>`;
+    html += `</div>`;
+  }
+
+  // Providers section — inline premium cards, no accordion
+  if (providers && providers.length) {
+    html += `<div class="advice-divider"></div>`;
+    html += `<div class="advice-section"><div class="advice-subhead">Professionals in jouw buurt</div>`;
+    html += `<div class="filter-bar" id="provFilters" style="padding:0 0 12px 0"></div>`;
+    html += `<div class="prov-grid" id="provGrid"></div>`;
+    html += `</div>`;
+  }
 
   resultContent.innerHTML = html;
-  renderProviders();
+  if (providers && providers.length) renderProviders();
 }
-function toggleProviders() {
-  const body = document.getElementById("accordionBody");
-  const arrow = document.getElementById("accordionArrow");
-  body.classList.toggle("open");
-  arrow.classList.toggle("open");
-}
-
 function renderProviders(filter) {
   const list = filter ? providers.filter(p => p.category === filter) : providers;
   const cats = ["Alles", ...new Set(providers.map(p => p.category))];
-  document.getElementById("provFilters").innerHTML = cats.map(c =>
+  const fEl = document.getElementById("provFilters");
+  const gEl = document.getElementById("provGrid");
+  if (!fEl || !gEl) return;
+  fEl.innerHTML = cats.map(c =>
     `<button class="filter-btn ${c === (filter || 'Alles') ? 'active' : ''}" onclick="renderProviders('${c === 'Alles' ? '' : c}')">${c}</button>`
   ).join("");
-  document.getElementById("provGrid").innerHTML = list.map(p => {
+  gEl.innerHTML = list.map(p => {
     const full = Math.floor(p.rating);
     const half = p.rating % 1 >= 0.5;
-    return `<div class="prov-card">
-      <div class="prov-cat">${p.category}</div>
-      <div class="prov-name">${p.name}</div>
-      <div class="prov-meta"><span class="prov-stars">${'★'.repeat(full)}${half ? '½' : ''}</span> ${p.city}</div>
-      <div class="prov-actions">
-        <a class="wa-link" href="https://wa.me/${p.phone}?text=Hallo ${p.name}, ik heb via HouseFix AI een klus en wil graag een offerte." target="_blank">💬 WhatsApp</a>
-        <button class="quote-btn-sm" onclick="alert('Offerte aanvragen is binnenkort beschikbaar!')">📋 Offerte</button>
+    return `<div class="purchase-card" style="margin-bottom:10px;padding:14px">
+      <div class="prov-cat" style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:2px">${p.category}</div>
+      <div class="purchase-card-name">${p.name}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px"><span style="color:#d4a847">${'★'.repeat(full)}${half ? '½' : ''}</span> ${p.city}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <a class="wa-link" href="https://wa.me/${p.phone}?text=Hallo ${p.name}, ik heb via HouseFix AI een klus en wil graag een offerte." target="_blank" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;background:#1F1E1C;color:#FFFFFF;border:1px solid rgba(255,255,255,0.1);letter-spacing:0.5px;transition:all 0.2s">💬 WhatsApp</a>
+        <button class="quote-btn-sm" onclick="alert('Offerte aanvragen is binnenkort beschikbaar!')" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--border-light);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;transition:all 0.2s">📋 Offerte</button>
       </div>
     </div>`;
   }).join("");
@@ -2252,9 +2268,6 @@ function goHome() {
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
     document.getElementById(id).style.display = "none"
   );
-  // Reset accordion
-  document.getElementById("accordionBody").classList.remove("open");
-  document.getElementById("accordionArrow").classList.remove("open");
 }
 
 /* ── History / Save / Load / Delete ── */
