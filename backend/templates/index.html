@@ -2072,7 +2072,7 @@ function showDiyRoute(r) {
   const resultContent = document.getElementById("resultContent");
   const saveBtn = document.getElementById("saveBtn");
   const diyCost = r.cost_diy || r.cost_range || "\u2014";
-  let html = `<div style="margin-bottom:12px"><button class="header-btn" onclick="showResults(currentResult)" style="color:var(--terracotta);font-size:13px;padding:6px 0;width:auto;gap:4px">\u2B05\uFE0F  Terug naar diagnose</button></div>`;
+  let html = `<div style="margin-bottom:4px"><button onclick="showResults(currentResult)" style="background:none;border:none;cursor:pointer;padding:4px 0;font-size:16px;color:var(--text-secondary)">\u2190</button></div>`;
   if (diyCost !== "\u2014") {
     html += `<div class="advice-section"><div class="advice-subhead">Kosten</div>`;
     html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center"><div style="font-size:24px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">alleen materiaal</div></div></div>`;
@@ -2093,11 +2093,7 @@ function showDiyRoute(r) {
     html += `</div>`;
   }
   html += `<div class="advice-divider"></div>`;
-  html += `<div style="display:flex;flex-direction:column;gap:8px;padding-bottom:20px">`;
-  html += `<button class="header-btn" onclick="showResults(currentResult)" style="color:var(--terracotta);font-size:14px;padding:10px 0;width:100%;gap:6px">\u2B05\uFE0F  Terug naar diagnose</button>`;
-  html += `<button class="footer-btn-secondary" onclick="goHome()" style="text-align:center">Nieuwe scan</button>`;
-  html += `<button class="footer-btn-secondary" onclick="goHome()" style="text-align:center">Home</button>`;
-  html += `</div>`;
+  html += `<div style="height:60px"></div>`;
   resultContent.innerHTML = html;
   saveBtn.style.display = "none";
 }
@@ -2105,7 +2101,7 @@ function showProRoute(r) {
   const resultContent = document.getElementById("resultContent");
   const saveBtn = document.getElementById("saveBtn");
   const proCost = r.cost_pro || r.cost_range || "\u2014";
-  let html = `<div style="margin-bottom:12px"><button class="header-btn" onclick="showResults(currentResult)" style="color:var(--terracotta);font-size:13px;padding:6px 0;width:auto;gap:4px">\u2B05\uFE0F  Terug naar diagnose</button></div>`;
+  let html = `<div style="margin-bottom:4px"><button onclick="showResults(currentResult)" style="background:none;border:none;cursor:pointer;padding:4px 0;font-size:16px;color:var(--text-secondary)">\u2190</button></div>`;
   if (proCost !== "\u2014") {
     html += `<div class="advice-section"><div class="advice-subhead">Kosten</div>`;
     html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center"><div style="font-size:24px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">incl. voorrijkosten</div></div></div>`;
@@ -2118,11 +2114,7 @@ function showProRoute(r) {
     html += `</div>`;
   }
   html += `<div class="advice-divider"></div>`;
-  html += `<div style="display:flex;flex-direction:column;gap:8px;padding-bottom:20px">`;
-  html += `<button class="header-btn" onclick="showResults(currentResult)" style="color:var(--terracotta);font-size:14px;padding:10px 0;width:100%;gap:6px">\u2B05\uFE0F  Terug naar diagnose</button>`;
-  html += `<button class="footer-btn-secondary" onclick="goHome()" style="text-align:center">Nieuwe scan</button>`;
-  html += `<button class="footer-btn-secondary" onclick="goHome()" style="text-align:center">Home</button>`;
-  html += `</div>`;
+  html += `<div style="height:60px"></div>`;
   resultContent.innerHTML = html;
   saveBtn.style.display = "none";
   if (providers && providers.length) renderProviders();
