@@ -2061,9 +2061,9 @@ function showResults(r) {
   if (r.warning) {
     html += `<div style="padding:12px 16px;border-radius:12px;background:rgba(196,98,74,0.06);border:1px solid rgba(196,98,74,0.12);font-size:14px;color:var(--terracotta);line-height:1.5;margin-bottom:16px">\u26a0\ufe0f ${r.warning}</div>`;
   }
-  html += `<div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">`;
-  html += `<button class="cta-btn" onclick="showDiyRoute(currentResult)" style="padding:16px;font-size:16px">\uD83D\uDEE0\uFE0F  Zelf doen</button>`;
-  html += `<button class="cta-btn" onclick="showProRoute(currentResult)" style="padding:16px;font-size:16px;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\uD83D\uDC77  Laten doen</button>`;
+  html += `<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+  html += `<button class="cta-btn" onclick="showDiyRoute(currentResult)" style="padding:12px;font-size:14px;font-weight:600">Zelf doen</button>`;
+  html += `<button class="cta-btn" onclick="showProRoute(currentResult)" style="padding:12px;font-size:14px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">Laten doen</button>`;
   html += `</div></div>`;
   resultContent.innerHTML = html;
   saveBtn.style.display = "none";
@@ -2072,7 +2072,7 @@ function showDiyRoute(r) {
   const resultContent = document.getElementById("resultContent");
   const saveBtn = document.getElementById("saveBtn");
   const diyCost = r.cost_diy || r.cost_range || "\u2014";
-  let html = `<div style="margin-bottom:4px"><button onclick="showResults(currentResult)" style="background:none;border:none;cursor:pointer;padding:4px 0;font-size:16px;color:var(--text-secondary)">\u2190</button></div>`;
+  let html = ``;
   if (diyCost !== "\u2014") {
     html += `<div class="advice-section"><div class="advice-subhead">Kosten</div>`;
     html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center"><div style="font-size:24px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">alleen materiaal</div></div></div>`;
@@ -2101,7 +2101,7 @@ function showProRoute(r) {
   const resultContent = document.getElementById("resultContent");
   const saveBtn = document.getElementById("saveBtn");
   const proCost = r.cost_pro || r.cost_range || "\u2014";
-  let html = `<div style="margin-bottom:4px"><button onclick="showResults(currentResult)" style="background:none;border:none;cursor:pointer;padding:4px 0;font-size:16px;color:var(--text-secondary)">\u2190</button></div>`;
+  let html = ``;
   if (proCost !== "\u2014") {
     html += `<div class="advice-section"><div class="advice-subhead">Kosten</div>`;
     html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center"><div style="font-size:24px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">incl. voorrijkosten</div></div></div>`;
