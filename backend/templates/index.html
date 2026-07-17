@@ -613,7 +613,7 @@
       <!-- ═══ RESULTS ═══ -->
       <div class="results-wrap" id="resultsWrap">
         <div class="results-header">
-          <button class="header-btn" id="backBtn" onclick="goHome()" aria-label="Terug">←</button>
+          <button class="header-btn" id="backBtn" onclick="goBack()" aria-label="Terug">←</button>
           <div class="header-title" id="headerTitle"></div>
           <button class="header-btn" id="shareBtn" onclick="shareResults()" aria-label="Deel"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.9"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
           <button class="header-btn" id="menuBtn" onclick="toggleMenu()" aria-label="Menu">☰</button>
@@ -844,7 +844,14 @@ function retake() {
 }
 
 /* ── Analyze ── */
-    async function analyze() {
+    function goBack() {
+  if (currentStep === "diy" || currentStep === "pro") {
+    showResults(currentResult);
+  } else {
+    goHome();
+  }
+}
+async function analyze() {
       if (!imageBase64) return;
 
       document.getElementById("screenCamera").classList.add("hidden");
@@ -2062,11 +2069,12 @@ function showResults(r) {
     html += `<div style="padding:12px 16px;border-radius:12px;background:rgba(196,98,74,0.06);border:1px solid rgba(196,98,74,0.12);font-size:14px;color:var(--terracotta);line-height:1.5;margin-bottom:16px">\u26a0\ufe0f ${r.warning}</div>`;
   }
   html += `<div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
-  html += `<button class="cta-btn" onclick="showDiyRoute(currentResult)" style="padding:12px;font-size:14px;font-weight:600">Zelf doen</button>`;
+  html += `<button class="cta-btn" onclick="showDiyRoute(currentResult)" style="padding:12px;font-size:14px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">Zelf doen</button>`;
   html += `<button class="cta-btn" onclick="showProRoute(currentResult)" style="padding:12px;font-size:14px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">Laten doen</button>`;
   html += `</div></div>`;
   resultContent.innerHTML = html;
   saveBtn.style.display = "none";
+  currentStep = "diagnose";
 }
 function showDiyRoute(r) {
   const resultContent = document.getElementById("resultContent");
@@ -2096,6 +2104,7 @@ function showDiyRoute(r) {
   html += `<div style="height:60px"></div>`;
   resultContent.innerHTML = html;
   saveBtn.style.display = "none";
+  currentStep = "diy";
 }
 function showProRoute(r) {
   const resultContent = document.getElementById("resultContent");
@@ -2117,6 +2126,7 @@ function showProRoute(r) {
   html += `<div style="height:60px"></div>`;
   resultContent.innerHTML = html;
   saveBtn.style.display = "none";
+  currentStep = "pro";
   if (providers && providers.length) renderProviders();
 }
 function renderProviders(filter) {
@@ -2202,6 +2212,7 @@ function toggleMenu() {
   showToast("☰ Menu komt binnenkort");
 }
 
+let currentStep = "home";
 function goHome() {
   currentIntent = null;
   stopStream();
