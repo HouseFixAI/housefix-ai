@@ -1913,10 +1913,76 @@ function renderResults(intent, data) {
           case "style":
             showInspirationAdvice(data);
             break;
+          case "cost":
+            showCostEstimate(data);
+            break;
           default:
             showResults(data);
         }
       }
+    }
+
+    function showCostEstimate(r) {
+      currentResult = r;
+      const snapshotEl = document.getElementById("snapshot");
+      currentResultImage = snapshotEl.src || "";
+      const saveBtn = document.getElementById("saveBtn");
+      const resultContent = document.getElementById("resultContent");
+      let html = "";
+      if (r.is_fallback) {
+        html = `<div class="fallback-banner"><span class="fallback-banner-icon">\u2139\ufe0f</span> Dit advies is algemeen \u2014 voor een persoonlijke analyse specifiek voor jouw situatie hebben we een AI-verbinding nodig.</div>`;
+        resultContent.innerHTML = html;
+        return;
+      }
+      if (r.no_damage) {
+        html = `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--sage);margin-bottom:8px">\u2705 Geen schade</div><div class="res-desc">${r.message || "\u2705 Geen schade geconstateerd."}</div></div></div>`;
+        resultContent.innerHTML = html;
+        return;
+      }
+      if (r.warning) {
+        html = `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--terracotta);margin-bottom:8px">\u26a0\ufe0f Niet herkend</div><div class="res-desc">${r.warning}</div></div></div>`;
+        resultContent.innerHTML = html;
+        return;
+      }
+      // Kosten-first: compact diagnose + beide kosten direct
+      const issueType = r.issue_type || "Kosten Schatting";
+      const desc = r.description || "";
+      const diyCost = r.cost_diy || r.cost_range || "\u2014";
+      const proCost = r.cost_pro || r.cost_range || "\u2014";
+      html += `<div class="advice-section" style="margin-bottom:8px">`;
+      html += `<div class="identify-head" style="font-size:22px;margin-bottom:2px">${issueType}</div>`;
+      html += `<div class="identify-context" style="font-size:13px;margin-bottom:12px">${desc}</div>`;
+      // Cost comparison blocks - prominent, both shown
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">`;
+      if (diyCost !== "\u2014") {
+        html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:4px">Zelf doen</div><div style="font-size:22px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">alleen materiaal</div></div>`;
+      }
+      if (proCost !== "\u2014") {
+        html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Laten doen</div><div style="font-size:22px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">incl. voorrijkosten</div></div>`;
+      }
+      html += `</div>`;
+      // Extra info in compact accordion-style
+      html += `<div style="display:flex;flex-direction:column;gap:6px">`;
+      if (r.steps && r.steps.length) {
+        html += `<details style="padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-light);background:var(--bg-card)"><summary style="font-size:13px;font-weight:600;cursor:pointer;color:var(--text-primary)">Stappenplan</summary><div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light)">`;
+        r.steps.forEach((s, i) => { html += `<div style="display:flex;gap:8px;padding:4px 0;font-size:13px;color:var(--text-secondary)"><span style="flex-shrink:0;width:18px;height:18px;border-radius:50%;background:var(--border-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text-muted)">${i+1}</span>${s}</div>`; });
+        html += `</div></details>`;
+      }
+      if (r.materials && r.materials.length) {
+        html += `<details style="padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-light);background:var(--bg-card)"><summary style="font-size:13px;font-weight:600;cursor:pointer;color:var(--text-primary)">Materialen</summary><div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light);display:flex;flex-wrap:wrap;gap:4px">`;
+        r.materials.forEach(m => { html += `<span style="display:inline-block;padding:4px 10px;border-radius:6px;background:var(--bg-card);border:1px solid var(--border-light);font-size:12px;color:var(--text-secondary)">${m}</span>`; });
+        const gammaTips = (r.gamma_tips && r.gamma_tips.length) ? r.gamma_tips.join(", ") : r.materials.join(", ");
+        html += `</div><div style="margin-top:8px"><a class="gamma-link" href="https://www.gamma.nl/zoeken?q=${encodeURIComponent(gammaTips)}" target="_blank">Bestel bij Gamma</a></div></details>`;
+      }
+      if (providers && providers.length) {
+        html += `<details style="padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-light);background:var(--bg-card)"><summary style="font-size:13px;font-weight:600;cursor:pointer;color:var(--text-primary)">Vakman in de buurt</summary><div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border-light)"><div class="filter-bar" id="provFilters" style="padding:0 0 8px 0"></div><div class="prov-grid" id="provGrid"></div></div></details>`;
+      }
+      html += `</div>`;
+      html += `<div style="height:40px"></div>`;
+      resultContent.innerHTML = html;
+      saveBtn.style.display = "none";
+      currentStep = "diagnose";
+      if (providers && providers.length) renderProviders();
     }
 
     function renderColorPalette(r) {
@@ -2389,7 +2455,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ],
       damage: [
         {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Analyseer Schade", a:"openCamera()"},
-        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Kosten Schatting", a:"openCamera()"},
+        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Kosten Schatting", a:"openCameraForIntent('cost')"},
         {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Reparatieplan", a:"openCamera()"},
         {bg:"url(https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Materialenlijst", a:"openCamera()"}
       ],
