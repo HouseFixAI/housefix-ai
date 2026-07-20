@@ -1959,55 +1959,70 @@ function renderResults(intent, data) {
       html += `<div class="advice-section" style="margin-bottom:8px">`;
       html += `<div class="identify-head" style="font-size:22px;margin-bottom:2px">${issueType}</div>`;
       html += `<div class="identify-context" style="font-size:13px;margin-bottom:12px">${desc}</div>`;
-      // Kosten blokken - beiden prominent
-      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">`;
+      // Kosten blokken - klikbaar, worden de navigatie
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">`;
       if (diyCost !== "\u2014") {
-        html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:4px">Zelf doen</div><div style="font-size:22px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">alleen materiaal</div></div>`;
+        html += `<div id="costDiyBtn" onclick="showCostDiy(currentResult)" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center;transition:all 0.2s"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:4px">Zelf doen</div><div style="font-size:22px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">alleen materiaal \u2192</div></div>`;
       }
       if (proCost !== "\u2014") {
-        html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Laten doen</div><div style="font-size:22px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">incl. voorrijkosten</div></div>`;
+        html += `<div id="costProBtn" onclick="showCostPro(currentResult)" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center;transition:all 0.2s"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Laten doen</div><div style="font-size:22px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">incl. voorrijkosten \u2192</div></div>`;
       }
       html += `</div>`;
-      // ── ZELF DOEN sectie ──
-      html += `<div style="margin-bottom:12px;border-radius:var(--radius-sm);border:1px solid rgba(138,155,122,0.2);background:var(--sage-soft);overflow:hidden">`;
-      html += `<div style="padding:12px 14px;background:var(--sage);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe2 Zelf doen</div>`;
+      // Container waar de gekozen sectie wordt ingeladen
+      html += `<div id="costDetail"></div>`;
+      html += `<div style="height:40px"></div>`;
+      resultContent.innerHTML = html;
+      saveBtn.style.display = "none";
+      currentStep = "diagnose";
+    }
+
+    function showCostDiy(r) {
+      currentResult = r;
+      const dd = document.getElementById("costDetail");
+      const diyCost = r.cost_diy || r.cost_range || "\u2014";
+      let html = "";
+      html += `<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(138,155,122,0.2);background:var(--sage-soft);overflow:hidden">`;
+      html += `<div style="padding:12px 14px;background:var(--sage);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe2 Zelf doen \u2014 ${diyCost}</div>`;
       html += `<div style="padding:14px">`;
-      // Uitleg
       if (r.diy_rationale) {
         html += `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.5)">${r.diy_rationale}</div>`;
       }
-      // Stappenplan
       if (r.steps && r.steps.length) {
         html += `<div class="advice-subhead" style="font-size:12px;margin-bottom:6px">Stappenplan</div>`;
         r.steps.forEach(function(s, i) {
           html += `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`;
         });
-        html += `<div style="height:8px"></div>`;
       }
-      // Materialen als productkaarten
       if (r.materials && r.materials.length) {
-        html += `<div class="advice-subhead" style="font-size:12px;margin-bottom:6px">Materialen</div>`;
+        html += `<div class="advice-subhead" style="font-size:12px;margin-bottom:6px;margin-top:10px">Materialen</div>`;
         html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">`;
         r.materials.forEach(function(m) {
           html += `<div style="padding:10px 12px;border-radius:8px;background:#fff;border:1px solid rgba(138,155,122,0.15);font-size:12px;color:var(--text-primary);text-align:center;font-weight:500">${m}</div>`;
         });
         html += `</div>`;
-        // Gamma link
         const gammaQ = (r.gamma_tips && r.gamma_tips.length) ? r.gamma_tips.join(", ") : r.materials.join(", ");
         html += `<a class="gamma-link" href="https://www.gamma.nl/zoeken?q=${encodeURIComponent(gammaQ)}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;background:#fff;color:var(--sage);border:1.5px solid var(--sage)">\ud83d\udecd\ufe0f Bestel bij Gamma</a>`;
       }
-      // Ruimte voor how-to videos (placeholder structuur)
+      // Video placeholder
       html += `<div style="height:4px"></div>`;
       html += `</div></div>`;
-      // ── LATEN DOEN sectie ──
-      html += `<div style="margin-bottom:12px;border-radius:var(--radius-sm);border:1px solid rgba(196,98,74,0.2);background:var(--terracotta-soft);overflow:hidden">`;
-      html += `<div style="padding:12px 14px;background:var(--terracotta);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe7 Laten doen</div>`;
+      html += `<div style="text-align:center;margin-top:8px"><button onclick="showCostEstimate(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
+      dd.innerHTML = html;
+      document.getElementById("costDiyBtn").style.opacity = "0.6";
+      document.getElementById("costProBtn").style.opacity = "1";
+    }
+
+    function showCostPro(r) {
+      currentResult = r;
+      const dd = document.getElementById("costDetail");
+      const proCost = r.cost_pro || r.cost_range || "\u2014";
+      let html = "";
+      html += `<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(196,98,74,0.2);background:var(--terracotta-soft);overflow:hidden">`;
+      html += `<div style="padding:12px 14px;background:var(--terracotta);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe7 Laten doen \u2014 ${proCost}</div>`;
       html += `<div style="padding:14px">`;
-      // Uitleg
       if (r.pro_rationale) {
         html += `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.5)">${r.pro_rationale}</div>`;
       }
-      // Vakman in de buurt
       if (providers && providers.length) {
         html += `<div class="advice-subhead" style="font-size:12px;margin-bottom:6px">Vakman in de buurt</div>`;
         html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">`;
@@ -2022,16 +2037,15 @@ function renderResults(intent, data) {
           html += `</div>`;
         });
         html += `</div>`;
-        // Vergelijk & Reviews
         if (providers.length > 3) {
           html += `<button class="cta-btn" onclick="renderProviders()" style="width:100%;padding:10px;font-size:12px;font-weight:600;background:transparent;color:var(--terracotta);border:1px solid var(--terracotta);border-radius:8px">Vergelijk alle ${providers.length} bedrijven \u2192</button>`;
         }
       }
       html += `</div></div>`;
-      html += `<div style="height:40px"></div>`;
-      resultContent.innerHTML = html;
-      saveBtn.style.display = "none";
-      currentStep = "diagnose";
+      html += `<div style="text-align:center;margin-top:8px"><button onclick="showCostEstimate(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
+      dd.innerHTML = html;
+      document.getElementById("costProBtn").style.opacity = "0.6";
+      document.getElementById("costDiyBtn").style.opacity = "1";
     }
 
     function renderColorPalette(r) {
