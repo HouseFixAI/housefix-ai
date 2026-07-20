@@ -2356,23 +2356,23 @@ function showResults(r) {
       html += '<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px">'+desc+'</div>';
       // Twee klikbare keuzes
       html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">';
-      html += '<div id="repDiyBtn" onclick="showRepairDiy(currentResult)" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center;transition:all 0.2s">';
+      html += '<div id="repDiyBtn" onclick="toggleRepairSection(\'diy\')" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center;transition:all 0.2s">';
       html += '<div style="font-size:20px;margin-bottom:4px">\ud83d\udee0\ufe0f</div>';
       html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:4px">Zelf repareren</div>';
       // Toon tijdsindicatie als beschikbaar
       if (r.estimate_time) {
         html += '<div style="font-size:22px;font-weight:800;color:var(--sage)">'+r.estimate_time+'</div>';
       } else {
-        html += '<div style="font-size:13px;font-weight:600;color:var(--sage)">Stappenplan \u2192</div>';
+        html += '<div style="font-size:13px;font-weight:600;color:var(--sage)">Stappenplan</div>';
       }
       if (r.difficulty) {
         html += '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+r.difficulty+'</div>';
       }
       html += '</div>';
-      html += '<div id="repProBtn" onclick="showRepairPro(currentResult)" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center;transition:all 0.2s">';
+      html += '<div id="repProBtn" onclick="toggleRepairSection(\'pro\')" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center;transition:all 0.2s">';
       html += '<div style="font-size:20px;margin-bottom:4px">\ud83d\udc77</div>';
       html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Laten repareren</div>';
-      html += '<div style="font-size:13px;font-weight:600;color:var(--terracotta)">Offerte aanvragen \u2192</div>';
+      html += '<div style="font-size:13px;font-weight:600;color:var(--terracotta)">Offerte aanvragen</div>';
       html += '</div></div>';
       // Container voor de gekozen details
       html += '<div id="repDetail"></div>';
@@ -2380,6 +2380,28 @@ function showResults(r) {
       rc.innerHTML = html;
       saveBtn.style.display = "none";
       currentStep = "diagnose";
+    }
+
+
+    var _repairSectionOpen = null;
+    function toggleRepairSection(section) {
+      if (_repairSectionOpen === section) {
+        document.getElementById("repDetail").innerHTML = '';
+        document.getElementById("repDiyBtn").style.opacity = "1";
+        document.getElementById("repProBtn").style.opacity = "1";
+        _repairSectionOpen = null;
+        return;
+      }
+      _repairSectionOpen = section;
+      if (section === 'diy') {
+        document.getElementById("repDiyBtn").style.opacity = "0.6";
+        document.getElementById("repProBtn").style.opacity = "1";
+        showRepairDiy(currentResult);
+      } else {
+        document.getElementById("repProBtn").style.opacity = "0.6";
+        document.getElementById("repDiyBtn").style.opacity = "1";
+        showRepairPro(currentResult);
+      }
     }
 
     function showRepairDiy(r) {
@@ -2407,10 +2429,7 @@ function showResults(r) {
         html += '<a class="gamma-link" href="https://www.gamma.nl/zoeken?q='+encodeURIComponent(gammaQ)+'" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;background:#fff;color:var(--sage);border:1.5px solid var(--sage)">\ud83d\udecd\ufe0f Bestel bij Gamma</a>';
       }
       html += '</div></div>';
-      html += '<div style="text-align:center;margin-top:8px"><button onclick="showRepairExpert(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>';
       dd.innerHTML = html;
-      document.getElementById("repDiyBtn").style.opacity = "0.6";
-      document.getElementById("repProBtn").style.opacity = "1";
     }
 
     function showRepairPro(r) {
