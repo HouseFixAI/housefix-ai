@@ -1976,6 +1976,28 @@ function renderResults(intent, data) {
       currentStep = "diagnose";
     }
 
+
+    var _costSectionOpen = null;
+    function toggleCostSection(section) {
+      if (_costSectionOpen === section) {
+        document.getElementById("costDetail").innerHTML = '';
+        document.getElementById("costDiyBtn").style.opacity = "1";
+        document.getElementById("costProBtn").style.opacity = "1";
+        _costSectionOpen = null;
+        return;
+      }
+      _costSectionOpen = section;
+      if (section === 'diy') {
+        document.getElementById("costDiyBtn").style.opacity = "0.6";
+        document.getElementById("costProBtn").style.opacity = "1";
+        showCostDiy(currentResult);
+      } else {
+        document.getElementById("costProBtn").style.opacity = "0.6";
+        document.getElementById("costDiyBtn").style.opacity = "1";
+        showCostPro(currentResult);
+      }
+    }
+
     function showCostDiy(r) {
       currentResult = r;
       const dd = document.getElementById("costDetail");
