@@ -1,27 +1,33 @@
 #!/usr/bin/env python3
-"""Remove duplicate nav. HTML has single backslash: \u2B05 - match that."""
+"""Use navigateTo function instead of inline _previousExpert set."""
+import subprocess
+
 p = "/home/team/shared/backend/templates/index.html"
 with open(p, "rb") as f:
-    data = f.read()
-text = data.decode("utf-8", errors="surrogateescape")
+    raw = f.read()
 
-# Match text with SINGLE backslash: \u2B05\uFE0F
-# In Python source: \\u2B05 produces \u2B05 (1 backslash)
-old_top = 'margin-bottom:12px"><button class="header-btn" onclick="showResults(currentResult)" style="color:var(--terracotta);font-size:13px;padding:6px 0;width:auto;gap:4px">\\u2B05\\uFE0F  Terug naar diagnose</button></div>'
-new_top = 'margin-bottom:4px"><button onclick="showResults(currentResult)" style="background:none;border:none;cursor:pointer;padding:4px 0;font-size:16px;color:var(--text-secondary)">\\u2190</button></div>'
+# 1. Add _previousExpert + navigateTo function
+old_var = b'    var _previousExpert = null;'
+new_var = b'''    var _previousExpert = null;
+    function navigateTo(expert) {
+      _previousExpert = 'damage';
+      if (expert === 'repair') showRepairExpert(currentResult);
+      else if (expert === 'cost') showCostEstimate(currentResult);
+    }'''
+raw = raw.replace(old_var, new_var)
 
-count_top = text.count(old_top)
-print(f"Top back buttons found: {count_top}")
-text = text.replace(old_top, new_top)
+# 2. Replace onclick in Schade Expert's buttons
+old_rep = b'onclick="_previousExpert=\\x27damage\\x27; showRepairExpert(currentResult)"'
+new_rep = b'onclick="navigateTo(\'repair\')"'
+raw = raw.replace(old_rep, new_rep)
 
-# Single backslash in bottom block too
-old_bottom = '\\u2B05\\uFE0F  Terug naar diagnose</button>`;\n  html += `<button class="footer-btn-secondary" onclick="goHome()" style="text-align:center">Nieuwe scan</button>`;\n  html += `<button class="footer-btn-secondary" onclick="goHome()" style="text-align:center">Home</button>`;\n  html += `</div>'
-new_bottom = 'height:60px"></div>'
-
-count_bottom = text.count(old_bottom)
-print(f"Bottom nav blocks found: {count_bottom}")
-text = text.replace(old_bottom, new_bottom)
+old_cost = b'onclick="_previousExpert=\\x27damage\\x27; showCostEstimate(currentResult)"'
+new_cost = b'onclick="navigateTo(\'cost\')"'
+raw = raw.replace(old_cost, new_cost)
 
 with open(p, "wb") as f:
-    f.write(text.encode("utf-8", errors="surrogateescape"))
-print("done")
+    f.write(raw)
+print("navigateTo added")
+
+r = subprocess.run(["node", "-e", "const fs=require('fs');const s=fs.readFileSync('/home/team/shared/backend/templates/index.html','utf8');const m=s.match(/<script>([\\s\\S]*?)<\\/script>/);try{new Function(m[1]);console.log('JS_OK')}catch(e){console.log('Error: '+e.message)}"], capture_output=True, text=True, cwd="/home/team/shared")
+print(r.stdout.strip())

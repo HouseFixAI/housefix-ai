@@ -852,6 +852,9 @@ function retake() {
     toggleCostSection(_costSectionOpen);
   } else if (_repairSectionOpen) {
     toggleRepairSection(_repairSectionOpen);
+  } else if (_previousExpert === "damage") {
+    _previousExpert = null;
+    showDamageExpert(currentResult);
   } else {
     goHome();
   }
@@ -2033,7 +2036,7 @@ function renderResults(intent, data) {
       // Video placeholder
       html += `<div style="height:4px"></div>`;
       html += `</div></div>`;
-      html += `<div style="text-align:center;margin-top:8px"><button onclick="showCostEstimate(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
+      html += `<div style="text-align:center;margin-top:8px"><button onclick="goToCost()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
       dd.innerHTML = html;
     }
 
@@ -2067,7 +2070,7 @@ function renderResults(intent, data) {
         }
       }
       html += `</div></div>`;
-      html += `<div style="text-align:center;margin-top:8px"><button onclick="showCostEstimate(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
+      html += `<div style="text-align:center;margin-top:8px"><button onclick="goToCost()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
       dd.innerHTML = html;
     }
 
@@ -2269,8 +2272,8 @@ function showResults(r) {
       html += '<div id="damDetail"></div>';
       // Navigatie naar reparatie en kosten (blijft)
       html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-      html += '<button class="cta-btn" onclick="showRepairExpert(currentResult)" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\ud83d\udee0\ufe0f Repareren</button>';
-      html += '<button class="cta-btn" onclick="showCostEstimate(currentResult)" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\ud83d\udcb0 Kosten</button>';
+      html += '<button class="cta-btn" onclick="goToRepair()" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\ud83d\udee0\ufe0f Repareren</button>';
+      html += '<button class="cta-btn" onclick="goToCost()" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\ud83d\udcb0 Kosten</button>';
       html += '</div></div>';
       html += '<div style="height:40px"></div>';
       rc.innerHTML = html;
@@ -2389,6 +2392,9 @@ function showResults(r) {
 
 
     var _repairSectionOpen = null;
+    var _previousExpert = null;
+    function goToRepair(){_previousExpert='damage';showRepairExpert(currentResult)}
+    function goToCost(){_previousExpert='damage';showCostEstimate(currentResult)}
     function toggleRepairSection(section) {
       if (_repairSectionOpen === section) {
         document.getElementById("repDetail").innerHTML = '';
@@ -2469,7 +2475,7 @@ function showResults(r) {
         }
       }
       html += '</div></div>';
-      html += '<div style="text-align:center;margin-top:8px"><button onclick="showRepairExpert(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>';
+      html += '<div style="text-align:center;margin-top:8px"><button onclick="goToRepair()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>';
       dd.innerHTML = html;
       document.getElementById("repProBtn").style.opacity = "0.6";
       document.getElementById("repDiyBtn").style.opacity = "1";
