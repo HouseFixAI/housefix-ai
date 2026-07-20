@@ -2763,25 +2763,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-    function resetMode() {
-      buildCarousel("neutral");
-      document.getElementById("modeDamage").classList.remove("mode-active");
-      document.getElementById("modeInspiration").classList.remove("mode-active");
-      document.getElementById("menuIcon").textContent = "☰";
-      document.getElementById("ctaText").textContent = "Scan met camera";
-      document.getElementById("modeActiveBar").style.opacity = "0";
-      currentMode = null;
+        function resetMode() {
+      setMode("damage");
     }
   
     var hcCards = {
       neutral: [
-        {bg:"url(https://images.unsplash.com/photo-1618220179428-22790b461013?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Woonkamer"},
-        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Renovatie & Bouw"},
-        {bg:"url(https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Badkamer"},
-        {bg:"url(https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Tuin"},
-        {bg:"url(https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Keuken & Sanitair"}
+        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udd0d Schade Expert", a:"openCameraForIntent('damage_expert')"},
+        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udcb0 Kosten Expert", a:"openCameraForIntent('cost_expert')"},
+        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", a:"openCameraForIntent('repair_expert')"}
       ],
-      damage: [
+            damage: [
         {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udd0d Schade Expert", a:"openCameraForIntent('damage_expert')"},
         {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udcb0 Kosten Expert", a:"openCameraForIntent('cost_expert')"},
         {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", a:"openCameraForIntent('repair_expert')"}
@@ -2804,7 +2796,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       scroll.innerHTML = html;
     }
-    buildCarousel("neutral");
+    setMode("damage");
       function handleMenuClick() {
       var icon = document.getElementById("menuIcon");
       if (icon.textContent === "✖") { resetMode(); }
