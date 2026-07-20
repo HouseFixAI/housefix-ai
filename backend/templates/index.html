@@ -2030,8 +2030,6 @@ function renderResults(intent, data) {
       html += `</div></div>`;
       html += `<div style="text-align:center;margin-top:8px"><button onclick="showCostEstimate(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
       dd.innerHTML = html;
-      document.getElementById("costDiyBtn").style.opacity = "0.6";
-      document.getElementById("costProBtn").style.opacity = "1";
     }
 
     function showCostPro(r) {
@@ -2066,8 +2064,6 @@ function renderResults(intent, data) {
       html += `</div></div>`;
       html += `<div style="text-align:center;margin-top:8px"><button onclick="showCostEstimate(currentResult)" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:4px 12px">\u2190 Andere optie</button></div>`;
       dd.innerHTML = html;
-      document.getElementById("costProBtn").style.opacity = "0.6";
-      document.getElementById("costDiyBtn").style.opacity = "1";
     }
 
     function renderColorPalette(r) {
