@@ -846,6 +846,12 @@ function retake() {
     function goBack() {
   if (currentStep === "diy" || currentStep === "pro") {
     showResults(currentResult);
+  } else if (_damageSectionOpen) {
+    toggleDamageSection(_damageSectionOpen);
+  } else if (_costSectionOpen) {
+    toggleCostSection(_costSectionOpen);
+  } else if (_repairSectionOpen) {
+    toggleRepairSection(_repairSectionOpen);
   } else {
     goHome();
   }
