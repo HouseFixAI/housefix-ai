@@ -2162,7 +2162,7 @@ function renderResults(intent, data) {
       if (r.harmony) {
         html += r.harmony;
       } else {
-        html += 'Nog geen advies. Probeer opnieuw te scannen.';
+        html += '<button class="footer-btn-secondary" onclick="requestColorAdvice()" style="width:100%;padding:14px;font-size:14px;font-weight:600;letter-spacing:0.3px;border:1.5px solid #1a237e;color:#1a237e;background:transparent;border-radius:12px">Persoonlijk kleuradvies \u2192</button>';
       }
       html += '</div>';
 
@@ -2171,7 +2171,7 @@ function renderResults(intent, data) {
       if (r.application) {
         html += r.application;
       } else {
-        html += 'Nog geen advies. Probeer opnieuw te scannen.';
+        html += '<button class="footer-btn-secondary" onclick="requestColorAdvice()" style="width:100%;padding:14px;font-size:14px;font-weight:600;letter-spacing:0.3px;border:1.5px solid #1a237e;color:#1a237e;background:transparent;border-radius:12px">Persoonlijk kleuradvies \u2192</button>';
       }
       html += '</div>';
 
@@ -2184,6 +2184,25 @@ function renderResults(intent, data) {
     // ── Toggle voor Kleurenpalet secties ──
     var _harmonyOpen = false;
     var _appOpen = false;
+
+    async function requestColorAdvice() {
+      var img = imageBase64 || (document.getElementById("snapshot")?.src?.split(",")[1]?.trim());
+      if (!img) { showToast("Geen foto. Scan opnieuw."); return; }
+      document.getElementById("loadingWrap").classList.add("active");
+      try {
+        var r = await fetch("/api/analyze", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: img, mode: "inspiration", user_intent: "color_palette" })
+        });
+        var d = await r.json();
+        if (d.error) throw new Error(d.error);
+        document.getElementById("loadingWrap").classList.remove("active");
+        renderColorPalette(d);
+      } catch(e) {
+        document.getElementById("loadingWrap").classList.remove("active");
+        showToast("\u26a0\ufe0f " + e.message);
+      }
+    }
 
     function toggleColorSection(section) {
       if (section === "harmony") {
