@@ -2778,14 +2778,14 @@ document.addEventListener("DOMContentLoaded", () => {
   
     var hcCards = {
       neutral: [
-        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udd0d Schade Expert", a:"openCameraForIntent('damage_expert')"},
-        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udcb0 Kosten Expert", a:"openCameraForIntent('cost_expert')"},
-        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", a:"openCameraForIntent('repair_expert')"}
+        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udd0d Schade Expert", intent:"damage_expert", a:"openCameraForIntent('damage_expert')"},
+        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udcb0 Kosten Expert", intent:"cost_expert", a:"openCameraForIntent('cost_expert')"},
+        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", intent:"repair_expert", a:"openCameraForIntent('repair_expert')"}
       ],
             damage: [
-        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udd0d Schade Expert", a:"openCameraForIntent('damage_expert')"},
-        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udcb0 Kosten Expert", a:"openCameraForIntent('cost_expert')"},
-        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", a:"openCameraForIntent('repair_expert')"}
+        {bg:"url(https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udd0d Schade Expert", intent:"damage_expert", a:"openCameraForIntent('damage_expert')"},
+        {bg:"url(https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udcb0 Kosten Expert", intent:"cost_expert", a:"openCameraForIntent('cost_expert')"},
+        {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", intent:"repair_expert", a:"openCameraForIntent('repair_expert')"}
       ],
       inspiration: [
         {bg:"url(https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Scan voor Kleurenpalet", a:"openCameraForIntent('identify')"},
@@ -2806,22 +2806,11 @@ document.addEventListener("DOMContentLoaded", () => {
       scroll.innerHTML = html;
       scroll.onscroll = function() {
         if (!list || !list.length || !clickable) return;
-        var cards = scroll.querySelectorAll('.hc-card');
-        if (!cards.length) return;
-        var scrollRect = scroll.getBoundingClientRect();
-        var center = scrollRect.left + scrollRect.width / 2;
-        var bestIdx = 0, bestDist = Infinity;
-        for (var i = 0; i < cards.length; i++) {
-          var cr = cards[i].getBoundingClientRect();
-          var cardCenter = cr.left + cr.width / 2;
-          var dist = Math.abs(cardCenter - center);
-          if (dist < bestDist) { bestDist = dist; bestIdx = i; }
-        }
-        var item = list[bestIdx];
-        if (item && item.a) {
-          var m = item.a.match(/'([^']+)'/);
-          if (m) selectedCarouselIntent = m[1];
-        }
+        var idx = Math.round(scroll.scrollLeft / scroll.clientWidth);
+        if (idx < 0) idx = 0;
+        if (idx >= list.length) idx = list.length - 1;
+        var item = list[idx];
+        if (item && item.intent) selectedCarouselIntent = item.intent;
       };
     }
     setMode("damage");
