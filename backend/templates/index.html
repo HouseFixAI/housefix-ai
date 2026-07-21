@@ -2639,7 +2639,8 @@ function goHome() {
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
     document.getElementById(id).style.display = "none"
   );
-  document.getElementById("menuIcon")?.textContent = "☰";
+  var mi = document.getElementById("menuIcon");
+  if (mi) mi.textContent = "☰";
 }
 
 /* ── History / Save / Load / Delete ── */
