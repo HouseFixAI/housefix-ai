@@ -2804,6 +2804,25 @@ document.addEventListener("DOMContentLoaded", () => {
         html += '<div class="hc-card' + (clickable ? " clickable" : "") + '"' + (clickable && c.a ? ' onclick="' + c.a + '"' : "") + '><div class="hc-card-bg" style="background:' + c.bg + '"></div><div class="hc-card-overlay"></div><div class="hc-card-label">' + c.t + '</div></div>';
       }
       scroll.innerHTML = html;
+      scroll.onscroll = function() {
+        if (!list || !list.length || !clickable) return;
+        var cards = scroll.querySelectorAll('.hc-card');
+        if (!cards.length) return;
+        var scrollRect = scroll.getBoundingClientRect();
+        var center = scrollRect.left + scrollRect.width / 2;
+        var bestIdx = 0, bestDist = Infinity;
+        for (var i = 0; i < cards.length; i++) {
+          var cr = cards[i].getBoundingClientRect();
+          var cardCenter = cr.left + cr.width / 2;
+          var dist = Math.abs(cardCenter - center);
+          if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+        }
+        var item = list[bestIdx];
+        if (item && item.a) {
+          var m = item.a.match(/'([^']+)'/);
+          if (m) selectedCarouselIntent = m[1];
+        }
+      };
     }
     setMode("damage");
       function handleMenuClick() {
