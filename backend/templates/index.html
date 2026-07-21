@@ -2806,7 +2806,8 @@ document.addEventListener("DOMContentLoaded", () => {
       scroll.innerHTML = html;
       scroll.onscroll = function() {
         if (!list || !list.length || !clickable) return;
-        var idx = Math.round(scroll.scrollLeft / scroll.clientWidth);
+        var step = (scroll.querySelector(".hc-card")?.offsetWidth || 300) + 12;
+        var idx = Math.round(scroll.scrollLeft / step);
         if (idx < 0) idx = 0;
         if (idx >= list.length) idx = list.length - 1;
         var item = list[idx];
