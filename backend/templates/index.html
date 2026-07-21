@@ -715,6 +715,7 @@ let lastResultIntent = sessionStorage.getItem("hf_lastResultIntent") || null;
 function setMode(mode) {
       buildCarousel(mode);
       currentMode = mode;
+      selectedCarouselIntent = mode === "damage" ? "damage_expert" : mode === "inspiration" ? "identify" : null;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
       var mb = document.getElementById("menuIcon"); mb.textContent = mode ? "✖" : "☰";
