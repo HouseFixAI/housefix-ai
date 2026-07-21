@@ -2639,7 +2639,7 @@ function goHome() {
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
     document.getElementById(id).style.display = "none"
   );
-  document.getElementById("menuIcon").textContent = "☰";
+  document.getElementById("menuIcon")?.textContent = "☰";
 }
 
 /* ── History / Save / Load / Delete ── */
