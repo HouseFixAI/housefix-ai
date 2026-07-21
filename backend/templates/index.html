@@ -244,7 +244,7 @@
           .footer-btn-primary:hover { border-color: rgba(255,255,255,0.4); color: #FFFFFF; }
           .footer-btn-primary:active { transform: scale(0.98); }
           .footer-btn-primary.saved { opacity: 0.4; }
-          .footer-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+          .footer-btn-grid { display: flex; justify-content: center; }
           .footer-btn-secondary { padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: transparent; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; letter-spacing: 0.5px; }
           .footer-btn-secondary:hover { border-color: rgba(255,255,255,0.25); color: #FFFFFF; background: rgba(255,255,255,0.05); }
           .footer-btn-secondary:active { transform: scale(0.97); }
@@ -689,7 +689,7 @@
         <div class="results-footer">
           <button class="footer-btn-primary" id="saveBtn" onclick="saveAnalysis()">ADVIES OPSLAAN</button>
           <div class="footer-btn-grid">
-            <button class="footer-btn-secondary" onclick="goHome()">HOME</button>
+            <button class="footer-btn-secondary" onclick="goHome()" style="min-width:140px">HOME</button>
           </div>
         </div>
       </div>
@@ -718,7 +718,7 @@ function setMode(mode) {
       selectedCarouselIntent = mode === "damage" ? "damage_expert" : mode === "inspiration" ? "identify" : null;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
-      var mb = document.getElementById("menuIcon"); mb.textContent = mode ? "✖" : "☰";
+      // Icon managed by goHome/showResults
       var c = document.getElementById("ctaText");
       c.textContent = mode ? (mode === "damage" ? "Scan het probleem" : "Scan voor inspiratie") : "Scan met camera";
     }
@@ -937,6 +937,7 @@ async function analyze() {
     let currentOrientIsFallback = false;
 
     function showOrientation(orient, sessionId, isFallback) {
+      document.getElementById("menuIcon").textContent = "✖";
           currentSessionId = sessionId;
           currentOrientResult = orient;
           currentOrientIsFallback = !!isFallback;
@@ -1813,6 +1814,7 @@ async function analyze() {
 let clarificationAnswers = [];
 
 function showClarification(questions) {
+      document.getElementById("menuIcon").textContent = "✖";
       clarificationAnswers = [];
       const container = document.getElementById("resultContent");
       if (!container) return;
@@ -1899,6 +1901,7 @@ async function submitClarification() {
 
 /* ── Results ── */
 function renderResults(intent, data) {
+      document.getElementById("menuIcon").textContent = "✖";
       // Data-driven result dispatcher (Fase 3)
       // Check data shape first, fall back to intent-based routing
       if (data.colors && data.colors.length) {
@@ -2617,6 +2620,7 @@ function toggleMenu() {
 
 let currentStep = "home";
 function goHome() {
+  document.getElementById("menuIcon").textContent = "☰";
   currentIntent = null;
   stopStream();
   retake();
@@ -2816,8 +2820,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     setMode("damage");
       function handleMenuClick() {
-      var icon = document.getElementById("menuIcon");
-      if (icon.textContent === "✖") { resetMode(); }
+      if (document.getElementById("resultsWrap").classList.contains("active")) { goHome(); }
       else { document.getElementById("spOverlay").classList.add("active"); }
     }
     function closeServicePanel() { document.getElementById("spOverlay").classList.remove("active"); }
