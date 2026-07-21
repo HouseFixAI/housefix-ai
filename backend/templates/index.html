@@ -2197,6 +2197,8 @@ function renderResults(intent, data) {
         var d = await r.json();
         if (d.error) throw new Error(d.error);
         document.getElementById("loadingWrap").classList.remove("active");
+      document.querySelector(".dash-footer").style.display = "none";
+      document.getElementById("resultsWrap").classList.add("active");
         renderColorPalette(d);
       } catch(e) {
         document.getElementById("loadingWrap").classList.remove("active");
