@@ -2153,8 +2153,8 @@ function renderResults(intent, data) {
 
       // ── Twee knoppen: Harmonie & Toepassing ──
       html += '<div style="display:flex;gap:8px;margin-top:20px">';
-      html += '<button class="footer-btn-secondary" id="harmonyBtn" onclick="toggleColorSection(\'harmony\')" style="flex:1;padding:12px;font-size:14px">🎨 Harmonie</button>';
-      html += '<button class="footer-btn-secondary" id="appBtn" onclick="toggleColorSection(\'application\')" style="flex:1;padding:12px;font-size:14px">🛋️ Toepassing</button>';
+      html += '<button class="footer-btn-secondary" id="harmonyBtn" onclick="toggleColorSection(\'harmony\')" style="flex:1;padding:12px;font-size:14px;opacity:0.85;font-weight:600;letter-spacing:0.3px">Kleurencombinaties</button>';
+      html += '<button class="footer-btn-secondary" id="appBtn" onclick="toggleColorSection(\'application\')" style="flex:1;padding:12px;font-size:14px;opacity:0.85;font-weight:600;letter-spacing:0.3px">Toepassing in huis</button>';
       html += '</div>';
 
       // Harmony section (hidden by default)
@@ -2162,7 +2162,7 @@ function renderResults(intent, data) {
       if (r.harmony) {
         html += r.harmony;
       } else {
-        html += 'Welke kleuren passen bij dit palet? Scan opnieuw voor een compleet kleuradvies.';
+        html += 'Nog geen advies. Probeer opnieuw te scannen.';
       }
       html += '</div>';
 
@@ -2171,7 +2171,7 @@ function renderResults(intent, data) {
       if (r.application) {
         html += r.application;
       } else {
-        html += 'Waar gebruik je deze kleuren? Scan opnieuw voor een toepassingsadvies.';
+        html += 'Nog geen advies. Probeer opnieuw te scannen.';
       }
       html += '</div>';
 

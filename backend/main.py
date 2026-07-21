@@ -624,6 +624,8 @@ COLOR_PALETTE_PROMPT = (
     "Vloeren: Quick-Step, Parketdiscounter, HORNBACH\n\n"
     "Return valid JSON with these keys:\n"
     "intent (altijd 'identify'),\n"
+    "harmony (ALTIJD 2-3 zinnen Nederlands: specifiek kleurenharmonie advies. Verplicht veld!),\n"
+    "application (ALTIJD 2-3 zinnen Nederlands: specifiek toepassingsadvies. Verplicht veld!),\n"
     "colors (lijst van 4-8 Nederlandse kleurnamen uit de foto, bv "
     "[\"saliegroen\", \"cr\u00e8me\", \"eiken\", \"koper\", \"antraciet\", \"taupe\"]),\n"
     "style (stijlbenaming in het Nederlands, bv 'Japandi / Scandinavian modern'),\n"    "harmony (2-3 zinnen in Nederlands: kleurenharmonie advies — welke kleuren passen bij dit palet, denk aan complementair, analoog, monochroom. Praktisch en concreet.),\n"
