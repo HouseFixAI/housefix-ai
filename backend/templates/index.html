@@ -937,7 +937,6 @@ async function analyze() {
     let currentOrientIsFallback = false;
 
     function showOrientation(orient, sessionId, isFallback) {
-      document.getElementById("menuIcon").textContent = "✖";
           currentSessionId = sessionId;
           currentOrientResult = orient;
           currentOrientIsFallback = !!isFallback;
@@ -995,6 +994,7 @@ async function analyze() {
           submitWithIntent(intent);
         });
       });
+      document.getElementById("menuIcon").textContent = "✖";
     }
 
     /* ── Submit With Intent ── */
@@ -1814,7 +1814,6 @@ async function analyze() {
 let clarificationAnswers = [];
 
 function showClarification(questions) {
-      document.getElementById("menuIcon").textContent = "✖";
       clarificationAnswers = [];
       const container = document.getElementById("resultContent");
       if (!container) return;
@@ -1840,6 +1839,7 @@ function showClarification(questions) {
           </div></div>`;
 
   container.innerHTML = html;
+  document.getElementById("menuIcon").textContent = "✖";
 }
 
 function selectClarify(btn) {
@@ -1901,7 +1901,6 @@ async function submitClarification() {
 
 /* ── Results ── */
 function renderResults(intent, data) {
-      document.getElementById("menuIcon").textContent = "✖";
       // Data-driven result dispatcher (Fase 3)
       // Check data shape first, fall back to intent-based routing
       if (data.colors && data.colors.length) {
@@ -1942,6 +1941,7 @@ function renderResults(intent, data) {
             showResults(data);
         }
       }
+      document.getElementById("menuIcon").textContent = "✖";
     }
 
     function showCostEstimate(r) {
@@ -2620,7 +2620,6 @@ function toggleMenu() {
 
 let currentStep = "home";
 function goHome() {
-  document.getElementById("menuIcon").textContent = "☰";
   currentIntent = null;
   stopStream();
   retake();
@@ -2640,6 +2639,7 @@ function goHome() {
   [ "issueCard","costCard","stepsCard","materialsCard","providersCard" ].forEach(id =>
     document.getElementById(id).style.display = "none"
   );
+  document.getElementById("menuIcon").textContent = "☰";
 }
 
 /* ── History / Save / Load / Delete ── */
