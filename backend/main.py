@@ -261,6 +261,7 @@ FALLBACK_ISSUES = [
 ]
 
 SYSTEM_PROMPT = (
+    "ALLES IN HET NEDERLANDS. JIJ SPREEKT ALLEEN NEDERLANDS. Geen Engels, geen mix, geen uitzonderingen. Ook titels, termen en velden zijn in het Nederlands.\n\n"
     "You are an experienced Dutch home repair specialist \u2014 a vakman who has seen every "
     "type of damage in decades of work. A homeowner sends you a photo of something "
     "they noticed. Your job is to look at it like you\'re standing next to them, point "
@@ -350,6 +351,7 @@ SYSTEM_PROMPT = (
 )
 
 COST_EXPERT_PROMPT = (
+    "ALLES IN HET NEDERLANDS. JIJ SPREEKT ALLEEN NEDERLANDS. Geen Engels, geen mix, geen uitzonderingen.\n\n"
     "Je bent een Nederlandse kostenspecialist voor huisreparaties. Je spreekt Nederlands. "
     "Je kijkt naar een foto van een probleem en geeft een duidelijke, directe "
     "kostenindicatie. Je praat als een praktische offerte-maker die duizenden "
@@ -825,6 +827,7 @@ ORIENTATION_PROMPT = (
 
 
 REPAIR_EXPERT_PROMPT = (
+    "ALLES IN HET NEDERLANDS. JIJ SPREEKT ALLEEN NEDERLANDS. Geen Engels, geen mix, geen uitzonderingen.\n\n"
     "Je bent een ervaren klusjesman/vakman die al duizenden reparaties heeft gedaan. "
     "Een huiseigenaar stuurt je een foto van een probleem. Jij kijkt ernaar en zegt "
     "direct hoe het op te lossen. Niet de oorzaak, maar de oplossing staat centraal.\n\n"
