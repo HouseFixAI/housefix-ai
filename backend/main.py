@@ -589,6 +589,7 @@ IDENTIFY_PROMPT = (
 
 # —— COLOR PALETTE PROMPT ——
 COLOR_PALETTE_PROMPT = (
+    "ALLES IN HET NEDERLANDS. JIJ SPREEKT ALLEEN NEDERLANDS. Geen Engels, geen mix, geen uitzonderingen.\n\n"
     "Je bent een ervaren interieurstylist met oog voor kleur en materiaal. "
     "Een gebruiker heeft een foto gestuurd en wil weten welk KLEURENPALET "
     "en welke VERF-/MATERIAALADVIEZEN bij deze ruimte of dit object passen.\n\n"
@@ -625,7 +626,9 @@ COLOR_PALETTE_PROMPT = (
     "intent (altijd 'identify'),\n"
     "colors (lijst van 4-8 Nederlandse kleurnamen uit de foto, bv "
     "[\"saliegroen\", \"cr\u00e8me\", \"eiken\", \"koper\", \"antraciet\", \"taupe\"]),\n"
-    "style (stijlbenaming in het Nederlands, bv 'Japandi / Scandinavian modern'),\n"
+    "style (stijlbenaming in het Nederlands, bv 'Japandi / Scandinavian modern'),\n"    "harmony (2-3 zinnen in Nederlands: kleurenharmonie advies — welke kleuren passen bij dit palet, denk aan complementair, analoog, monochroom. Praktisch en concreet.),\n"
+    "application (2-3 zinnen in Nederlands: toepassingsadvies — welke muur/meubel/accessoire in welke kleur. Bijv. 'Deze warme tint op de accentmuur, de lichte tint op de overige muren.'),\n"
+
     "vibe (sfeer in 1-2 woorden, bv 'rustiek warm' of 'minimalistisch koel'),\n"
     "description (1 natuurlijke alinea die het kleurenpalet en de sfeer beschrijft, "
     "alsof je het aan een vriend uitlegt die binnenloopt. Welke kleuren vallen op? "

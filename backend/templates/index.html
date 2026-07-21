@@ -715,7 +715,7 @@ let lastResultIntent = sessionStorage.getItem("hf_lastResultIntent") || null;
 function setMode(mode) {
       buildCarousel(mode);
       currentMode = mode;
-      selectedCarouselIntent = mode === "damage" ? "damage_expert" : mode === "inspiration" ? "identify" : null;
+      selectedCarouselIntent = mode === "damage" ? "damage_expert" : mode === "inspiration" ? "color_palette" : null;
       document.getElementById("modeDamage").classList.toggle("mode-active", mode === "damage");
       document.getElementById("modeInspiration").classList.toggle("mode-active", mode === "inspiration");
       // Icon managed by goHome/showResults
@@ -853,6 +853,10 @@ function retake() {
     toggleCostSection(_costSectionOpen);
   } else if (_repairSectionOpen) {
     toggleRepairSection(_repairSectionOpen);
+  } else if (_harmonyOpen) {
+    toggleColorSection("harmony");
+  } else if (_appOpen) {
+    toggleColorSection("application");
   } else if (_previousExpert === "damage") {
     _previousExpert = null;
     showDamageExpert(currentResult);
@@ -1928,6 +1932,9 @@ function renderResults(intent, data) {
           case "purchase":
             renderColorPalette(data);
             break;
+          case "color_palette":
+            renderColorPalette(data);
+            break;
           case "find_item":
             renderFindItem(data);
             break;
@@ -2079,17 +2086,11 @@ function renderResults(intent, data) {
     }
 
     function renderColorPalette(r) {
-      // ---- Color palette renderer - "Scan voor Kleurenpalet" ----
-      // Kleur-eerst, rustige flow, geen losse kaarten
+      // ---- PREMIUM Kleurenpalet Specialist ----
       currentResult = r;
       var snap = document.getElementById("snapshot");
       if (snap && snap.src) currentResultImage = snap.src;
-
-      // Set the photo thumbnail
-      var snap = document.getElementById("snapshot");
-      if (snap && snap.src) {
-        document.getElementById("resultThumb").src = snap.src;
-      }
+      if (snap && snap.src) document.getElementById("resultThumb").src = snap.src;
 
       var container = document.getElementById("resultContent");
       var html = "";
@@ -2099,10 +2100,10 @@ function renderResults(intent, data) {
         html += '<div class="fallback-banner" style="margin-bottom:16px"><span class="fallback-banner-icon">&#x2139;&#xFE0F;</span> Dit advies is algemeen &mdash; voor een persoonlijk kleuradvies hebben we een AI-verbinding nodig.</div>';
       }
 
-      // Title: "Jouw kleurenpalet"
+      // Title
       html += '<div class="res-type" style="font-size:22px;margin-bottom:20px;text-align:center">Jouw kleurenpalet</div>';
 
-      // ---- Large color blocks (48px each, full-width) ----
+      // ---- Kleurblokjes ----
       var colors = r.colors || [];
       var colorHex = {"wit":"#ffffff","cr\u00e8me":"#f5f0e1","beige":"#e8dcc8","lichtgrijs":"#d5d5d5","grijs":"#9e9e9e","antraciet":"#404040","zwart":"#222222","bruin":"#8d6e63","koffie":"#6d4c41","taupe":"#b8a99a","groen":"#66bb6a","olijfgroen":"#8d9b6a","mint":"#a5d6a7","saliegroen":"#b5c9a3","blauw":"#64b5f6","lichtblauw":"#90caf9","donkerblauw":"#3949ab","navy":"#1a237e","rood":"#e57373","bordeaux":"#8e2430","roze":"#f48fb1","lichtroze":"#f8bbd0","geel":"#ffd54f","mosterd":"#f4c842","oranje":"#ffb74d","koper":"#d4935a","paars":"#ab47bc","lila":"#ce93d8","goud":"#d4a847","zilver":"#bdbdbd","hout":"#a58a6f","naturel":"#d4c4a8"};
       if (colors.length) {
@@ -2113,27 +2114,25 @@ function renderResults(intent, data) {
           for (var key in colorHex) {
             if (low.indexOf(key) >= 0) { hex = colorHex[key]; break; }
           }
-          // Text color: white on dark backgrounds, dark on light
           var textColor = (hex === "#ffffff" || hex === "#f5f0e1" || hex === "#e8dcc8" || hex === "#d5d5d5" || hex === "#d4c4a8" || hex === "#b8a99a") ? "#2c2c2c" : "#ffffff";
           var borderStyle = (hex === "#ffffff") ? ' border:1px solid rgba(0,0,0,0.08);' : '';
           html += '<div style="height:48px;width:100%;background:' + hex + ';' + borderStyle + 'border-radius:10px;margin-bottom:6px;display:flex;align-items:center;padding:0 16px;box-sizing:border-box;font-size:13px;font-weight:600;color:' + textColor + '">' + c.charAt(0).toUpperCase() + c.slice(1) + '</div>';
         }
       }
 
-      // ---- Affirmation ----
+      // Affirmation
       html += '<div style="text-align:center;font-size:14px;color:var(--text-secondary);margin:16px 0 20px;line-height:1.5">Deze kleuren passen perfect bij jouw ruimte.</div>';
 
-      // ---- Styling tip (compact, voor de verfadviezen) ----
+      // Styling tip
       if (r.styling_tip) {
         html += '<div style="padding:14px 18px;border-radius:12px;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);font-size:14px;color:var(--text-primary);line-height:1.5;margin-bottom:20px">' + r.styling_tip + '</div>';
       }
 
-      // ---- Paint tips (compact, per kleur) ----
+      // Paint tips
       if (r.paint_tips && r.paint_tips.length) {
         html += '<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Bijpassende verfkleuren</div>';
         for (var pi = 0; pi < r.paint_tips.length; pi++) {
           var pt = r.paint_tips[pi];
-          // Match a color icon from the paint tip text
           var tipHex = "#cccccc";
           if (pt.product) {
             var pLow = pt.product.toLowerCase();
@@ -2152,10 +2151,54 @@ function renderResults(intent, data) {
         html += '</div>';
       }
 
+      // ── Twee knoppen: Harmonie & Toepassing ──
+      html += '<div style="display:flex;gap:8px;margin-top:20px">';
+      html += '<button class="footer-btn-secondary" id="harmonyBtn" onclick="toggleColorSection('harmony')" style="flex:1;padding:12px;font-size:14px">🎨 Harmonie</button>';
+      html += '<button class="footer-btn-secondary" id="appBtn" onclick="toggleColorSection('application')" style="flex:1;padding:12px;font-size:14px">🛋️ Toepassing</button>';
+      html += '</div>';
+
+      // Harmony section (hidden by default)
+      html += '<div id="harmonySection" style="display:none;margin-top:12px;padding:14px 18px;border-radius:12px;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);font-size:14px;color:var(--text-primary);line-height:1.6">';
+      if (r.harmony) {
+        html += r.harmony;
+      } else {
+        html += 'Welke kleuren passen bij dit palet? Scan opnieuw voor een compleet kleuradvies.';
+      }
+      html += '</div>';
+
+      // Application section (hidden by default)
+      html += '<div id="appSection" style="display:none;margin-top:12px;padding:14px 18px;border-radius:12px;background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);font-size:14px;color:var(--text-primary);line-height:1.6">';
+      if (r.application) {
+        html += r.application;
+      } else {
+        html += 'Waar gebruik je deze kleuren? Scan opnieuw voor een toepassingsadvies.';
+      }
+      html += '</div>';
+
       container.innerHTML = html;
       var saveBtn = document.getElementById("saveBtn");
-      saveBtn.textContent = r.styling_tip ? "ADVIES OPSLAAN" : "ANALYSE OPSLAAN";
+      saveBtn.textContent = "ADVIES OPSLAAN";
       saveBtn.classList.remove("saved");
+    }
+
+    // ── Toggle voor Kleurenpalet secties ──
+    var _harmonyOpen = false;
+    var _appOpen = false;
+
+    function toggleColorSection(section) {
+      if (section === "harmony") {
+        _harmonyOpen = !_harmonyOpen;
+        document.getElementById("harmonySection").style.display = _harmonyOpen ? "block" : "none";
+        document.getElementById("harmonyBtn").style.opacity = _harmonyOpen ? "1" : "0.7";
+        // Close the other
+        if (_appOpen) { _appOpen = false; document.getElementById("appSection").style.display = "none"; document.getElementById("appBtn").style.opacity = "0.7"; }
+      } else if (section === "application") {
+        _appOpen = !_appOpen;
+        document.getElementById("appSection").style.display = _appOpen ? "block" : "none";
+        document.getElementById("appBtn").style.opacity = _appOpen ? "1" : "0.7";
+        // Close the other
+        if (_harmonyOpen) { _harmonyOpen = false; document.getElementById("harmonySection").style.display = "none"; document.getElementById("harmonyBtn").style.opacity = "0.7"; }
+      }
     }
 function showResults(r) {
   currentResult = r;
@@ -2793,7 +2836,7 @@ document.addEventListener("DOMContentLoaded", () => {
         {bg:"url(https://images.unsplash.com/photo-1581539250439-c96689b516dd?w=800&h=480&fit=crop&fm=webp&q=85)", t:"\ud83d\udee0\ufe0f Reparatie Expert", intent:"repair_expert", a:"openCameraForIntent('repair_expert')"}
       ],
       inspiration: [
-        {bg:"url(https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Scan voor Kleurenpalet", a:"openCameraForIntent('identify')"},
+        {bg:"url(https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Scan voor Kleurenpalet", intent:"color_palette", a:"openCameraForIntent('color_palette')"},
         {bg:"url(https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Vind dit Meubel", a:"openCameraForIntent('find_item')"},
         {bg:"url(https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Stijl mijn Kamer", a:"openCameraForIntent('style_room')"},
         {bg:"url(https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&h=480&fit=crop&fm=webp&q=85)", t:"Raamdecoratie", a:"openCamera()"}
