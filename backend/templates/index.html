@@ -774,7 +774,7 @@ function openGallery() {
 }
 
 /* ── Standalone gallery picker from dashboard ── */
-function openGalleryPicker() { currentIntent = currentMode ? (currentMode === "damage" ? "identify_issue" : "identify") : null;
+function openGalleryPicker() { currentIntent = selectedCarouselIntent || (currentMode ? (currentMode === "damage" ? "identify_issue" : "identify") : null);
   document.getElementById("galleryInput").click();
 }
 
