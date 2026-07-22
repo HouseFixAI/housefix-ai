@@ -363,6 +363,17 @@
               .identify-narrative { font-size: 15px; color: var(--text-secondary); line-height: 1.8; padding: 20px; border-radius: var(--radius-sm); background: var(--bg-card); border: 1px solid var(--border-light); margin-bottom: 16px; }
               .identify-narrative::first-letter { font-size: 22px; font-weight: 700; color: var(--terracotta); }
 
+              .expert-btn { cursor: pointer; padding: 16px; border-radius: var(--radius-sm); text-align: center; transition: all 0.2s; border: 1.5px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 80px; }
+              .expert-btn-sage { background: var(--sage-soft); border-color: rgba(138,155,122,0.15); color: var(--sage); }
+              .expert-btn-terracotta { background: var(--terracotta-soft); border-color: rgba(196,98,74,0.15); color: var(--terracotta); }
+              .expert-btn-card { background: var(--bg-card); border-color: var(--border-light); color: var(--text-secondary); }
+              .expert-btn-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; opacity: 0.8; }
+              .expert-btn-value { font-size: 20px; font-weight: 800; line-height: 1.1; }
+              .expert-btn-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+              .expert-btn.active { border-color: currentColor; box-shadow: 0 0 0 1px currentColor; }
+              .expert-btn.inactive { opacity: 0.5; }
+
+
               /* ── Purchase ── */
               .purchase-head { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
               .purchase-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 12px; }
@@ -1917,16 +1928,16 @@ function renderResults(intent, data) {
         // Intent-driven fallback
         switch (intent) {
           case "damage_expert":
-            showDamageExpert(data);
+            renderExpert('damage', data);
             break;
           case "repair_expert":
-            showRepairExpert(data);
+            renderExpert('repair', data);
             break;
           case "cost_expert":
-            showCostEstimate(data);
+            renderExpert('cost', data);
             break;
           case "cost":
-            showCostEstimate(data);
+            renderExpert('cost', data);
             break;
 
           case "purchase":
@@ -1951,78 +1962,168 @@ function renderResults(intent, data) {
       document.getElementById("menuIcon").textContent = "✖";
     }
 
-    function showCostEstimate(r) {
+    
+    var _openExpertSection = null;
+    function renderExpert(type, r) {
       currentResult = r;
       const snapshotEl = document.getElementById("snapshot");
-      currentResultImage = snapshotEl.src || "";
+      currentResultImage = snapshotEl ? snapshotEl.src : "";
       const saveBtn = document.getElementById("saveBtn");
       const resultContent = document.getElementById("resultContent");
+      
+      if (!resultContent) return;
+
+      // Special case: no_damage or warning handled by old showResults
+      if (r.no_damage || r.warning) {
+          showResults(r);
+          return;
+      }
+
       let html = "";
-      if (r.is_fallback) {
-        html = `<div class="fallback-banner"><span class="fallback-banner-icon">\u2139\ufe0f</span> Dit advies is algemeen \u2014 voor een persoonlijke analyse specifiek voor jouw situatie hebben we een AI-verbinding nodig.</div>`;
-        resultContent.innerHTML = html; return;
-      }
-      if (r.no_damage) {
-        html = `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--sage);margin-bottom:8px">\u2705 Geen schade</div><div class="res-desc">${r.message || "\u2705 Geen schade geconstateerd."}</div></div></div>`;
-        resultContent.innerHTML = html; return;
-      }
-      if (r.warning) {
-        html = `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--terracotta);margin-bottom:8px">\u26a0\ufe0f Niet herkend</div><div class="res-desc">${r.warning}</div></div></div>`;
-        resultContent.innerHTML = html; return;
-      }
-      const issueType = r.issue_type || "Kosten Schatting";
-      const desc = r.description || "";
-      const diyCost = r.cost_diy || r.cost_range || "\u2014";
-      const proCost = r.cost_pro || r.cost_range || "\u2014";
-      // Header
+      
+      // Header Section (Common for all)
       html += `<div class="advice-section" style="margin-bottom:8px">`;
-      html += `<div class="identify-head" style="font-size:22px;margin-bottom:2px">${issueType}</div>`;
-      html += `<div class="identify-context" style="font-size:13px;margin-bottom:12px">${desc}</div>`;
-      // Kosten blokken - klikbaar, worden de navigatie
-      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">`;
-      if (diyCost !== "\u2014") {
-        html += `<div id="costDiyBtn" onclick="toggleCostSection('diy')" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center;transition:all 0.2s"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:4px">Zelf doen</div><div style="font-size:22px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">alleen materiaal</div></div>`;
+      
+      const title = r.issue_type || (type === 'cost' ? 'Kosten Schatting' : (type === 'repair' ? 'Reparatie' : 'Onbekend'));
+      const desc = r.description || "";
+      
+      if (type === 'damage') {
+          // Damage expert has a specific hero image style
+          const conf = r.confidence || "medium";
+          const badgeMap = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } };
+          const b = badgeMap[conf] || badgeMap.medium;
+          
+          html += '<div style="border-radius:var(--radius-sm);overflow:hidden;position:relative;margin-bottom:12px;background:var(--border-light);min-height:180px;display:flex;align-items:center;justify-content:center">';
+          if (currentResultImage) {
+            html += '<img src="'+currentResultImage+'" style="width:100%;display:block;max-height:220px;object-fit:cover" onerror="this.style.display=\'none\'" />';
+          }
+          html += '<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px;background:linear-gradient(transparent,rgba(0,0,0,0.7))">';
+          html += '<div style="font-size:17px;font-weight:700;color:#fff">'+title+'</div>';
+          html += '<span class="badge '+b.c+'" style="margin-top:3px">'+b.l+' vertrouwen</span></div></div>';
+          html += '<div class="advice-section" style="padding-top:0"><div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px">'+desc+'</div>';
+      } else {
+          // Cost and Repair experts have a simpler header
+          const icon = type === 'repair' ? '🛠️ ' : '';
+          html += `<div class="identify-head" style="font-size:22px;margin-bottom:2px">${icon}${title}</div>`;
+          html += `<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px">${desc}</div>`;
       }
-      if (proCost !== "\u2014") {
-        html += `<div id="costProBtn" onclick="toggleCostSection('pro')" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center;transition:all 0.2s"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Laten doen</div><div style="font-size:22px;font-weight:800;color:var(--terracotta)">${proCost}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">incl. voorrijkosten</div></div>`;
+
+      // Buttons Section
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">`;
+      
+      if (type === 'cost') {
+          const diyCost = r.cost_diy || r.cost_range || "—";
+          const proCost = r.cost_pro || r.cost_range || "—";
+          html += `
+            <div id="expertBtn1" onclick="unifiedToggleSection('cost', 'diy')" class="expert-btn expert-btn-sage">
+                <div class="expert-btn-label">Zelf doen</div>
+                <div class="expert-btn-value">${diyCost}</div>
+                <div class="expert-btn-sub">alleen materiaal</div>
+            </div>
+            <div id="expertBtn2" onclick="unifiedToggleSection('cost', 'pro')" class="expert-btn expert-btn-terracotta">
+                <div class="expert-btn-label">Laten doen</div>
+                <div class="expert-btn-value">${proCost}</div>
+                <div class="expert-btn-sub">incl. voorrijkosten</div>
+            </div>
+          `;
+      } else if (type === 'damage') {
+          html += `
+            <div id="expertBtn1" onclick="unifiedToggleSection('damage', 'details')" class="expert-btn expert-btn-card">
+                <div class="expert-btn-label">Details</div>
+                <div class="expert-btn-value" style="font-size:14px;margin-top:4px">Oorzaak & risico</div>
+            </div>
+            <div id="expertBtn2" onclick="unifiedToggleSection('damage', 'advice')" class="expert-btn expert-btn-card">
+                <div class="expert-btn-label">Advies</div>
+                <div class="expert-btn-value" style="font-size:14px;margin-top:4px">Wat nu te doen</div>
+            </div>
+          `;
+      } else if (type === 'repair') {
+          const time = r.estimate_time || "Stappenplan";
+          html += `
+            <div id="expertBtn1" onclick="unifiedToggleSection('repair', 'diy')" class="expert-btn expert-btn-sage">
+                <div class="expert-btn-label">Zelf repareren</div>
+                <div class="expert-btn-value">${time}</div>
+                <div class="expert-btn-sub">${r.difficulty || ""}</div>
+            </div>
+            <div id="expertBtn2" onclick="unifiedToggleSection('repair', 'pro')" class="expert-btn expert-btn-terracotta">
+                <div class="expert-btn-label">Laten repareren</div>
+                <div class="expert-btn-value" style="font-size:16px;margin-top:4px">Offerte aanvragen</div>
+            </div>
+          `;
       }
+      
       html += `</div>`;
-      // Container waar de gekozen sectie wordt ingeladen
-      html += `<div id="costDetail"></div>`;
+      
+      // Detail Container
+      html += `<div id="expertDetail"></div>`;
+      
+      // Expert Navigation (only for damage)
+      if (type === 'damage') {
+          html += `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <button class="cta-btn" onclick="goToRepair()" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">🛠️ Repareren</button>
+                <button class="cta-btn" onclick="goToCost()" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">💰 Kosten</button>
+            </div>
+          `;
+      }
+      
       html += `<div style="height:40px"></div>`;
+      html += `</div>`;
+      
       resultContent.innerHTML = html;
-      saveBtn.style.display = "none";
+      if (saveBtn) saveBtn.style.display = "none";
       currentStep = "diagnose";
+      _openExpertSection = null;
     }
+
+    function unifiedToggleSection(expert, section) {
+      const detailEl = document.getElementById("expertDetail");
+      const btn1 = document.getElementById("expertBtn1");
+      const btn2 = document.getElementById("expertBtn2");
+      
+      if (!detailEl) return;
+
+      if (_openExpertSection === section) {
+        detailEl.innerHTML = "";
+        if (btn1) btn1.classList.remove("active", "inactive");
+        if (btn2) btn2.classList.remove("active", "inactive");
+        _openExpertSection = null;
+        return;
+      }
+      
+      _openExpertSection = section;
+      
+      // Update button states
+      const isFirstSection = (section === 'details' || (expert !== 'damage' && section === 'diy'));
+      
+      if (isFirstSection) {
+          if (btn1) { btn1.classList.add("active"); btn1.classList.remove("inactive"); }
+          if (btn2) { btn2.classList.add("inactive"); btn2.classList.remove("active"); }
+      } else {
+          if (btn2) { btn2.classList.add("active"); btn2.classList.remove("inactive"); }
+          if (btn1) { btn1.classList.add("inactive"); btn1.classList.remove("active"); }
+      }
+      
+      // Render content
+      if (expert === 'cost') {
+          if (section === 'diy') showCostDiy(currentResult);
+          else showCostPro(currentResult);
+      } else if (expert === 'damage') {
+          if (section === 'details') showDamageDetails(currentResult);
+          else showDamageAdvice(currentResult);
+      } else if (expert === 'repair') {
+          if (section === 'diy') showRepairDiy(currentResult);
+          else showRepairPro(currentResult);
+      }
+    }
+
 
 
     var _costSectionOpen = null;
-    function toggleCostSection(section) {
-      var cd = document.getElementById("costDetail");
-      var diyBtn = document.getElementById("costDiyBtn");
-      var proBtn = document.getElementById("costProBtn");
-      if (_costSectionOpen === section) {
-        if (cd) cd.innerHTML = '';
-        if (diyBtn) diyBtn.style.opacity = "1";
-        if (proBtn) proBtn.style.opacity = "1";
-        _costSectionOpen = null;
-        return;
-      }
-      _costSectionOpen = section;
-      if (section === 'diy') {
-        if (diyBtn) diyBtn.style.opacity = "0.6";
-        if (proBtn) proBtn.style.opacity = "1";
-        showCostDiy(currentResult);
-      } else {
-        if (proBtn) proBtn.style.opacity = "0.6";
-        if (diyBtn) diyBtn.style.opacity = "1";
-        showCostPro(currentResult);
-      }
-    }
 
     function showCostDiy(r) {
       currentResult = r;
-      const dd = document.getElementById("costDetail");
+      const dd = document.getElementById("expertDetail");
       const diyCost = r.cost_diy || r.cost_range || "\u2014";
       let html = "";
       html += `<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(138,155,122,0.2);background:var(--sage-soft);overflow:hidden">`;
@@ -2056,7 +2157,7 @@ function renderResults(intent, data) {
 
     function showCostPro(r) {
       currentResult = r;
-      const dd = document.getElementById("costDetail");
+      const dd = document.getElementById("expertDetail");
       const proCost = r.cost_pro || r.cost_range || "\u2014";
       let html = "";
       html += `<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(196,98,74,0.2);background:var(--terracotta-soft);overflow:hidden">`;
@@ -2305,86 +2406,12 @@ function showResults(r) {
   saveBtn.style.display = "none";
   currentStep = "diagnose";
 }
-    function showDamageExpert(r) {
-      currentResult = r;
-      const snapEl = document.getElementById("snapshot");
-      currentResultImage = snapEl.src || "";
-      const saveBtn = document.getElementById("saveBtn");
-      const rc = document.getElementById("resultContent");
-      let html = "";
-      if (r.is_fallback || r.no_damage || r.warning) { showResults(r); return; }
-      const it = r.issue_type || "Onbekend";
-      const desc = r.description || "";
-      const conf = r.confidence || "medium";
-      const badgeMap = { high: { c: "badge-high", l: "Hoog" }, medium: { c: "badge-medium", l: "Gemiddeld" }, low: { c: "badge-low", l: "Laag" } };
-      const b = badgeMap[conf] || badgeMap.medium;
-      // Foto centraal
-      html += '<div style="border-radius:var(--radius-sm);overflow:hidden;position:relative;margin-bottom:12px;background:var(--border-light);min-height:180px;display:flex;align-items:center;justify-content:center">';
-      if (currentResultImage) {
-        html += '<img src="'+currentResultImage+'" style="width:100%;display:block;max-height:220px;object-fit:cover" onerror="this.style.display=\'none\'" />';
-      }
-      html += '<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px;background:linear-gradient(transparent,rgba(0,0,0,0.7))">';
-      html += '<div style="font-size:17px;font-weight:700;color:#fff">'+it+'</div>';
-      html += '<span class="badge '+b.c+'" style="margin-top:3px">'+b.l+' vertrouwen</span></div></div>';
-      // Diagnose compact
-      html += '<div class="advice-section" style="padding-top:0"><div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px">'+desc+'</div>';
-      // Veiligheid
-      if (r.warning) {
-        html += '<div style="padding:10px 14px;border-radius:10px;background:rgba(196,98,74,0.06);border:1px solid rgba(196,98,74,0.12);font-size:13px;color:var(--terracotta);line-height:1.5;margin-bottom:12px">\u26a0\ufe0f '+r.warning+'</div>';
-      }
-      // Twee contextuele knoppen: Details en Advies (toggle, geen emoji)
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
-      html += '<div id="damDetBtn" onclick="toggleDamageSection(\'details\')" style="cursor:pointer;padding:12px 14px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border-light);text-align:center;transition:all 0.2s">';
-      html += '<div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.3px">Details</div>';
-      html += '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">Oorzaak & risico</div>';
-      html += '</div>';
-      html += '<div id="damAdvBtn" onclick="toggleDamageSection(\'advice\')" style="cursor:pointer;padding:12px 14px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border-light);text-align:center;transition:all 0.2s">';
-      html += '<div style="font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:0.3px">Advies</div>';
-      html += '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">Wat nu te doen</div>';
-      html += '</div></div>';
-      // Container voor verdieping
-      html += '<div id="damDetail"></div>';
-      // Navigatie naar reparatie en kosten (blijft)
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-      html += '<button class="cta-btn" onclick="goToRepair()" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\ud83d\udee0\ufe0f Repareren</button>';
-      html += '<button class="cta-btn" onclick="goToCost()" style="padding:12px;font-size:13px;font-weight:600;background:transparent;color:var(--text-primary);border:1.5px solid var(--border-light)">\ud83d\udcb0 Kosten</button>';
-      html += '</div></div>';
-      html += '<div style="height:40px"></div>';
-      rc.innerHTML = html;
-      saveBtn.style.display = "none";
-      currentStep = "diagnose";
-    }
 
 
     var _damageSectionOpen = null;
-    function toggleDamageSection(section) {
-      if (_damageSectionOpen === section) {
-        document.getElementById("damDetail").innerHTML = '';
-        document.getElementById("damDetBtn").style.background = "var(--bg-card)";
-        document.getElementById("damDetBtn").style.borderColor = "var(--border-light)";
-        document.getElementById("damAdvBtn").style.background = "var(--bg-card)";
-        document.getElementById("damAdvBtn").style.borderColor = "var(--border-light)";
-        _damageSectionOpen = null;
-        return;
-      }
-      _damageSectionOpen = section;
-      if (section === 'details') {
-        document.getElementById("damDetBtn").style.background = "rgba(138,155,122,0.08)";
-        document.getElementById("damDetBtn").style.borderColor = "rgba(138,155,122,0.25)";
-        document.getElementById("damAdvBtn").style.background = "var(--bg-card)";
-        document.getElementById("damAdvBtn").style.borderColor = "var(--border-light)";
-        showDamageDetails(currentResult);
-      } else {
-        document.getElementById("damAdvBtn").style.background = "rgba(196,98,74,0.08)";
-        document.getElementById("damAdvBtn").style.borderColor = "rgba(196,98,74,0.25)";
-        document.getElementById("damDetBtn").style.background = "var(--bg-card)";
-        document.getElementById("damDetBtn").style.borderColor = "var(--border-light)";
-        showDamageAdvice(currentResult);
-      }
-    }
 
     function showDamageDetails(r) {
-      const dd = document.getElementById("damDetail");
+      const dd = document.getElementById("expertDetail");
       let html = '';
       html += '<div style="margin-bottom:12px;border-radius:var(--radius-sm);border:1px solid var(--border-light);background:var(--bg-card);overflow:hidden">';
       html += '<div style="padding:10px 14px;background:var(--bg-secondary);font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:0.3px">Details & oorzaak</div>';
@@ -2403,7 +2430,7 @@ function showResults(r) {
     }
 
     function showDamageAdvice(r) {
-      const dd = document.getElementById("damDetail");
+      const dd = document.getElementById("expertDetail");
       let html = '';
       const urgent = r.urgency || "medium";
       const urgencyMap = { high: { label: "Direct actie nodig", color: "var(--terracotta)", icon: "\u26a0\ufe0f" }, medium: { label: "Houd in de gaten", color: "var(--sage)", icon: "\ud83d\udcc5" }, low: { label: "Kan wachten", color: "var(--text-muted)", icon: "\ud83d\ude34" } };
@@ -2422,75 +2449,15 @@ function showResults(r) {
       dd.innerHTML = html;
     }
 
-    function showRepairExpert(r) {
-      currentResult = r;
-      const snapEl = document.getElementById("snapshot");
-      currentResultImage = snapEl.src || "";
-      const saveBtn = document.getElementById("saveBtn");
-      const rc = document.getElementById("resultContent");
-      let html = "";
-      if (r.is_fallback || r.no_damage || r.warning) { showResults(r); return; }
-      const it = r.issue_type || "Reparatie";
-      const desc = r.description || "";
-      // Diagnose compact + tijdsindicatie / moeilijkheid
-      html += '<div class="advice-section" style="margin-bottom:8px">';
-      html += '<div class="identify-head" style="font-size:22px;margin-bottom:2px">\ud83d\udee0\ufe0f '+it+'</div>';
-      html += '<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:12px">'+desc+'</div>';
-      // Twee klikbare keuzes
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">';
-      html += '<div id="repDiyBtn" onclick="toggleRepairSection(\'diy\')" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center;transition:all 0.2s">';
-      html += '<div style="font-size:20px;margin-bottom:4px">\ud83d\udee0\ufe0f</div>';
-      html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--sage);margin-bottom:4px">Zelf repareren</div>';
-      // Toon tijdsindicatie als beschikbaar
-      if (r.estimate_time) {
-        html += '<div style="font-size:22px;font-weight:800;color:var(--sage)">'+r.estimate_time+'</div>';
-      } else {
-        html += '<div style="font-size:13px;font-weight:600;color:var(--sage)">Stappenplan</div>';
-      }
-      if (r.difficulty) {
-        html += '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+r.difficulty+'</div>';
-      }
-      html += '</div>';
-      html += '<div id="repProBtn" onclick="toggleRepairSection(\'pro\')" style="cursor:pointer;padding:16px;border-radius:var(--radius-sm);background:var(--terracotta-soft);border:1px solid rgba(196,98,74,0.15);text-align:center;transition:all 0.2s">';
-      html += '<div style="font-size:20px;margin-bottom:4px">\ud83d\udc77</div>';
-      html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--terracotta);margin-bottom:4px">Laten repareren</div>';
-      html += '<div style="font-size:13px;font-weight:600;color:var(--terracotta)">Offerte aanvragen</div>';
-      html += '</div></div>';
-      // Container voor de gekozen details
-      html += '<div id="repDetail"></div>';
-      html += '<div style="height:40px"></div>';
-      rc.innerHTML = html;
-      saveBtn.style.display = "none";
-      currentStep = "diagnose";
-    }
 
 
     var _repairSectionOpen = null;
     var _previousExpert = null;
-    function goToRepair(){_previousExpert='damage';showRepairExpert(currentResult)}
-    function goToCost(){_previousExpert='damage';showCostEstimate(currentResult)}
-    function toggleRepairSection(section) {
-      if (_repairSectionOpen === section) {
-        document.getElementById("repDetail").innerHTML = '';
-        document.getElementById("repDiyBtn").style.opacity = "1";
-        document.getElementById("repProBtn").style.opacity = "1";
-        _repairSectionOpen = null;
-        return;
-      }
-      _repairSectionOpen = section;
-      if (section === 'diy') {
-        document.getElementById("repDiyBtn").style.opacity = "0.6";
-        document.getElementById("repProBtn").style.opacity = "1";
-        showRepairDiy(currentResult);
-      } else {
-        document.getElementById("repProBtn").style.opacity = "0.6";
-        document.getElementById("repDiyBtn").style.opacity = "1";
-        showRepairPro(currentResult);
-      }
-    }
+    function goToRepair(){_previousExpert='damage';renderExpert('repair', currentResult)}
+    function goToCost(){_previousExpert='damage';renderExpert('cost', currentResult)}
 
     function showRepairDiy(r) {
-      const dd = document.getElementById("repDetail");
+      const dd = document.getElementById("expertDetail");
       let html = '';
       html += '<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(138,155,122,0.2);background:var(--sage-soft);overflow:hidden">';
       html += '<div style="padding:12px 14px;background:var(--sage);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe2 Zelf repareren'+(r.estimate_time ? ' \u2014 '+r.estimate_time : '')+'</div>';
@@ -2518,7 +2485,7 @@ function showResults(r) {
     }
 
     function showRepairPro(r) {
-      const dd = document.getElementById("repDetail");
+      const dd = document.getElementById("expertDetail");
       let html = '';
       html += '<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(196,98,74,0.2);background:var(--terracotta-soft);overflow:hidden">';
       html += '<div style="padding:12px 14px;background:var(--terracotta);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe7 Laten repareren</div>';
