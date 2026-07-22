@@ -2074,6 +2074,10 @@ function renderResults(intent, data) {
       if (saveBtn) saveBtn.style.display = "none";
       currentStep = "diagnose";
       _openExpertSection = null;
+      
+      // Auto-open first section
+      const defaultSection = (type === "damage" ? "details" : "diy");
+      unifiedToggleSection(type, defaultSection);
     }
 
     function unifiedToggleSection(expert, section) {
