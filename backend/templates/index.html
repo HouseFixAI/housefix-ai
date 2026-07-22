@@ -2236,6 +2236,9 @@ function showResults(r) {
     resultContent.innerHTML = html;
     return;
   }
+  if (r.safety_warning) {
+    html += `<div style="padding:14px 16px;border-radius:12px;margin-bottom:12px;background:#fff3e0;border:1px solid rgba(230,126,34,0.3);color:#c0392b;font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px"><span style="font-size:20px">⚡</span>${r.safety_warning}</div>`;
+  }
   if (r.warning) {
     html += `<div class="card" style="margin-bottom:14px"><div class="card-body" style="padding:24px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--terracotta);margin-bottom:8px">\u26a0\ufe0f Niet herkend</div><div class="res-desc">${r.warning}</div></div></div>`;
     resultContent.innerHTML = html;

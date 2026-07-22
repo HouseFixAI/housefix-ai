@@ -602,7 +602,7 @@ COLOR_PALETTE_PROMPT = (
     "STAP 2 \u2014 BEPAAL DE STIJL EN SFEER: Welke interieurstijl past bij dit palet? "
     "(Japandi, Scandinavian, Rustiek, Industrieel, Boho, Modern, etc.) "
     "Wat is de sfeer? (rustiek warm, minimalistisch koel, speels eclectisch)\n\n"
-    "STAP 3 \u2014 VERF- EN MATERIAALADVIES: Geef 2-4 concrete suggesties voor "
+    "STAP 3 \u2014 VERF- EN MATERIAALADVIES: Noem ALTIJD minimaal 2 concrete producten met merk, verpakking (bijv. 1kg, 500ml) en richtprijs in euro. Gebruik deze merken: Alabastine, Flexa, Histor, Sikkens, Bison, Gamma, Hornbach. Geef bij elk product een korte uitleg waarom dit product geschikt is. Geef 2-4 concrete suggesties voor "
     "verfkleuren, behang, of materiaal die bij dit palet passen. "
     "Vermeld steeds: winkel/merk, productnaam, richtprijs, en WAAROM het past.\n\n"
     "STAP 4 \u2014 STYLINGTIP: Geef 1 concrete stylingtip die de kleuren in de ruimte "
