@@ -2012,7 +2012,7 @@ def analyze_image():
             client = OpenAI(api_key=OPENAI_API_KEY)
             response = client.chat.completions.create(
                 model="gpt-4o",
-                response_format=DAMAGE_JSON_SCHEMA,
+                response_format={"type": "json_schema", "json_schema": DAMAGE_JSON_SCHEMA},
                 messages=[
                     {"role": "system", "content": ORIENTATION_PROMPT},
                     {
@@ -2145,7 +2145,7 @@ def analyze_image():
             )
             response = client.chat.completions.create(
                 model="gpt-4o",
-                response_format=DAMAGE_JSON_SCHEMA,
+                response_format={"type": "json_schema", "json_schema": DAMAGE_JSON_SCHEMA},
                 messages=[
                     {"role": "system", "content": full_prompt},
                     {
@@ -2208,7 +2208,7 @@ def analyze_image():
 
         response = client.chat.completions.create(
             model="gpt-4o",
-            response_format=DAMAGE_JSON_SCHEMA,
+            response_format={"type": "json_schema", "json_schema": DAMAGE_JSON_SCHEMA},
             messages=[
                 {"role": "system", "content": full_prompt},
                 {
