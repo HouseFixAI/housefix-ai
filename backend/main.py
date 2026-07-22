@@ -854,54 +854,6 @@ REPAIR_EXPERT_PROMPT = (
 )
 
 
-# ── Structured Output Schema (garandeert steps/materials als arrays) ──
-DAMAGE_JSON_SCHEMA = {
-    "name": "damage_analysis",
-    "strict": False,
-    "schema": {
-        "type": "object",
-        "properties": {
-            "no_damage": {"type": "boolean"},
-            "message": {"type": "string"},
-            "error": {"type": "string"},
-            "needs_clarification": {"type": "boolean"},
-            "questions": {"type": "array", "items": {"type": "object"}},
-            "building_element": {"type": "string"},
-            "issue_type": {"type": "string"},
-            "description": {"type": "string"},
-            "steps": {"type": "array", "items": {"type": "string"}},
-            "materials": {"type": "array", "items": {"type": "string"}},
-            "cost_diy": {"type": "string"},
-            "cost_pro": {"type": "string"},
-            "cost_range": {"type": "string"},
-            "confidence": {"type": "string"},
-            "cause": {"type": "string"},
-            "risk": {"type": "string"},
-            "urgency": {"type": "string"},
-            "advice": {"type": "string"},
-            "diy_rationale": {"type": "string"},
-            "pro_rationale": {"type": "string"},
-            "safety_warning": {"type": "string"},
-        },
-        "additionalProperties": True
-    }
-}
-
-def normalize_ai_response(parsed):
-    """Garandeer dat steps en materials altijd arrays zijn."""
-    if not isinstance(parsed, dict):
-        return parsed
-    import re
-    for field in ("steps", "materials"):
-        val = parsed.get(field)
-        if isinstance(val, str):
-            items = [s.strip().lstrip("0123456789.-) ") for s in re.split(r"\n|\d+\.", val) if s.strip()]
-            parsed[field] = items if items else [val]
-        elif not isinstance(val, list):
-            parsed[field] = [str(val)] if val else []
-    return parsed
-
-
 # ── Session Cache for multi-step conversation ──
 SESSION_CACHE = {}
 SESSION_TTL = 3600  # 1 hour
@@ -2012,7 +1964,7 @@ def analyze_image():
             client = OpenAI(api_key=OPENAI_API_KEY)
             response = client.chat.completions.create(
                 model="gpt-4o",
-                response_format={"type": "json_schema", "json_schema": DAMAGE_JSON_SCHEMA},
+                response_format={"type": "json_object"},
                 messages=[
                     {"role": "system", "content": ORIENTATION_PROMPT},
                     {
@@ -2145,7 +2097,7 @@ def analyze_image():
             )
             response = client.chat.completions.create(
                 model="gpt-4o",
-                response_format={"type": "json_schema", "json_schema": DAMAGE_JSON_SCHEMA},
+                response_format={"type": "json_object"},
                 messages=[
                     {"role": "system", "content": full_prompt},
                     {
@@ -2208,7 +2160,7 @@ def analyze_image():
 
         response = client.chat.completions.create(
             model="gpt-4o",
-            response_format={"type": "json_schema", "json_schema": DAMAGE_JSON_SCHEMA},
+            response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": full_prompt},
                 {
@@ -2228,7 +2180,7 @@ def analyze_image():
         # Extract JSON from response
         json_match = regex_module.search(r'\{.*\}', message, regex_module.DOTALL)
         if json_match:
-            parsed = normalize_ai_response(json.loads(json_match.group()))
+            parsed = json.loads(json_match.group())
             if isinstance(parsed, dict) and "error" in parsed:
                 return jsonify({"warning": parsed["error"]})
             if isinstance(parsed, dict) and parsed.get("no_damage"):
