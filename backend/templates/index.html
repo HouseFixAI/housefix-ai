@@ -858,19 +858,17 @@ function retake() {
     function goBack() {
   if (currentStep === "diy" || currentStep === "pro") {
     showResults(currentResult);
-  } else if (_damageSectionOpen) {
-    toggleDamageSection(_damageSectionOpen);
-  } else if (_costSectionOpen) {
-    toggleCostSection(_costSectionOpen);
-  } else if (_repairSectionOpen) {
-    toggleRepairSection(_repairSectionOpen);
+  } else if (_openExpertSection) {
+    _openExpertSection = null;
+    renderExpert(_previousExpert || 'damage', currentResult);
   } else if (_harmonyOpen) {
     toggleColorSection("harmony");
   } else if (_appOpen) {
     toggleColorSection("application");
-  } else if (_previousExpert === "damage") {
+  } else if (_previousExpert) {
+    var prevExp = _previousExpert;
     _previousExpert = null;
-    showDamageExpert(currentResult);
+    renderExpert(prevExp, currentResult);
   } else {
     goHome();
   }
