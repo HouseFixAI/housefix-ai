@@ -1717,7 +1717,7 @@ async function analyze() {
           r.colors.forEach(c => { html += colorChip(c); });
           html += `</div></div>`;
         }
-        if (r.materials && r.materials.length) {
+        if (Array.isArray(r.materials) && r.materials.length) {
           html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials">`;
           r.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
           html += `</div></div>`;
@@ -1991,6 +1991,7 @@ function renderResults(intent, data) {
       html += `<div id="costDetail"></div>`;
       html += `<div style="height:40px"></div>`;
       resultContent.innerHTML = html;
+      resultContent.style.display = "block";
       saveBtn.style.display = "none";
       currentStep = "diagnose";
     }
@@ -2023,6 +2024,7 @@ function renderResults(intent, data) {
     function showCostDiy(r) {
       currentResult = r;
       const dd = document.getElementById("costDetail");
+      if (!dd) return;
       const diyCost = r.cost_diy || r.cost_range || "\u2014";
       let html = "";
       html += `<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(138,155,122,0.2);background:var(--sage-soft);overflow:hidden">`;
@@ -2031,13 +2033,13 @@ function renderResults(intent, data) {
       if (r.diy_rationale) {
         html += `<div style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.5)">${r.diy_rationale}</div>`;
       }
-      if (r.steps && r.steps.length) {
+      if (Array.isArray(r.steps) && r.steps.length) {
         html += `<div class="advice-subhead" style="font-size:12px;margin-bottom:6px">Stappenplan</div>`;
         r.steps.forEach(function(s, i) {
           html += `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`;
         });
       }
-      if (r.materials && r.materials.length) {
+      if (Array.isArray(r.materials) && r.materials.length) {
         html += `<div class="advice-subhead" style="font-size:12px;margin-bottom:6px;margin-top:10px">Materialen</div>`;
         html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">`;
         r.materials.forEach(function(m) {
@@ -2057,6 +2059,7 @@ function renderResults(intent, data) {
     function showCostPro(r) {
       currentResult = r;
       const dd = document.getElementById("costDetail");
+      if (!dd) return;
       const proCost = r.cost_pro || r.cost_range || "\u2014";
       let html = "";
       html += `<div style="margin-top:12px;border-radius:var(--radius-sm);border:1px solid rgba(196,98,74,0.2);background:var(--terracotta-soft);overflow:hidden">`;
@@ -2270,7 +2273,7 @@ function showResults(r) {
       document.getElementById("costPro").parentElement.style.display = "none";
     } else { document.getElementById("costCard").style.display = "none"; }
     if (r.styling_tip) { document.getElementById("saveBtn").textContent = r.styling_tip; document.getElementById("saveBtn").classList.add("saved"); }
-    if (r.materials && r.materials.length) {
+    if (Array.isArray(r.materials) && r.materials.length) {
       document.getElementById("materialsCard").style.display = "block";
       document.getElementById("materialsCard").querySelector(".card-header").innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Materialen';
       document.getElementById("materialsBody").innerHTML = r.materials.map(m => `<span class="material-tag">${m}</span>`).join("");
@@ -2496,14 +2499,14 @@ function showResults(r) {
       html += '<div style="padding:12px 14px;background:var(--sage);color:#fff;font-size:13px;font-weight:700;letter-spacing:0.5px">\ud83d\udfe2 Zelf repareren'+(r.estimate_time ? ' \u2014 '+r.estimate_time : '')+'</div>';
       html += '<div style="padding:14px">';
       // Stappenplan
-      if (r.steps && r.steps.length) {
+      if (Array.isArray(r.steps) && r.steps.length) {
         html += '<div class="advice-subhead" style="font-size:12px;margin-bottom:6px">Stappenplan</div>';
         r.steps.forEach(function(s, i) {
           html += '<div class="step-item"><div class="step-num">'+(i+1)+'</div><div class="step-txt">'+s+'</div></div>';
         });
       }
       // Materialen
-      if (r.materials && r.materials.length) {
+      if (Array.isArray(r.materials) && r.materials.length) {
         html += '<div class="advice-subhead" style="font-size:12px;margin-bottom:6px;margin-top:10px">Materialen</div>';
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">';
         r.materials.forEach(function(m) {
@@ -2564,13 +2567,13 @@ function showDiyRoute(r) {
     html += `<div class="advice-section"><div class="advice-subhead">Kosten</div>`;
     html += `<div style="padding:16px;border-radius:var(--radius-sm);background:var(--sage-soft);border:1px solid rgba(138,155,122,0.15);text-align:center"><div style="font-size:24px;font-weight:800;color:var(--sage)">${diyCost}</div><div style="font-size:12px;color:var(--text-muted);margin-top:3px">alleen materiaal</div></div></div>`;
   }
-  if (r.steps && r.steps.length) {
+  if (Array.isArray(r.steps) && r.steps.length) {
     html += `<div class="advice-divider"></div>`;
     html += `<div class="advice-section"><div class="advice-subhead">Stappenplan</div>`;
     r.steps.forEach((s, i) => { html += `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-txt">${s}</div></div>`; });
     html += `</div>`;
   }
-  if (r.materials && r.materials.length) {
+  if (Array.isArray(r.materials) && r.materials.length) {
     html += `<div class="advice-divider"></div>`;
     html += `<div class="advice-section"><div class="advice-subhead">Materialen</div><div class="advice-materials">`;
     r.materials.forEach(m => { html += `<span class="advice-material">${m}</span>`; });
