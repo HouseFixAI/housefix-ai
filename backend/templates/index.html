@@ -1998,21 +1998,24 @@ function renderResults(intent, data) {
 
     var _costSectionOpen = null;
     function toggleCostSection(section) {
+      var cd = document.getElementById("costDetail");
+      var diyBtn = document.getElementById("costDiyBtn");
+      var proBtn = document.getElementById("costProBtn");
       if (_costSectionOpen === section) {
-        document.getElementById("costDetail").innerHTML = '';
-        document.getElementById("costDiyBtn").style.opacity = "1";
-        document.getElementById("costProBtn").style.opacity = "1";
+        if (cd) cd.innerHTML = '';
+        if (diyBtn) diyBtn.style.opacity = "1";
+        if (proBtn) proBtn.style.opacity = "1";
         _costSectionOpen = null;
         return;
       }
       _costSectionOpen = section;
       if (section === 'diy') {
-        document.getElementById("costDiyBtn").style.opacity = "0.6";
-        document.getElementById("costProBtn").style.opacity = "1";
+        if (diyBtn) diyBtn.style.opacity = "0.6";
+        if (proBtn) proBtn.style.opacity = "1";
         showCostDiy(currentResult);
       } else {
-        document.getElementById("costProBtn").style.opacity = "0.6";
-        document.getElementById("costDiyBtn").style.opacity = "1";
+        if (proBtn) proBtn.style.opacity = "0.6";
+        if (diyBtn) diyBtn.style.opacity = "1";
         showCostPro(currentResult);
       }
     }
