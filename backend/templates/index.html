@@ -1646,6 +1646,7 @@ async function analyze() {
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({
             session_id: currentSessionId,
+            image: imageBase64,
             style: style
           })
         });

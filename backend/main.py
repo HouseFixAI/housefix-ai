@@ -2138,6 +2138,8 @@ def analyze_image():
             # Use stored image
             image_base64 = session.get('image', image_base64)
         else:
+            # No existing session — create one so visualize can use it later
+            session_id = create_session(image_base64, {"scene_type": "complete_room", "style": "onbekend", "vibe": "onbekend"})
             context_parts.append("Geen eerdere sessie gevonden — geef advies op basis van de foto alleen.")
 
         if goal:
@@ -2397,14 +2399,17 @@ def visualize_room():
     session_id = data.get("session_id", "")
     style = data.get("style", "Modern")
     
-    if not session_id:
-        return jsonify({"error": "No session_id provided"}), 400
+    # Accept direct image as fallback when no session_id
+    image_b64 = data.get("image", "")
+    if not session_id and not image_b64:
+        return jsonify({"error": "No session_id or image provided"}), 400
     
-    session = get_session(session_id)
-    if not session or not session.get("image"):
-        return jsonify({"error": "Session expired or no image found. Please restart."}), 404
-    
-    image_b64 = session["image"]
+    if session_id:
+        session = get_session(session_id)
+        if session and session.get("image"):
+            image_b64 = session["image"]
+        elif not image_b64:
+            return jsonify({"error": "Session expired or no image found. Please restart."}), 404
     # Strip data URI prefix if present
     if "," in image_b64 and image_b64.startswith("data:"):
         image_b64 = image_b64.split(",", 1)[1]
