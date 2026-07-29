@@ -2443,6 +2443,21 @@ def visualize_room():
         app.logger.error(f"Replicate prediction error: {e}")
         return jsonify({"status": "failed", "error": str(e)}), 500
 
+
+# ── AI-Telefoniste proxy (Bland.ai function calling) ──
+# Proxies requests to the Telefoniste backend on port 8000.
+# Does NOT modify any HouseFix functionality.
+@app.route("/api/telefoniste/tool", methods=["POST"])
+def telefoniste_tool():
+    import urllib.request, json as _json
+    try:
+        data = _json.dumps(request.get_json()).encode()
+        req = urllib.request.Request("http://localhost:8000/api/tool", data=data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return jsonify(_json.loads(resp.read())), resp.status
+    except Exception as e:
+        return jsonify({"error": f"Telefoniste backend niet bereikbaar: {str(e)}"}), 503
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port)
