@@ -7,6 +7,7 @@ import time
 import hashlib
 from openai import OpenAI
 import sqlite3
+import replicate
 import re
 import datetime
 
@@ -138,6 +139,125 @@ def search_catalog(q=None, store=None, segment=None, category=None, limit=5):
     return results
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "")
+
+def _load_env_file():
+    """Load variables from .env into os.environ (does NOT override existing)."""
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, val = line.partition("=")
+                    key, val = key.strip(), val.strip().strip("\"'")
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+
+_load_env_file()
+# Re-read after .env load
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "")
+
+def reload_api_keys():
+    """Reload keys from .env + os.environ after runtime updates."""
+    global OPENAI_API_KEY, REPLICATE_API_TOKEN
+    _load_env_file()
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+    REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "")
+
+# ── Setup endpoint for REPLICATE_API_TOKEN ──
+@app.route("/setup-replicate")
+def setup_replicate_page():
+    return """<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HouseFix — Replicate Setup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,-apple-system,sans-serif;background:#f8f6f2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:18px;padding:32px 24px;max-width:400px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,0.06)}
+h1{font-family:'Playfair Display',serif;font-size:24px;color:#2d2d2d;margin-bottom:4px}
+.sub{font-size:14px;color:#8c8c8c;margin-bottom:24px}
+label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+input{width:100%;padding:14px 16px;border:2px solid #e8e5df;border-radius:12px;font-size:15px;font-family:monospace;transition:border-color .2s}
+input:focus{outline:none;border-color:#c4624a}
+.btn{width:100%;padding:14px;background:#c4624a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;transition:background .2s}
+.btn:hover{background:#b5523a}
+.status{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;text-align:center;display:none}
+.status.ok{display:block;background:#e8f5e9;color:#2e7d32}
+.status.err{display:block;background:#fce4e4;color:#c62828}
+.hint{margin-top:12px;font-size:12px;color:#aaa;text-align:center}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>🔑 Replicate Token</h1>
+<p class="sub">Hiermee kan HouseFix AI-visualisaties genereren via ControlNet.</p>
+<label for="token">API Token</label>
+<input type="password" id="token" placeholder="r8_..." autocomplete="off">
+<button class="btn" onclick="save()">Opslaan & activeren</button>
+<div class="status" id="status"></div>
+<p class="hint">Token wordt alleen op de server opgeslagen in .env — nooit in code of logs.</p>
+</div>
+<script>
+async function save(){
+  const token = document.getElementById("token").value.trim();
+  if(!token) return;
+  const s = document.getElementById("status");
+  s.className = "status"; s.style.display = "none";
+  try {
+    const r = await fetch("/api/setup-replicate", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({token})
+    });
+    const d = await r.json();
+    s.textContent = d.ok ? "✅ Token actief — visualisaties werken nu!" : "❌ "+d.error;
+    s.className = "status " + (d.ok ? "ok" : "err");
+  } catch(e){
+    s.textContent = "❌ Verbindingsfout — probeer opnieuw";
+    s.className = "status err";
+  }
+}
+</script>
+</body>
+</html>"""
+
+@app.route("/api/setup-replicate", methods=["POST"])
+def setup_replicate_token():
+    try:
+        data = request.get_json() or {}
+        token = data.get("token", "").strip()
+        if not token:
+            return jsonify({"ok": False, "error": "Geen token opgegeven"}), 400
+        if not token.startswith("r8_"):
+            return jsonify({"ok": False, "error": "Ongeldig token — moet beginnen met r8_"}), 400
+        
+        # Write to .env file
+        env_path = os.path.join(os.path.dirname(__file__), ".env")
+        env_lines = {}
+        if os.path.exists(env_path):
+            with open(env_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, _, v = line.partition("=")
+                        env_lines[k.strip()] = v.strip().strip("\"'")
+        env_lines["REPLICATE_API_TOKEN"] = token
+        with open(env_path, "w") as f:
+            for k, v in env_lines.items():
+                f.write(f"{k}={v}\n")
+        
+        # Set in current process
+        os.environ["REPLICATE_API_TOKEN"] = token
+        reload_api_keys()
+        
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 # Serve static files (PWA manifest, icons, service worker)
 @app.route('/static/<path:filename>')
@@ -2198,6 +2318,121 @@ def analyze_image():
         app.logger.error(f"Analyze error: {e}")
         return jsonify({"error": str(e), "fallback": random.choice(FALLBACK_ISSUES)}), 500
 
+
+
+# ── Replicate ControlNet visualization endpoint ──
+VISUALIZATION_CACHE = {}
+VISUALIZATION_TTL = 3600
+
+# Style-specific prompts for ControlNet interior design
+STYLE_PROMPTS = {
+    "Scandinavisch": "light and airy Scandinavian interior design, white walls, light oak wood furniture, minimal decoration, natural materials, large windows with soft daylight, cozy textiles, indoor plants, clean lines, hygge atmosphere, professional interior photography, architectural digest",
+    "Modern industrieel": "modern industrial interior design, exposed brick wall, black steel framed windows, concrete floors, warm leather sofa, Edison bulb lighting, open loft space, metal and wood furniture, urban chic, professional interior photography, architectural digest",
+    "Japandi": "Japandi style interior design, fusion of Japanese minimalism and Scandinavian coziness, natural oak wood, neutral earth tones, clean simple lines, ceramic vases, rice paper lamps, bonsai, zen atmosphere, decluttered space, professional interior photography, architectural digest",
+    "Bohemian": "bohemian eclectic interior design, colorful moroccan rugs, macrame wall hangings, indoor jungle plants, rattan furniture, patterned cushions, warm ambient lighting, vintage treasures, relaxed free-spirited atmosphere, professional interior photography, architectural digest",
+    "Modern": "modern contemporary interior design, clean sleek lines, neutral color palette with bold accent colors, statement lighting, glass coffee table, minimalist decor, polished concrete or light wood floors, uncluttered sophisticated space, professional interior photography, architectural digest",
+    "Landelijk": "cozy rustic country farmhouse interior design, weathered wood furniture, soft cream and beige colors, vintage ceramic pottery, linen curtains, dried flowers, brick fireplace, warm inviting cottage atmosphere, professional interior photography, architectural digest",
+    "Klassiek": "elegant classic traditional interior design, ornate crown molding, chandelier, rich dark wood furniture, velvet upholstery, gold accents, marble fireplace, refined timeless atmosphere, professional interior photography, architectural digest",
+}
+
+def get_style_prompt(style_name):
+    """Match style name to a detailed ControlNet prompt."""
+    style_lower = style_name.lower()
+    for key, prompt in STYLE_PROMPTS.items():
+        if key.lower() in style_lower or style_lower in key.lower():
+            return prompt
+    # Fallback: use the style name directly in a generic prompt
+    return f"beautiful {style_name} interior design, well decorated room, comfortable and stylish, professional interior photography, architectural digest"
+
+def get_replicate_client():
+    token = os.environ.get("REPLICATE_API_TOKEN", "")
+    if token:
+        return replicate.Client(api_token=token)
+    return None
+
+@app.route("/api/visualize", methods=["POST", "GET"])
+def visualize_room():
+    """Async room visualization using Replicate ControlNet.
+    
+    POST: Start a new prediction
+      - session_id: to retrieve the cached image
+      - style: the chosen interior style name
+    
+    GET: Poll prediction status
+      - prediction_id: the Replicate prediction ID
+    
+    Returns: { status: "processing"|"succeeded"|"failed", ... }
+    """
+    if request.method == "GET":
+        prediction_id = request.args.get("prediction_id", "")
+        if not prediction_id:
+            return jsonify({"error": "No prediction_id provided"}), 400
+        
+        # Check local cache first
+        if prediction_id in VISUALIZATION_CACHE:
+            cached = VISUALIZATION_CACHE[prediction_id]
+            if cached.get("status") == "succeeded":
+                return jsonify(cached)
+        
+        client = get_replicate_client()
+        if not client:
+            return jsonify({"status": "failed", "error": "Replicate API token not configured"}), 503
+        
+        try:
+            prediction = client.predictions.get(prediction_id)
+            result = {"status": prediction.status, "prediction_id": prediction_id}
+            if prediction.status == "succeeded":
+                output_url = prediction.output[0] if isinstance(prediction.output, list) else prediction.output
+                result["image_url"] = output_url
+                result["output"] = prediction.output
+                VISUALIZATION_CACHE[prediction_id] = result
+            elif prediction.status == "failed":
+                result["error"] = str(prediction.error) if prediction.error else "Unknown error"
+            return jsonify(result)
+        except Exception as e:
+            return jsonify({"status": "error", "error": str(e)}), 500
+    
+    # ── POST: Start new prediction ──
+    data = request.get_json() or {}
+    session_id = data.get("session_id", "")
+    style = data.get("style", "Modern")
+    
+    if not session_id:
+        return jsonify({"error": "No session_id provided"}), 400
+    
+    session = get_session(session_id)
+    if not session or not session.get("image"):
+        return jsonify({"error": "Session expired or no image found. Please restart."}), 404
+    
+    image_b64 = session["image"]
+    # Strip data URI prefix if present
+    if "," in image_b64 and image_b64.startswith("data:"):
+        image_b64 = image_b64.split(",", 1)[1]
+    
+    client = get_replicate_client()
+    if not client:
+        return jsonify({"status": "failed", "error": "Replicate API token not configured. Set REPLICATE_API_TOKEN."}), 503
+    
+    prompt = get_style_prompt(style)
+    negative_prompt = "ugly, distorted, deformed, bad architecture, broken windows, crooked doors, cluttered, messy, low quality, blurry, dark, oversaturated, watermark, text"
+    
+    try:
+        prediction = client.predictions.create(
+            version="jagilley/controlnet-canny:aff48af9c68d162388d230a2ab003f68d2638d88307bdaf1c2f1ac95079c9613",
+            input={
+                "image": f"data:image/jpeg;base64,{image_b64}",
+                "prompt": prompt,
+                "a_prompt": "best quality, professional interior design photography, beautifully decorated room, natural lighting, architectural digest, high end, photorealistic",
+                "n_prompt": negative_prompt,
+                "ddim_steps": 30,
+                "scale": 9,
+            }
+        )
+        VISUALIZATION_CACHE[prediction.id] = {"status": prediction.status, "prediction_id": prediction.id, "style": style}
+        return jsonify({"status": prediction.status, "prediction_id": prediction.id, "style": style})
+    except Exception as e:
+        app.logger.error(f"Replicate prediction error: {e}")
+        return jsonify({"status": "failed", "error": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

@@ -497,6 +497,33 @@
 .fi-hover-card { transition: box-shadow 0.2s, transform 0.2s; }
 .fi-hover-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
 .fi-more:hover { border-color: var(--terracotta) !important; background: var(--terracotta-soft) !important; }
+
+/* ── Visualization card ── */
+.viz-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius:18px; margin:20px 0; overflow:hidden; border:1px solid rgba(255,255,255,0.08); }
+.viz-card-header { padding:20px 24px 0; }
+.viz-card-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#fff; margin-bottom:4px; }
+.viz-card-subtitle { font-size:13px; color:rgba(255,255,255,0.5); }
+.viz-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; gap:16px; }
+.viz-spinner { width:48px; height:48px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--terracotta); border-radius:50%; animation:viz-spin 1s linear infinite; }
+@keyframes viz-spin { to {transform:rotate(360deg)} }
+.viz-loading-text { font-family:'Playfair Display',serif; font-size:16px; color:rgba(255,255,255,0.8); text-align:center; }
+.viz-loading-sub { font-size:13px; color:rgba(255,255,255,0.4); }
+.viz-progress-bar { width:200px; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
+.viz-progress-fill { height:100%; background:var(--terracotta); border-radius:2px; animation:viz-progress 8s ease-in-out infinite; width:30%; }
+@keyframes viz-progress { 0% {width:5%;margin-left:0} 50% {width:40%;margin-left:30%} 100% {width:5%;margin-left:95%} }
+.viz-result-img { width:100%; display:block; border-radius:0; }
+.viz-actions { display:flex; gap:10px; padding:16px 24px; justify-content:center; flex-wrap:wrap; }
+.viz-btn { padding:10px 20px; border-radius:12px; font-family:Inter,sans-serif; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:6px; }
+.viz-btn-primary { background:var(--terracotta); color:#fff; }
+.viz-btn-primary:hover { background:var(--terracotta-dark); }
+.viz-btn-secondary { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); }
+.viz-btn-secondary:hover { background:rgba(255,255,255,0.15); }
+.viz-btn-outline { background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.15); }
+.viz-btn-outline:hover { border-color:rgba(255,255,255,0.3); color:#fff; }
+.viz-error { padding:24px; text-align:center; color:rgba(255,255,255,0.6); }
+.viz-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.6); margin-bottom:12px; }
+.viz-badge svg { width:12px; height:12px; }
+
 </style>
 </head>
 <body>
@@ -1572,6 +1599,149 @@ async function analyze() {
       saveBtn.textContent = "Sla herkenning op";
       saveBtn.classList.remove("saved");
     }
+    
+    /* ── Start visualization ── */
+    let _vizPollTimer = null;
+    let _vizPredictionId = null;
+    let _vizStyle = null;
+    
+    async function startVisualization() {
+      const style = _storedAdviceData?.style || currentResult?.style || "Modern";
+      _vizStyle = style;
+      
+      // Find or create viz container
+      let vizWrap = document.getElementById("vizWrap");
+      if (!vizWrap) {
+        vizWrap = document.createElement("div");
+        vizWrap.id = "vizWrap";
+        const container = document.getElementById("resultContent");
+        container.appendChild(vizWrap);
+      }
+      
+      vizWrap.innerHTML = `
+        <div class="viz-card">
+          <div class="viz-card-header">
+            <div class="viz-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> AI Visualisatie</div>
+            <div class="viz-card-title">Je kamer in ${style} stijl</div>
+            <div class="viz-card-subtitle">AI genereert een realistische transformatie...</div>
+          </div>
+          <div class="viz-loading" id="vizLoading">
+            <div class="viz-spinner"></div>
+            <div class="viz-loading-text">Even geduld — we toveren je kamer om</div>
+            <div class="viz-progress-bar"><div class="viz-progress-fill"></div></div>
+            <div class="viz-loading-sub">Dit duurt ongeveer 10–20 seconden</div>
+          </div>
+          <div id="vizResult" style="display:none"></div>
+          <div id="vizError" style="display:none" class="viz-error"></div>
+        </div>
+      `;
+      
+      vizWrap.scrollIntoView({behavior:'smooth',block:'center'});
+      
+      try {
+        const resp = await fetch("/api/visualize", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            session_id: currentSessionId,
+            style: style
+          })
+        });
+        const data = await resp.json();
+        if (data.error) {
+          showVizError(data.error);
+          return;
+        }
+        _vizPredictionId = data.prediction_id;
+        pollVisualization();
+      } catch (e) {
+        showVizError("Kon geen verbinding maken. Controleer of de REPLICATE_API_TOKEN is ingesteld.");
+      }
+    }
+    
+    function pollVisualization() {
+      if (!_vizPredictionId) return;
+      fetch(`/api/visualize?prediction_id=${_vizPredictionId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.status === "succeeded") {
+            showVizResult(data.image_url || (data.output && data.output[0]));
+          } else if (data.status === "failed") {
+            showVizError(data.error || "Generatie mislukt. Probeer opnieuw.");
+          } else {
+            // Still processing — poll again
+            _vizPollTimer = setTimeout(pollVisualization, 1500);
+          }
+        })
+        .catch(e => {
+          showVizError("Verbinding verbroken tijdens het pollen.");
+        });
+    }
+    
+    function showVizResult(imageUrl) {
+      if (_vizPollTimer) { clearTimeout(_vizPollTimer); _vizPollTimer = null; }
+      
+      document.getElementById("vizLoading").style.display = "none";
+      const resultEl = document.getElementById("vizResult");
+      resultEl.style.display = "block";
+      resultEl.innerHTML = `
+        <img src="${imageUrl}" alt="Visualisatie" class="viz-result-img" onload="this.style.opacity='1'" style="opacity:0;transition:opacity .5s" />
+        <div class="viz-actions">
+          <button class="viz-btn viz-btn-primary" onclick="regenerateVisualization()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Opnieuw</button>
+          <button class="viz-btn viz-btn-secondary" onclick="shareVisualization('${imageUrl.replace(/'/g, "\'")}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Delen</button>
+        </div>
+      `;
+    }
+    
+    function showVizError(msg) {
+      if (_vizPollTimer) { clearTimeout(_vizPollTimer); _vizPollTimer = null; }
+      document.getElementById("vizLoading").style.display = "none";
+      const errEl = document.getElementById("vizError");
+      errEl.style.display = "block";
+      errEl.innerHTML = `
+        <div style="font-size:14px;margin-bottom:8px">⚠️ ${msg}</div>
+        <button class="viz-btn viz-btn-outline" onclick="startVisualization()">Opnieuw proberen</button>
+      `;
+    }
+    
+    async function regenerateVisualization() {
+      // Remove old result and restart
+      const vizWrap = document.getElementById("vizWrap");
+      if (vizWrap) vizWrap.remove();
+      startVisualization();
+    }
+    
+    function shareVisualization(imageUrl) {
+      if (navigator.share) {
+        navigator.share({
+          title: `Mijn kamer in ${_vizStyle || 'nieuwe'} stijl — HouseFix AI`,
+          text: `Bekijk mijn room makeover in ${_vizStyle || 'nieuwe'} stijl! Gemaakt met HouseFix AI.`,
+          url: imageUrl
+        }).catch(() => {});
+      } else {
+        // Fallback: copy URL
+        navigator.clipboard.writeText(imageUrl).then(() => {
+          const toast = document.getElementById("toast");
+          toast.textContent = "Link gekopieerd!";
+          toast.classList.add("show");
+          setTimeout(() => toast.classList.remove("show"), 2000);
+        }).catch(() => {});
+      }
+    }
+    
+    /* ── Visualize button ── */
+    function addVisualizeButton() {
+      const style = _storedAdviceData?.style || currentResult?.style || "deze";
+      const container = document.getElementById("resultContent");
+      // Don't add if already present
+      if (document.getElementById("vizButtonWrap")) return;
+      const btnWrap = document.createElement("div");
+      btnWrap.id = "vizButtonWrap";
+      btnWrap.style.cssText = "text-align:center;margin:8px 0 20px";
+      btnWrap.innerHTML = `<button class="viz-btn viz-btn-primary" onclick="startVisualization()" style="padding:14px 28px;font-size:15px;border-radius:14px;box-shadow:0 4px 20px rgba(196,98,74,0.25)">✨ Bekijk je kamer in ${style} stijl</button>`;
+      container.appendChild(btnWrap);
+    }
+
 
     /* ── Show Inspiration Advice (Flowing Story) ── */
     /* Fase 3: gestructureerde productkaarten + optie-tabs */
@@ -1740,6 +1910,7 @@ async function analyze() {
       }
     
       container.innerHTML = bannerHtml + html;
+      addVisualizeButton();
     
       // Update save button
       const saveBtn = document.getElementById("saveBtn");
