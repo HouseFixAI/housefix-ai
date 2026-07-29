@@ -2423,7 +2423,7 @@ def visualize_room():
         return jsonify({"status": "failed", "error": "Replicate API token not configured. Set REPLICATE_API_TOKEN."}), 503
     
     prompt = get_style_prompt(style)
-    negative_prompt = "ugly, distorted, deformed, bad architecture, broken windows, crooked doors, cluttered, messy, low quality, blurry, dark, oversaturated, watermark, text"
+    negative_prompt = "ugly, distorted, deformed, bad architecture, broken windows, crooked doors, cluttered, messy, low quality, blurry, dark, oversaturated, watermark, text, sketch, drawing, cartoon, illustration, painting, anime, cgi, 3d render, wireframe, outline, blueprint"
     
     try:
         prediction = client.predictions.create(
@@ -2431,10 +2431,10 @@ def visualize_room():
             input={
                 "image": f"data:image/jpeg;base64,{image_b64}",
                 "prompt": prompt,
-                "a_prompt": "best quality, professional interior design photography, beautifully decorated room, natural lighting, architectural digest, high end, photorealistic",
+                "a_prompt": "best quality, professional interior design photography, beautifully decorated room, natural lighting, architectural digest, high end, photorealistic, real photo, 8k, realistic, magazine photography",
                 "n_prompt": negative_prompt,
-                "ddim_steps": 30,
-                "scale": 9,
+                "ddim_steps": 50,
+                "scale": 7.5,
             }
         )
         VISUALIZATION_CACHE[prediction.id] = {"status": prediction.status, "prediction_id": prediction.id, "style": style}
