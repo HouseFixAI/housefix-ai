@@ -2451,7 +2451,11 @@ def visualize_room():
 def telefoniste_tool():
     import urllib.request, json as _json
     try:
-        data = _json.dumps(request.get_json()).encode()
+        payload = request.get_json()
+        # Bland.ai wraps tool calls in a top-level "body" — unwrap it
+        if isinstance(payload, dict) and "body" in payload:
+            payload = payload["body"]
+        data = _json.dumps(payload).encode()
         req = urllib.request.Request("http://localhost:8000/api/tool", data=data, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             return jsonify(_json.loads(resp.read())), resp.status
