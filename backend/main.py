@@ -2451,16 +2451,29 @@ def visualize_room():
 def telefoniste_tool():
     import urllib.request, json as _json
     try:
-        payload = request.get_json()
+        # Bland kan met diverse Content-Types sturen — forceer JSON-parsing
+        if request.is_json:
+            try:
+                payload = request.get_json(force=True)
+            except Exception:
+                return jsonify({"error": "Ongeldige JSON in request body"}), 400
+        else:
+            raw = request.get_data(as_text=True)
+            try:
+                payload = _json.loads(raw)
+            except Exception:
+                return jsonify({"error": "Ongeldige JSON in request body"}), 400
+        if not isinstance(payload, dict):
+            return jsonify({"error": "Request body moet een JSON-object zijn"}), 400
         # Bland.ai wraps tool calls in a top-level "body" — unwrap it
-        if isinstance(payload, dict) and "body" in payload:
+        if "body" in payload:
             payload = payload["body"]
         data = _json.dumps(payload).encode()
         req = urllib.request.Request("http://localhost:8000/api/tool", data=data, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             return jsonify(_json.loads(resp.read())), resp.status
     except Exception as e:
-        return jsonify({"error": f"Telefoniste backend niet bereikbaar: {str(e)}"}), 503
+        return jsonify({"error": "Telefoniste backend niet bereikbaar"}), 503
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
