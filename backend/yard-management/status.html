@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Uw Status | Yard Management{% endblock %}
+
+{% block extra_css %}
+body {
+    background-color: #f0f2f5;
+}
+
+.status-header {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 2rem 1rem;
+    text-align: center;
+    margin-bottom: -3rem;
+}
+
+.status-card {
+    text-align: center;
+    padding: 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.status-badge-lg {
+    font-size: 1.5rem;
+    padding: 0.75rem 2rem;
+    margin: 1.5rem 0;
+    width: 100%;
+}
+
+.status-ingecheckt, .status-wachtend, .status-truckparking { background-color: var(--color-primary); color: white; }
+.status-standby_onderweg, .status-standby_aangekomen { background-color: var(--color-warning); color: black; }
+.status-actief_dok { background-color: var(--color-success); color: white; }
+.status-voltooid { background-color: #6c757d; color: white; }
+.status-no_show, .status-geblokkeerd { background-color: var(--color-danger); color: white; }
+
+.dock-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-success);
+    margin: 1rem 0;
+}
+
+.instruction-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0;
+    color: var(--color-text);
+}
+
+.action-buttons {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.ticket-info {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-top: 2rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="status-header">
+    <h1 data-nl="Uw Status" data-en="Your Status" data-de="Ihr Status" data-pl="Twój status" data-ro="Statusul dvs.">Uw Status</h1>
+</div>
+
+<div class="container">
+    <div class="card status-card">
+        <p data-nl="Uw huidige positie:" data-en="Your current position:">Uw huidige positie:</p>
+        <div style="font-size: 3rem; font-weight: 900;" id="posNumber">{{ ticket.position }}</div>
+        
+        <div id="statusBadge" class="badge status-badge-lg">
+            {{ ticket.status }}
+        </div>
+
+        <div id="dockInfo" style="display: none;">
+            <p data-nl="Ga naar dok:" data-en="Go to dock:">Ga naar dok:</p>
+            <div class="dock-number" id="dockName">{{ ticket.dock_name }}</div>
+        </div>
+
+        <div class="instruction-text" id="instructionText">
+            Wacht op instructies
+        </div>
+
+        <div class="action-buttons" id="actionButtons">
+            <!-- Dynamic buttons based on status -->
+        </div>
+
+        <div class="ticket-info">
+            <p>Ticket ID: {{ ticket.ticket_id }}</p>
+            <p>{{ ticket.name }} | {{ ticket.plate }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+const BASE = window.location.pathname.indexOf('/yard') === 0 ? '/yard' : '';
+const ticketId = "{{ ticket.ticket_id }}";
+const urlParams = new URLSearchParams(window.location.search);
+const lang = (urlParams.get('lang') || 'NL').toUpperCase();
+
+const statusLabels = {
+    NL: {
+        ingecheckt: "Ingecheckt", wachtend: "Wachtend", truckparking: "Truckparking",
+        standby_onderweg: "Onderweg naar Standby", standby_aangekomen: "Aangekomen op Standby",
+        actief_dok: "Ga naar Dok", voltooid: "Voltooid", no_show: "No-Show", geblokkeerd: "Geblokkeerd"
+    },
+    EN: {
+        ingecheckt: "Checked In", wachtend: "Waiting", truckparking: "Truck Parking",
+        standby_onderweg: "Heading to Standby", standby_aangekomen: "Arrived at Standby",
+        actief_dok: "Go to Dock", voltooid: "Completed", no_show: "No-Show", geblokkeerd: "Blocked"
+    }
+    // PL and RO would go here
+};
+
+const instructions = {{ instructions_json | safe }};
+
+function updateUI(data) {
+    const badge = document.getElementById('statusBadge');
+    const instr = document.getElementById('instructionText');
+    const dockInfo = document.getElementById('dockInfo');
+    const actions = document.getElementById('actionButtons');
+    const pos = document.getElementById('posNumber');
+
+    pos.textContent = data.position;
+    
+    const labelSet = statusLabels[lang] || statusLabels.NL;
+    badge.textContent = labelSet[data.status.toLowerCase()] || data.status;
+    badge.className = 'badge status-badge-lg status-' + data.status.toLowerCase();
+
+    // Use instructions from backend if available
+    if (instructions && instructions[data.status]) {
+        let text = instructions[data.status][lang] || instructions[data.status]['NL'];
+        text = text.replace('{position}', data.position).replace('{dock}', data.dock_name || '').replace('{minutes}', data.minutes || '');
+        instr.textContent = text;
+    }
+
+    if (data.status === 'Actief_Dok') {
+        dockInfo.style.display = 'block';
+        document.getElementById('dockName').textContent = data.dock_name;
+    } else {
+        dockInfo.style.display = 'none';
+    }
+
+    // Actions
+    actions.innerHTML = '';
+    if (data.status === 'Standby_Onderweg') {
+        actions.innerHTML += `<button onclick="sendAction('arrived')" class="btn btn-success">Ik ben aangekomen / Arrived</button>`;
+    }
+    if (data.status !== 'Voltooid' && data.status !== 'Geblokkeerd') {
+        actions.innerHTML += `<button onclick="sendAction('cannot_now')" class="btn btn-danger">Ik kan nu niet / Cannot now</button>`;
+    }
+}
+
+function pollStatus() {
+    fetch(BASE + '/api/status/' + ticketId)
+    .then(r => r.json())
+    .then(updateUI)
+    .catch(e => console.error('Polling error:', e));
+}
+
+function sendAction(action) {
+    fetch(BASE + '/api/status/' + ticketId + '/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action })
+    })
+    .then(r => r.json())
+    .then(updateUI);
+}
+
+pollStatus();
+const pollInterval = setInterval(pollStatus, 30000);
+window.onunload = () => clearInterval(pollInterval);
+{% endblock %}

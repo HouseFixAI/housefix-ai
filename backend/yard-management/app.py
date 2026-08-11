@@ -61,12 +61,44 @@ def startup():
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request, "dc_id": "dc-rotterdam"})
+    template = templates.get_template("checkin.html")
+    return HTMLResponse(template.render(dc_id="dc-rotterdam"))
 
 
 @app.get("/dashboard/{dc_id}", response_class=HTMLResponse)
 def dashboard_view(request: Request, dc_id: str):
-    return templates.TemplateResponse("dashboard.html", {"request": request, "dc_id": dc_id})
+    template = templates.get_template("dashboard.html")
+    return HTMLResponse(template.render(dc_id=dc_id))
+
+
+@app.get("/status/{ticket_id}", response_class=HTMLResponse)
+def status_view(request: Request, ticket_id: str):
+    """Chauffeur statuspagina (HTML)."""
+    driver = get_driver_by_ticket(ticket_id)
+    if not driver:
+        raise HTTPException(status_code=404, detail="Ticket niet gevonden")
+    dc_config = DCS.get(driver["dc_id"], {})
+    dock_name = None
+    if driver.get("dock_id"):
+        conn = get_connection()
+        try:
+            dock = dict_from_row(conn.execute(
+                "SELECT * FROM docks WHERE id = ?", (driver["dock_id"],)
+            ).fetchone())
+            if dock:
+                dock_name = dock["name"]
+        finally:
+            conn.close()
+    ticket = {
+        "ticket_id": driver["ticket_id"],
+        "name": driver["name"],
+        "plate": driver.get("license_plate", ""),
+        "position": driver.get("position_in_queue"),
+        "status": driver["status"],
+        "dock_name": dock_name,
+    }
+    template = templates.get_template("status.html")
+    return HTMLResponse(template.render(ticket=ticket))
 
 
 # ─── Driver API ──────────────────────────────────────────────────

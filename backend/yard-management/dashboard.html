@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yard Management — {{ dc_id }}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+        header { background: #1a237e; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.25rem; }
+        main { max-width: 1400px; margin: 1rem auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1); padding: 1rem; }
+        .card h2 { font-size: 1rem; margin-bottom: .75rem; color: #1a237e; border-bottom: 2px solid #e8eaf6; padding-bottom: .5rem; }
+        table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+        th, td { padding: .4rem .5rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { font-weight: 600; color: #555; }
+        .status-badge { display: inline-block; padding: .15rem .5rem; border-radius: 12px; font-size: .75rem; font-weight: 600; }
+        .status-Ingecheckt { background: #e3f2fd; color: #1565c0; }
+        .status-Wachtend { background: #fff3e0; color: #e65100; }
+        .status-Truckparking { background: #f3e5f5; color: #7b1fa2; }
+        .status-Standby_Onderweg { background: #e8f5e9; color: #2e7d32; }
+        .status-Standby_Aangekomen { background: #c8e6c9; color: #1b5e20; }
+        .status-Actief_Dok { background: #ffeb3b; color: #f57f17; }
+        .status-Voltooid { background: #e0e0e0; color: #424242; }
+        .status-No_Show { background: #ffcdd2; color: #c62828; }
+        .status-Geblokkeerd { background: #b71c1c; color: white; }
+        .btn { padding: .4rem .8rem; border: none; border-radius: 4px; cursor: pointer; font-size: .8rem; font-weight: 600; }
+        .btn-primary { background: #1a237e; color: white; }
+        .btn-danger { background: #c62828; color: white; }
+        .btn-success { background: #2e7d32; color: white; }
+        .btn-sm { padding: .2rem .5rem; font-size: .7rem; }
+        .counter { font-size: 2rem; font-weight: 700; color: #1a237e; }
+        .counter-label { font-size: .75rem; color: #666; }
+        .dock-card { display: inline-block; padding: .5rem 1rem; border-radius: 6px; margin: .25rem; font-size: .85rem; }
+        .dock-free { background: #e8f5e9; border: 1px solid #a5d6a7; }
+        .dock-occupied { background: #ffeb3b; border: 1px solid #ffe082; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏗️ Yard Management — {{ dc_id }}</h1>
+        <span id="clock">--</span>
+    </header>
+
+    <main>
+        <div class="grid">
+            <!-- Status overview -->
+            <div class="card">
+                <h2>📊 Status Overzicht</h2>
+                <div id="status-counts">Laden...</div>
+            </div>
+
+            <!-- Docks -->
+            <div class="card">
+                <h2>🚛 Docks</h2>
+                <div id="docks-view">Laden...</div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <h2>⚡ Acties</h2>
+                <button class="btn btn-primary" onclick="callNext()">📞 Roep volgende op</button>
+                <hr style="margin: .5rem 0;">
+                <h3 style="font-size:.85rem;margin-bottom:.25rem;">Prioriteit aanpassen</h3>
+                <div id="priority-list">Laden...</div>
+                <button class="btn btn-primary btn-sm" onclick="updatePriority()" style="margin-top:.25rem;">💾 Prioriteit opslaan</button>
+            </div>
+        </div>
+
+        <!-- Driver table -->
+        <div class="card" style="margin-top:1rem;">
+            <h2>📋 Alle Chauffeurs</h2>
+            <div style="overflow-x:auto;">
+                <table id="drivers-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th><th>Naam</th><th>Kenteken</th><th>Status</th>
+                            <th>Dok</th><th>No-Show</th><th>Acties</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Blocked plates -->
+        <div class="card" style="margin-top:1rem;">
+            <h2>🚫 Geblokkeerde Kentekens</h2>
+            <div id="blocked-list">Laden...</div>
+        </div>
+    </main>
+
+    <script>
+        const DC_ID = "{{ dc_id }}";
+        let dashboardData = null;
+
+        async function refresh() {
+            try {
+                const resp = await fetch(BASE + `/api/dashboard/${DC_ID}`);
+                dashboardData = await resp.json();
+                render();
+            } catch(e) { console.error(e); }
+        }
+
+        function render() {
+            const d = dashboardData;
+            if (!d) return;
+
+            // Status counts
+            const sc = d.status_counts || {};
+            document.getElementById('status-counts').innerHTML = Object.entries(sc)
+                .map(([s,c]) => `<div><span class="status-badge status-${s}">${s}</span>: <strong>${c}</strong></div>`)
+                .join('') || 'Geen chauffeurs';
+
+            // Docks
+            document.getElementById('docks-view').innerHTML = (d.docks || []).map(dock => {
+                const driver = (d.drivers || []).find(dr => dr.dock_id === dock.id && dr.status === 'Actief_Dok');
+                const cls = driver ? 'dock-occupied' : 'dock-free';
+                const label = driver ? `${dock.name}: ${driver.name}` : `${dock.name}: vrij`;
+                return `<span class="dock-card ${cls}">${label}</span>`;
+            }).join('');
+
+            // Drivers table
+            const tbody = document.querySelector('#drivers-table tbody');
+            tbody.innerHTML = (d.drivers || []).map(dr => `
+                <tr>
+                    <td>${dr.position_in_queue}</td>
+                    <td>${dr.name}</td>
+                    <td>${dr.license_plate}</td>
+                    <td><span class="status-badge status-${dr.status}">${dr.status}</span></td>
+                    <td>${dr.dock_id || '-'}</td>
+                    <td>${dr.no_show_count}/${d.dc.no_show_limiet}</td>
+                    <td>
+                        ${dr.status !== 'Voltooid' && dr.status !== 'Geblokkeerd' ? `
+                            <button class="btn btn-success btn-sm" onclick="markComplete('${dr.ticket_id}')">✅</button>
+                            <button class="btn btn-danger btn-sm" onclick="markNoShow('${dr.ticket_id}')">❌</button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Priority list
+            const waiting = (d.drivers || []).filter(dr => ['Wachtend','Truckparking','Ingecheckt'].includes(dr.status));
+            document.getElementById('priority-list').innerHTML = waiting.map((dr,i) => `
+                <div style="display:flex;align-items:center;gap:.5rem;padding:.2rem 0;">
+                    <span>${i+1}.</span>
+                    <span>${dr.name} (${dr.license_plate})</span>
+                    <input type="hidden" class="priority-ticket" value="${dr.ticket_id}">
+                    <button class="btn btn-sm" onclick="moveUp(this)">↑</button>
+                    <button class="btn btn-sm" onclick="moveDown(this)">↓</button>
+                </div>
+            `).join('') || 'Geen wachtenden';
+
+            // Blocked plates
+            fetch(BASE + `/api/dashboard/${DC_ID}/blocked`)
+                .then(r => r.json())
+                .then(b => {
+                    document.getElementById('blocked-list').innerHTML = (b.blocked || []).map(p => `
+                        <div style="display:flex;justify-content:space-between;padding:.25rem 0;">
+                            <span>🚫 ${p.license_plate} — tot ${new Date(p.blocked_until).toLocaleString()}</span>
+                            <button class="btn btn-sm btn-success" onclick="unblock('${p.license_plate}')">Deblokkeer</button>
+                        </div>
+                    `).join('') || 'Geen geblokkeerde kentekens';
+                });
+        }
+
+        async function callNext() {
+            const resp = await fetch(BASE + `/api/dashboard/${DC_ID}/call-next`, { method: 'POST' });
+            const data = await resp.json();
+            if (data.called) alert(`Opg roepen: ${data.driver.name} → ${data.new_status}`);
+            else alert(data.message || 'Niemand om op te roepen');
+            refresh();
+        }
+
+        async function markComplete(tid) {
+            await fetch(BASE + `/api/dashboard/${DC_ID}/mark-complete/${tid}`, { method: 'POST' });
+            refresh();
+        }
+
+        async function markNoShow(tid) {
+            if (!confirm('Markeer als no-show?')) return;
+            await fetch(BASE + `/api/dashboard/${DC_ID}/mark-noshow/${tid}`, { method: 'POST' });
+            refresh();
+        }
+
+        async function updatePriority() {
+            const ids = [...document.querySelectorAll('.priority-ticket')].map(el => el.value);
+            await fetch(BASE + `/api/dashboard/${DC_ID}/update-priority`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ ticket_ids: ids }),
+            });
+            refresh();
+        }
+
+        async function unblock(plate) {
+            await fetch(BASE + `/api/dashboard/${DC_ID}/unblock/${plate}`, { method: 'POST' });
+            refresh();
+        }
+
+        function moveUp(btn) {
+            const div = btn.parentElement;
+            const prev = div.previousElementSibling;
+            if (prev) div.parentElement.insertBefore(div, prev);
+        }
+
+        function moveDown(btn) {
+            const div = btn.parentElement;
+            const next = div.nextElementSibling;
+            if (next) div.parentElement.insertBefore(next, div);
+        }
+
+        // Clock
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleString('nl-NL');
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        // Initial load + auto-refresh
+        refresh();
+        setInterval(refresh, 30000);
+    </script>
+</body>
+</html>

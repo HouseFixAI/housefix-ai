@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Chauffeur Inchecken | Yard Management{% endblock %}
+
+{% block extra_css %}
+body {
+    background-color: var(--color-sidebar);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.checkin-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.logo-placeholder {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.checkin-card {
+    padding: 2.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: var(--radius);
+    font-size: 1rem;
+}
+
+.btn-checkin {
+    width: 100%;
+    margin-top: 1rem;
+    font-size: 1.25rem;
+    padding: 1rem;
+}
+
+.ticket-view {
+    display: none;
+    text-align: center;
+}
+
+.position-number {
+    font-size: 5rem;
+    font-weight: 900;
+    color: var(--color-primary);
+    margin: 1rem 0;
+}
+
+.parking-info {
+    background-color: #e9ecef;
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="checkin-container">
+    <div class="logo-placeholder">YARD LOGISTICS</div>
+    
+    <div class="card checkin-card" id="formSection">
+        <h2 style="margin-bottom: 1.5rem; text-align: center;" data-nl="Chauffeur Inchecken" data-en="Driver Check-in">Chauffeur Inchecken</h2>
+        
+        <form id="checkinForm">
+            <div class="form-group">
+                <label for="name" data-nl="Naam" data-en="Name">Naam</label>
+                <input type="text" id="name" name="name" class="form-control" required placeholder="bijv. Jan Jansen">
+            </div>
+            
+            <div class="form-group">
+                <label for="plate" data-nl="Kenteken" data-en="License Plate">Kenteken</label>
+                <input type="text" id="plate" name="plate" class="form-control" required placeholder="AB-123-C" style="text-transform: uppercase;">
+            </div>
+            
+            <div class="form-group">
+                <label for="carrier" data-nl="Transporteur" data-en="Carrier">Transporteur</label>
+                <input type="text" id="carrier" name="carrier" class="form-control" required placeholder="bijv. Mainfreight">
+            </div>
+            
+            <div class="form-group">
+                <label for="cmr" data-nl="CMR-nummer" data-en="CMR Number">CMR-nummer</label>
+                <input type="text" id="cmr" name="cmr" class="form-control" required placeholder="12345678">
+            </div>
+            
+            <div class="form-group">
+                <label for="phone" data-nl="Telefoonnummer" data-en="Phone Number">Telefoonnummer</label>
+                <input type="tel" id="phone" name="phone" class="form-control" required placeholder="+31 6 12345678">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-checkin" id="submitBtn">Inchecken</button>
+        </form>
+    </div>
+
+    <div class="card checkin-card ticket-view" id="ticketSection">
+        <h2 data-nl="Ingecheckt!" data-en="Checked in!">Ingecheckt!</h2>
+        <p style="margin-top: 0.5rem;" data-nl="Uw volgnummer is:" data-en="Your sequence number is:">Uw volgnummer is:</p>
+        <div class="position-number" id="posNumber">--</div>
+        <p id="ticketId" style="color: var(--color-text-muted); font-size: 0.8rem;"></p>
+        
+        <div class="parking-info">
+            <strong>Parkeerinformatie:</strong><br>
+            Parkeer bij Truckparking Maasvlakte Plaza, 3 min rijden.
+        </div>
+        
+        <a href="#" id="statusLink" class="btn btn-success" style="width: 100%; margin-top: 1.5rem;">Bekijk Live Status</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+const BASE = window.location.pathname.indexOf('/yard') === 0 ? '/yard' : '';
+document.getElementById('checkinForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verwerken...';
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
+    fetch(BASE + '/api/checkin', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Netwerk response was niet OK');
+        return response.json();
+    })
+    .then(result => {
+        document.getElementById('formSection').style.display = 'none';
+        document.getElementById('ticketSection').style.display = 'block';
+        document.getElementById('posNumber').textContent = result.position || '?';
+        document.getElementById('ticketId').textContent = 'ID: ' + (result.ticket_id || '');
+        document.getElementById('statusLink').href = BASE + '/status/' + result.ticket_id;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Er is een fout opgetreden bij het inchecken. Probeer het opnieuw.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Inchecken';
+    });
+});
+
+// Simple language support
+const urlParams = new URLSearchParams(window.location.search);
+const lang = urlParams.get('lang') || 'nl';
+if (lang !== 'nl') {
+    document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+        el.textContent = el.getAttribute('data-' + lang);
+    });
+}
+{% endblock %}
