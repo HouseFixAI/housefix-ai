@@ -448,6 +448,25 @@ def dashboard_mark_complete(request: Request, dc_id: str, ticket_id: str):
     return {"status": "Voltooid", "ticket_id": ticket_id}
 
 
+@app.post("/api/dashboard/{dc_id}/mark-arrived/{ticket_id}")
+def dashboard_mark_arrived(request: Request, dc_id: str, ticket_id: str):
+    """Balie bevestigt dat de chauffeur op de standby-plek is aangekomen (namens de chauffeur)."""
+    require_admin(request)
+    driver = get_driver_by_ticket(ticket_id)
+    if not driver:
+        raise HTTPException(status_code=404, detail="Ticket niet gevonden")
+    if driver["dc_id"] != dc_id:
+        raise HTTPException(status_code=400, detail="Driver hoort niet bij dit DC")
+    if driver["status"] != "Standby_Onderweg":
+        raise HTTPException(status_code=400, detail=f"Alleen mogelijk bij Standby_Onderweg, huidige status: {driver['status']}")
+
+    updated = update_driver_status(ticket_id, "Standby_Aangekomen")
+    if not updated:
+        raise HTTPException(status_code=500, detail="Fout bij updaten status")
+
+    return {"status": "Standby_Aangekomen", "ticket_id": ticket_id}
+
+
 @app.post("/api/dashboard/{dc_id}/mark-noshow/{ticket_id}")
 def dashboard_mark_noshow(request: Request, dc_id: str, ticket_id: str):
     """Mark driver as no-show. Increments counter, blocks if >= limit."""

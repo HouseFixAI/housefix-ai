@@ -42,6 +42,7 @@
     <header>
         <h1>🏗️ Yard Management — {{ dc_id }}</h1>
         <span id="clock">--</span>
+        <a href="#" onclick="event.preventDefault();location.href=(location.pathname.indexOf('/yard')===0?'/yard':'')+'/logout';" style="color:#fff;font-size:.8rem;text-decoration:none;opacity:.8;margin-left:1rem;">Uitloggen ↩</a>
     </header>
 
     <main>
@@ -93,12 +94,13 @@
     </main>
 
     <script>
+        const BASE = window.location.pathname.indexOf('/yard') === 0 ? '/yard' : '';
         const DC_ID = "{{ dc_id }}";
         let dashboardData = null;
 
         async function refresh() {
             try {
-                const resp = await fetch(`/api/dashboard/${DC_ID}`);
+                const resp = await fetch(BASE + `/api/dashboard/${DC_ID}`);
                 dashboardData = await resp.json();
                 render();
             } catch(e) { console.error(e); }
@@ -133,9 +135,14 @@
                     <td>${dr.dock_id || '-'}</td>
                     <td>${dr.no_show_count}/${d.dc.no_show_limiet}</td>
                     <td>
+                        ${dr.status === 'Standby_Onderweg' ? `
+                            <button class="btn btn-sm btn-success" title="Aangekomen op standby bevestigen" onclick="markArrived('${dr.ticket_id}')">📍 Aangekomen</button>
+                        ` : ''}
+                        ${dr.status === 'Actief_Dok' ? `
+                            <button class="btn btn-success btn-sm" title="Voltooien (chauffeur klaar, dok vrij)" onclick="markComplete('${dr.ticket_id}')">✅</button>
+                        ` : ''}
                         ${dr.status !== 'Voltooid' && dr.status !== 'Geblokkeerd' ? `
-                            <button class="btn btn-success btn-sm" onclick="markComplete('${dr.ticket_id}')">✅</button>
-                            <button class="btn btn-danger btn-sm" onclick="markNoShow('${dr.ticket_id}')">❌</button>
+                            <button class="btn btn-danger btn-sm" title="No-show (chauffeur komt niet)" onclick="markNoShow('${dr.ticket_id}')">❌</button>
                         ` : ''}
                     </td>
                 </tr>
@@ -154,7 +161,7 @@
             `).join('') || 'Geen wachtenden';
 
             // Blocked plates
-            fetch(`/api/dashboard/${DC_ID}/blocked`)
+            fetch(BASE + `/api/dashboard/${DC_ID}/blocked`)
                 .then(r => r.json())
                 .then(b => {
                     document.getElementById('blocked-list').innerHTML = (b.blocked || []).map(p => `
@@ -167,7 +174,7 @@
         }
 
         async function callNext() {
-            const resp = await fetch(`/api/dashboard/${DC_ID}/call-next`, { method: 'POST' });
+            const resp = await fetch(BASE + `/api/dashboard/${DC_ID}/call-next`, { method: 'POST' });
             const data = await resp.json();
             if (data.called) alert(`Opg roepen: ${data.driver.name} → ${data.new_status}`);
             else alert(data.message || 'Niemand om op te roepen');
@@ -175,19 +182,24 @@
         }
 
         async function markComplete(tid) {
-            await fetch(`/api/dashboard/${DC_ID}/mark-complete/${tid}`, { method: 'POST' });
+            await fetch(BASE + `/api/dashboard/${DC_ID}/mark-complete/${tid}`, { method: 'POST' });
+            refresh();
+        }
+
+        async function markArrived(tid) {
+            await fetch(BASE + `/api/dashboard/${DC_ID}/mark-arrived/${tid}`, { method: 'POST' });
             refresh();
         }
 
         async function markNoShow(tid) {
             if (!confirm('Markeer als no-show?')) return;
-            await fetch(`/api/dashboard/${DC_ID}/mark-noshow/${tid}`, { method: 'POST' });
+            await fetch(BASE + `/api/dashboard/${DC_ID}/mark-noshow/${tid}`, { method: 'POST' });
             refresh();
         }
 
         async function updatePriority() {
             const ids = [...document.querySelectorAll('.priority-ticket')].map(el => el.value);
-            await fetch(`/api/dashboard/${DC_ID}/update-priority`, {
+            await fetch(BASE + `/api/dashboard/${DC_ID}/update-priority`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ ticket_ids: ids }),
@@ -196,7 +208,7 @@
         }
 
         async function unblock(plate) {
-            await fetch(`/api/dashboard/${DC_ID}/unblock/${plate}`, { method: 'POST' });
+            await fetch(BASE + `/api/dashboard/${DC_ID}/unblock/${plate}`, { method: 'POST' });
             refresh();
         }
 
