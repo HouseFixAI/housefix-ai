@@ -29,6 +29,31 @@ const freePort =
   `kill $pids 2>/dev/null || true; sleep 0.2; ` +
   `done`;
 
+// Proxy /api/yard/* and /yard/* to Yard Management backend on port 8000
+async function proxyToYard(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  url.hostname = "localhost";
+  url.port = "8000";
+  // /api/yard/api/health → localhost:8000/api/health
+  // /yard/checkin → localhost:8000/checkin
+  // /yard/ → localhost:8000/
+  url.pathname = url.pathname.replace(/^\/api\/yard/, "/api").replace(/^\/yard/, "/");
+  const proxyReq = new Request(url, req);
+  proxyReq.headers.delete("host");
+  try {
+    // redirect: "manual" — do NOT follow redirects internally: fetch() has no
+    // cookie jar, so a followed 303 (e.g. yard login → dashboard) would drop the
+    // Set-Cookie and loop. Passing the redirect through to the client lets the
+    // browser handle cookie storage + redirect correctly.
+    return await fetch(proxyReq, { redirect: "manual" });
+  } catch {
+    return new Response(JSON.stringify({ error: "Yard Management backend niet bereikbaar" }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
 // Take over the port, re-freeing and retrying if another publish grabbed it in the
 // gap between freeing and binding (last publish wins). Bun.serve throws EADDRINUSE
 // synchronously, so without this a raced publish would die while the shell already
@@ -41,6 +66,10 @@ for (let attempt = 1; ; attempt++) {
       hostname: HOST,
       async fetch(req) {
         const { pathname } = new URL(req.url);
+        // Proxy Yard Management (API + HTML pages)
+        if (pathname.startsWith("/api/yard/") || pathname.startsWith("/yard/")) {
+          return proxyToYard(req);
+        }
         if (pathname !== "/") {
           const file = Bun.file(CLIENT_DIR + pathname);
           if (await file.exists()) return new Response(file);

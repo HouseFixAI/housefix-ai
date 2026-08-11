@@ -3,9 +3,14 @@ Yard Management System — FastAPI Backend.
 Pure FastAPI + Jinja2 templates.
 """
 
+import hashlib
+import hmac
+import os
+import secrets
+import sys
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from pathlib import Path
@@ -24,6 +29,67 @@ from state_machine import (
 )
 
 app = FastAPI(title="Yard Management System")
+
+# ─── Admin authentication (balie / expeditie) ────────────────────
+# The dashboard and all /api/dashboard/* management endpoints require
+# authentication. Drivers' check-in and status pages stay public.
+# Password comes from YARD_ADMIN_PASSWORD env var or the local .env file;
+# if neither exists one is generated and persisted to .env.
+ADMIN_PASSWORD = os.environ.get("YARD_ADMIN_PASSWORD", "")
+_ADMIN_ENV_PATH = Path(__file__).parent / ".env"
+if not ADMIN_PASSWORD:
+    _env_data = {}
+    if _ADMIN_ENV_PATH.exists():
+        for _line in _ADMIN_ENV_PATH.read_text().splitlines():
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _, _v = _line.partition("=")
+                _env_data[_k.strip()] = _v.strip().strip("\"'")
+    ADMIN_PASSWORD = _env_data.get("YARD_ADMIN_PASSWORD", "")
+if not ADMIN_PASSWORD:
+    ADMIN_PASSWORD = secrets.token_urlsafe(18)
+    try:
+        with open(_ADMIN_ENV_PATH, "a") as _f:
+            _f.write(f"\nYARD_ADMIN_PASSWORD={ADMIN_PASSWORD}\n")
+    except OSError:
+        pass
+    print("[yard] Generated YARD_ADMIN_PASSWORD -> " + str(_ADMIN_ENV_PATH), file=sys.stderr)
+
+ADMIN_COOKIE = "yard_admin"
+_ADMIN_HASH = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
+
+def is_admin(request: Request) -> bool:
+    """Cookie (dashboard login) or X-Admin-Key header (API/scripts)."""
+    cookie_val = request.cookies.get(ADMIN_COOKIE, "")
+    if cookie_val and hmac.compare_digest(cookie_val, _ADMIN_HASH):
+        return True
+    header_val = request.headers.get("X-Admin-Key", "")
+    if header_val and hmac.compare_digest(header_val, ADMIN_PASSWORD):
+        return True
+    return False
+
+def require_admin(request: Request) -> None:
+    if not is_admin(request):
+        raise HTTPException(
+            status_code=401,
+            detail="Authenticatie vereist: log in op het dashboard of stuur X-Admin-Key mee.",
+        )
+
+def _admin_cookie(response) -> None:
+    response.set_cookie(
+        ADMIN_COOKIE, _ADMIN_HASH,
+        httponly=True, samesite="lax", max_age=12 * 3600, path="/",
+    )
+
+# Simple in-memory brute-force protection for the login form
+_LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+
+def _login_throttled(client_ip: str) -> bool:
+    import time
+    now = time.time()
+    attempts = [t for t in _LOGIN_ATTEMPTS.get(client_ip, []) if now - t < 600]
+    _LOGIN_ATTEMPTS[client_ip] = attempts
+    return len(attempts) >= 8
 
 # Jinja2 templates
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -67,8 +133,41 @@ def home(request: Request):
 
 @app.get("/dashboard/{dc_id}", response_class=HTMLResponse)
 def dashboard_view(request: Request, dc_id: str):
+    if not is_admin(request):
+        return RedirectResponse(url=f"/login?next=/dashboard/{dc_id}", status_code=303)
     template = templates.get_template("dashboard.html")
     return HTMLResponse(template.render(dc_id=dc_id))
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    template = templates.get_template("login.html")
+    next_url = request.query_params.get("next", "/dashboard/dc-rotterdam")
+    return HTMLResponse(template.render(error=None, next_url=next_url))
+
+
+@app.post("/login")
+async def login_submit(request: Request):
+    import time
+    client_ip = request.client.host if request.client else "unknown"
+    if _login_throttled(client_ip):
+        return JSONResponse({"error": "Te veel mislukte pogingen. Probeer het later opnieuw."}, status_code=429)
+    form = await request.form()
+    password = form.get("password", "")
+    next_url = form.get("next", "/dashboard/dc-rotterdam")
+    if not hmac.compare_digest(password, ADMIN_PASSWORD):
+        template = templates.get_template("login.html")
+        return HTMLResponse(template.render(error="Onjuist wachtwoord.", next_url=next_url), status_code=401)
+    response = RedirectResponse(url=next_url, status_code=303)
+    _admin_cookie(response)
+    return response
+
+
+@app.get("/logout")
+def logout():
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie(ADMIN_COOKIE, path="/")
+    return response
 
 
 @app.get("/status/{ticket_id}", response_class=HTMLResponse)
@@ -247,8 +346,9 @@ def driver_cannot(ticket_id: str):
 # ─── Dashboard API ───────────────────────────────────────────────
 
 @app.get("/api/dashboard/{dc_id}")
-def dashboard(dc_id: str):
+def dashboard(request: Request, dc_id: str):
     """Full dashboard: all docks, all drivers by status, ordered by position."""
+    require_admin(request)
     data = get_dc_dashboard(dc_id)
     if "error" in data:
         raise HTTPException(status_code=404, detail=data["error"])
@@ -274,8 +374,9 @@ def dashboard(dc_id: str):
 
 
 @app.post("/api/dashboard/{dc_id}/call-next")
-def dashboard_call_next(dc_id: str):
+def dashboard_call_next(request: Request, dc_id: str):
     """Call next waiting driver to standby (or to dock if standby full)."""
+    require_admin(request)
     if dc_id not in DCS:
         raise HTTPException(status_code=404, detail="DC niet gevonden")
 
@@ -293,8 +394,9 @@ def dashboard_call_next(dc_id: str):
 
 
 @app.post("/api/dashboard/{dc_id}/mark-complete/{ticket_id}")
-def dashboard_mark_complete(dc_id: str, ticket_id: str):
+def dashboard_mark_complete(request: Request, dc_id: str, ticket_id: str):
     """Mark driver as completed."""
+    require_admin(request)
     driver = get_driver_by_ticket(ticket_id)
     if not driver:
         raise HTTPException(status_code=404, detail="Ticket niet gevonden")
@@ -309,8 +411,9 @@ def dashboard_mark_complete(dc_id: str, ticket_id: str):
 
 
 @app.post("/api/dashboard/{dc_id}/mark-noshow/{ticket_id}")
-def dashboard_mark_noshow(dc_id: str, ticket_id: str):
+def dashboard_mark_noshow(request: Request, dc_id: str, ticket_id: str):
     """Mark driver as no-show. Increments counter, blocks if >= limit."""
+    require_admin(request)
     driver = get_driver_by_ticket(ticket_id)
     if not driver:
         raise HTTPException(status_code=404, detail="Ticket niet gevonden")
@@ -330,22 +433,25 @@ def dashboard_mark_noshow(dc_id: str, ticket_id: str):
 
 
 @app.post("/api/dashboard/{dc_id}/update-priority")
-def dashboard_update_priority(dc_id: str, req: PriorityUpdateRequest):
+def dashboard_update_priority(request: Request, dc_id: str, req: PriorityUpdateRequest):
     """Reorder queue — accepts array of ticket_ids in new order."""
+    require_admin(request)
     result = reorder_queue(dc_id, req.ticket_ids)
     return result
 
 
 @app.get("/api/dashboard/{dc_id}/blocked")
-def dashboard_blocked(dc_id: str):
+def dashboard_blocked(request: Request, dc_id: str):
     """List blocked plates."""
+    require_admin(request)
     plates = get_blocked_plates(dc_id)
     return {"dc_id": dc_id, "blocked": plates}
 
 
 @app.post("/api/dashboard/{dc_id}/unblock/{plate}")
-def dashboard_unblock(dc_id: str, plate: str):
+def dashboard_unblock(request: Request, dc_id: str, plate: str):
     """Manually unblock a license plate."""
+    require_admin(request)
     result = unblock_plate(plate)
     return result
 

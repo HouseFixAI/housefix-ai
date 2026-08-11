@@ -159,105 +159,7 @@ _load_env_file()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "")
 
-def reload_api_keys():
-    """Reload keys from .env + os.environ after runtime updates."""
-    global OPENAI_API_KEY, REPLICATE_API_TOKEN
-    _load_env_file()
-    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-    REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN", "")
 
-# ── Setup endpoint for REPLICATE_API_TOKEN ──
-@app.route("/setup-replicate")
-def setup_replicate_page():
-    return """<!DOCTYPE html>
-<html lang="nl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HouseFix — Replicate Setup</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,-apple-system,sans-serif;background:#f8f6f2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:#fff;border-radius:18px;padding:32px 24px;max-width:400px;width:100%;box-shadow:0 4px 24px rgba(0,0,0,0.06)}
-h1{font-family:'Playfair Display',serif;font-size:24px;color:#2d2d2d;margin-bottom:4px}
-.sub{font-size:14px;color:#8c8c8c;margin-bottom:24px}
-label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-input{width:100%;padding:14px 16px;border:2px solid #e8e5df;border-radius:12px;font-size:15px;font-family:monospace;transition:border-color .2s}
-input:focus{outline:none;border-color:#c4624a}
-.btn{width:100%;padding:14px;background:#c4624a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;transition:background .2s}
-.btn:hover{background:#b5523a}
-.status{margin-top:16px;padding:12px;border-radius:10px;font-size:14px;text-align:center;display:none}
-.status.ok{display:block;background:#e8f5e9;color:#2e7d32}
-.status.err{display:block;background:#fce4e4;color:#c62828}
-.hint{margin-top:12px;font-size:12px;color:#aaa;text-align:center}
-</style>
-</head>
-<body>
-<div class="card">
-<h1>🔑 Replicate Token</h1>
-<p class="sub">Hiermee kan HouseFix AI-visualisaties genereren via ControlNet.</p>
-<label for="token">API Token</label>
-<input type="password" id="token" placeholder="r8_..." autocomplete="off">
-<button class="btn" onclick="save()">Opslaan & activeren</button>
-<div class="status" id="status"></div>
-<p class="hint">Token wordt alleen op de server opgeslagen in .env — nooit in code of logs.</p>
-</div>
-<script>
-async function save(){
-  const token = document.getElementById("token").value.trim();
-  if(!token) return;
-  const s = document.getElementById("status");
-  s.className = "status"; s.style.display = "none";
-  try {
-    const r = await fetch("/api/setup-replicate", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({token})
-    });
-    const d = await r.json();
-    s.textContent = d.ok ? "✅ Token actief — visualisaties werken nu!" : "❌ "+d.error;
-    s.className = "status " + (d.ok ? "ok" : "err");
-  } catch(e){
-    s.textContent = "❌ Verbindingsfout — probeer opnieuw";
-    s.className = "status err";
-  }
-}
-</script>
-</body>
-</html>"""
-
-@app.route("/api/setup-replicate", methods=["POST"])
-def setup_replicate_token():
-    try:
-        data = request.get_json() or {}
-        token = data.get("token", "").strip()
-        if not token:
-            return jsonify({"ok": False, "error": "Geen token opgegeven"}), 400
-        if not token.startswith("r8_"):
-            return jsonify({"ok": False, "error": "Ongeldig token — moet beginnen met r8_"}), 400
-        
-        # Write to .env file
-        env_path = os.path.join(os.path.dirname(__file__), ".env")
-        env_lines = {}
-        if os.path.exists(env_path):
-            with open(env_path) as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#") and "=" in line:
-                        k, _, v = line.partition("=")
-                        env_lines[k.strip()] = v.strip().strip("\"'")
-        env_lines["REPLICATE_API_TOKEN"] = token
-        with open(env_path, "w") as f:
-            for k, v in env_lines.items():
-                f.write(f"{k}={v}\n")
-        
-        # Set in current process
-        os.environ["REPLICATE_API_TOKEN"] = token
-        reload_api_keys()
-        
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"ok": False, "error": str(e)}), 500
 
 # Serve static files (PWA manifest, icons, service worker)
 @app.route('/static/<path:filename>')
@@ -2449,31 +2351,70 @@ def visualize_room():
 # Does NOT modify any HouseFix functionality.
 @app.route("/api/telefoniste/tool", methods=["POST"])
 def telefoniste_tool():
-    import urllib.request, json as _json
+    """Secured proxy for the AI-Telefoniste backend (Bland.ai function calling).
+
+    Bland.ai must send the shared secret as X-Api-Key header OR as an api_key
+    field in the JSON body. The proxy verifies it, strips it from the payload,
+    and forwards to the Telefoniste backend (loopback only) with the key as an
+    X-Internal-Key header, which the backend checks too.
+    """
+    import hmac
+    import urllib.request
+    import json as _json
+
+    telefoniste_key = os.environ.get("TELEFONISTE_API_KEY", "")
+    backend_url = os.environ.get("TELEFONISTE_BACKEND_URL", "http://localhost:8001")
+
+    supplied = request.headers.get("X-Api-Key", "")
+    if not supplied:
+        try:
+            body = request.get_json(silent=True) or {}
+            supplied = body.get("api_key", "") if isinstance(body, dict) else ""
+        except Exception:
+            supplied = ""
+    if not telefoniste_key or not hmac.compare_digest(supplied, telefoniste_key):
+        return jsonify({"error": "Ongeldige API-key"}), 401
+
     try:
-        # Bland kan met diverse Content-Types sturen — forceer JSON-parsing
         if request.is_json:
-            try:
-                payload = request.get_json(force=True)
-            except Exception:
-                return jsonify({"error": "Ongeldige JSON in request body"}), 400
+            payload = request.get_json(force=True)
         else:
             raw = request.get_data(as_text=True)
-            try:
-                payload = _json.loads(raw)
-            except Exception:
-                return jsonify({"error": "Ongeldige JSON in request body"}), 400
+            payload = _json.loads(raw)
         if not isinstance(payload, dict):
             return jsonify({"error": "Request body moet een JSON-object zijn"}), 400
-        # Bland.ai wraps tool calls in a top-level "body" — unwrap it
         if "body" in payload:
             payload = payload["body"]
+        payload.pop("api_key", None)  # never forward the shared secret
         data = _json.dumps(payload).encode()
-        req = urllib.request.Request("http://localhost:8000/api/tool", data=data, headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            backend_url + "/api/tool", data=data,
+            headers={"Content-Type": "application/json", "X-Internal-Key": telefoniste_key},
+        )
         with urllib.request.urlopen(req, timeout=10) as resp:
-            return jsonify(_json.loads(resp.read())), resp.status
-    except Exception as e:
+            resp_body = resp.read()
+            return jsonify(_json.loads(resp_body)), resp.status
+    except Exception:
         return jsonify({"error": "Telefoniste backend niet bereikbaar"}), 503
+
+
+@app.route("/api/yard/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+def yard_management_proxy(path):
+    import urllib.request, json as _json
+    try:
+        data = request.get_data()
+        target_url = f"http://localhost:8002/api/{path}"
+        req = urllib.request.Request(target_url, data=data, method=request.method)
+        for key, val in request.headers:
+            if key.lower() in ("host", "content-length"):
+                continue
+            req.add_header(key, val)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp_body = resp.read()
+            resp_json = _json.loads(resp_body)
+            return jsonify(resp_json), resp.status
+    except Exception as e:
+        return jsonify({"error": f"Yard Management backend niet bereikbaar: {e}"}), 503
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
