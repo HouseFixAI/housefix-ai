@@ -32,6 +32,10 @@ const freePort =
 // Proxy /api/yard/* and /yard/* to Yard Management backend on port 8000
 async function proxyToYard(req: Request): Promise<Response> {
   const url = new URL(req.url);
+  // The external prefix (/yard or /api/yard) is stripped before forwarding;
+  // pass it along so the backend can build redirect URLs the browser can follow
+  // (e.g. /yard/dashboard/... → /yard/login?next=/yard/dashboard/...).
+  const prefix = url.pathname.startsWith("/api/yard") ? "/api/yard" : "/yard";
   url.hostname = "localhost";
   url.port = "8000";
   // /api/yard/api/health → localhost:8000/api/health
@@ -40,6 +44,7 @@ async function proxyToYard(req: Request): Promise<Response> {
   url.pathname = url.pathname.replace(/^\/api\/yard/, "/api").replace(/^\/yard/, "/");
   const proxyReq = new Request(url, req);
   proxyReq.headers.delete("host");
+  proxyReq.headers.set("X-Forwarded-Prefix", prefix);
   try {
     // redirect: "manual" — do NOT follow redirects internally: fetch() has no
     // cookie jar, so a followed 303 (e.g. yard login → dashboard) would drop the

@@ -75,6 +75,11 @@ def require_admin(request: Request) -> None:
             detail="Authenticatie vereist: log in op het dashboard of stuur X-Admin-Key mee.",
         )
 
+
+def _prefix(request: Request) -> str:
+    """External URL prefix (e.g. /yard) when served behind the site proxy."""
+    return request.headers.get("X-Forwarded-Prefix", "").rstrip("/")
+
 def _admin_cookie(response) -> None:
     response.set_cookie(
         ADMIN_COOKIE, _ADMIN_HASH,
@@ -134,7 +139,8 @@ def home(request: Request):
 @app.get("/dashboard/{dc_id}", response_class=HTMLResponse)
 def dashboard_view(request: Request, dc_id: str):
     if not is_admin(request):
-        return RedirectResponse(url=f"/login?next=/dashboard/{dc_id}", status_code=303)
+        prefix = _prefix(request)
+        return RedirectResponse(url=f"{prefix}/login?next={prefix}/dashboard/{dc_id}", status_code=303)
     template = templates.get_template("dashboard.html")
     return HTMLResponse(template.render(dc_id=dc_id))
 
@@ -142,7 +148,8 @@ def dashboard_view(request: Request, dc_id: str):
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     template = templates.get_template("login.html")
-    next_url = request.query_params.get("next", "/dashboard/dc-rotterdam")
+    prefix = _prefix(request)
+    next_url = request.query_params.get("next") or f"{prefix}/dashboard/dc-rotterdam"
     return HTMLResponse(template.render(error=None, next_url=next_url))
 
 
@@ -154,7 +161,8 @@ async def login_submit(request: Request):
         return JSONResponse({"error": "Te veel mislukte pogingen. Probeer het later opnieuw."}, status_code=429)
     form = await request.form()
     password = form.get("password", "")
-    next_url = form.get("next", "/dashboard/dc-rotterdam")
+    prefix = _prefix(request)
+    next_url = form.get("next") or f"{prefix}/dashboard/dc-rotterdam"
     if not hmac.compare_digest(password, ADMIN_PASSWORD):
         template = templates.get_template("login.html")
         return HTMLResponse(template.render(error="Onjuist wachtwoord.", next_url=next_url), status_code=401)
@@ -164,8 +172,9 @@ async def login_submit(request: Request):
 
 
 @app.get("/logout")
-def logout():
-    response = RedirectResponse(url="/", status_code=303)
+def logout(request: Request):
+    prefix = _prefix(request)
+    response = RedirectResponse(url=f"{prefix}/", status_code=303)
     response.delete_cookie(ADMIN_COOKIE, path="/")
     return response
 
