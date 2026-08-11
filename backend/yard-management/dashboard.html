@@ -94,6 +94,7 @@
     </main>
 
     <script>
+        const BASE = window.location.pathname.indexOf('/yard') === 0 ? '/yard' : '';
         const DC_ID = "{{ dc_id }}";
         let dashboardData = null;
 
