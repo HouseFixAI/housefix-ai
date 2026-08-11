@@ -406,7 +406,8 @@ def assign_driver_to_dock(dc_id: str) -> dict | None:
             driver_row = conn.execute("""
                 SELECT * FROM drivers
                 WHERE dc_id = ? AND status IN ('Ingecheckt', 'Wachtend', 'Truckparking', 'Standby_Aangekomen')
-                ORDER BY position_in_queue LIMIT 1
+                ORDER BY CASE WHEN status = 'Standby_Aangekomen' THEN 0 ELSE 1 END, position_in_queue
+                LIMIT 1
             """, (dc_id,)).fetchone()
 
             if not driver_row:
@@ -460,10 +461,24 @@ def call_next_driver(dc_id: str) -> dict | None:
                 WHERE dc_id = ? AND status IN ('Standby_Onderweg', 'Standby_Aangekomen')
             """, (dc_id,)).fetchone()[0]
 
-            # Count active docks
-            dock_count = conn.execute("""
-                SELECT COUNT(*) FROM docks WHERE dc_id = ? AND active = 1
+            # Count free docks
+            free_dock_count = conn.execute("""
+                SELECT COUNT(*) FROM docks d
+                WHERE d.dc_id = ? AND d.active = 1
+                AND d.id NOT IN (
+                    SELECT dock_id FROM drivers WHERE dc_id = ? AND dock_id IS NOT NULL AND status = 'Actief_Dok'
+                )
+            """, (dc_id, dc_id)).fetchone()[0]
+
+            # Ready drivers (aangekomen op standby) get priority for a free dock,
+            # even when standby is not full yet.
+            ready_count = conn.execute("""
+                SELECT COUNT(*) FROM drivers
+                WHERE dc_id = ? AND status = 'Standby_Aangekomen'
             """, (dc_id,)).fetchone()[0]
+
+            if ready_count and free_dock_count:
+                return assign_driver_to_dock(dc_id)
 
             if standby_count >= dc["standby_slots"]:
                 # Standby full → try direct to dock
