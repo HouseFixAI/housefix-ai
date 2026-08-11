@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Geblokkeerde Kentekens | Yard Management{% endblock %}
+
+{% block extra_css %}
+.blocked-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.blocked-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: var(--shadow);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.blocked-table th, .blocked-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.blocked-table th {
+    background-color: #f1f3f5;
+    font-weight: 600;
+}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="blocked-header">
+        <h1>Geblokkeerde Kentekens</h1>
+        <a href="/dashboard" class="btn btn-primary">Terug naar Dashboard</a>
+    </div>
+
+    <div class="card">
+        <form id="blockForm" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <input type="text" id="plateInput" class="form-control" placeholder="Kenteken (bijv. AB-123-C)" required style="flex-grow: 1; text-transform: uppercase;">
+            <input type="text" id="reasonInput" class="form-control" placeholder="Reden voor blokkade" required style="flex-grow: 2;">
+            <button type="submit" class="btn btn-danger">Blokkeer Kenteken</button>
+        </form>
+
+        <table class="blocked-table">
+            <thead>
+                <tr>
+                    <th>Kenteken</th>
+                    <th>Reden</th>
+                    <th>Geblokkeerd op</th>
+                    <th>Acties</th>
+                </tr>
+            </thead>
+            <tbody id="blockedBody">
+                {% for item in blocked_list %}
+                <tr>
+                    <td><strong>{{ item.plate }}</strong></td>
+                    <td>{{ item.reason }}</td>
+                    <td>{{ item.created_at }}</td>
+                    <td>
+                        <button onclick="unblockPlate('{{ item.plate }}')" class="btn btn-warning btn-sm">Deblokkeer</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+document.getElementById('blockForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const plate = document.getElementById('plateInput').value;
+    const reason = document.getElementById('reasonInput').value;
+
+    fetch('/api/blocked', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plate: plate, reason: reason })
+    })
+    .then(r => {
+        if (r.ok) window.location.reload();
+        else alert('Blokkeren mislukt');
+    });
+});
+
+function unblockPlate(plate) {
+    if (!confirm('Kenteken ' + plate + ' deblokkeren?')) return;
+    
+    fetch('/api/blocked/' + plate, {
+        method: 'DELETE'
+    })
+    .then(r => {
+        if (r.ok) window.location.reload();
+        else alert('Deblokkeren mislukt');
+    });
+}
+{% endblock %}
