@@ -121,6 +121,10 @@ class PriorityUpdateRequest(BaseModel):
     ticket_ids: list[str]
 
 
+class ActionRequest(BaseModel):
+    action: str
+
+
 # ─── Lifecycle ───────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -292,6 +296,8 @@ def get_status(ticket_id: str):
         "dc_id": dc_id,
         "dc_name": dc_config.get("name", ""),
         "dock": dock_info,
+        "dock_name": (dock_info or {}).get("name"),
+        "minutes": dc_config.get("reistijd_minuten"),
         "instructions": instructions,
         "allowed_transitions": VALID_TRANSITIONS.get(status, []),
         "is_terminal": is_terminal(status),
@@ -350,6 +356,29 @@ def driver_cannot(ticket_id: str):
         "position": updated["position_in_queue"],
         "ticket_id": ticket_id,
     }
+
+
+@app.post("/api/status/{ticket_id}/action")
+def status_action(ticket_id: str, req: ActionRequest):
+    """Driver actie vanaf de statuspagina: 'arrived' (aangekomen op standby) of 'cannot_now'."""
+    driver = get_driver_by_ticket(ticket_id)
+    if not driver:
+        raise HTTPException(status_code=404, detail="Ticket niet gevonden")
+
+    if req.action == "arrived":
+        if driver["status"] != "Standby_Onderweg":
+            raise HTTPException(status_code=400, detail=f"Ongeldige status: {driver['status']}")
+        updated = update_driver_status(ticket_id, "Standby_Aangekomen")
+        if not updated:
+            raise HTTPException(status_code=500, detail="Fout bij updaten status")
+    elif req.action == "cannot_now":
+        updated = move_position_back(ticket_id)
+        if not updated:
+            raise HTTPException(status_code=500, detail="Fout bij verplaatsen")
+    else:
+        raise HTTPException(status_code=400, detail="Onbekende actie: gebruik 'arrived' of 'cannot_now'")
+
+    return get_status(ticket_id)
 
 
 # ─── Dashboard API ───────────────────────────────────────────────
