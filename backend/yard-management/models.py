@@ -11,15 +11,17 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "yard.db"
 
-# Per-DC locks for race condition protection
-_dc_locks: dict[str, threading.Lock] = {}
-_global_lock = threading.Lock()
+# Per-DC locks for race condition protection.
+# RLock (reentrant) zodat geneste lock-aanroepen niet deadlocken:
+# call_next_driver → assign_driver_to_dock pakt dezelfde DC-lock nog eens.
+_dc_locks: dict[str, threading.RLock] = {}
+_global_lock = threading.RLock()
 
 
-def _get_dc_lock(dc_id: str) -> threading.Lock:
+def _get_dc_lock(dc_id: str) -> threading.RLock:
     with _global_lock:
         if dc_id not in _dc_locks:
-            _dc_locks[dc_id] = threading.Lock()
+            _dc_locks[dc_id] = threading.RLock()
         return _dc_locks[dc_id]
 
 
