@@ -322,11 +322,36 @@ def increment_no_show(ticket_id: str) -> dict | None:
                     (new_position, now, ticket_id),
                 )
 
+            renumber_queue(dc_id, conn)
             conn.commit()
             return dict_from_row(conn.execute(
                 "SELECT * FROM drivers WHERE ticket_id = ?", (ticket_id,)
             ).fetchone())
         finally:
+            conn.close()
+
+
+def renumber_queue(dc_id: str, conn=None) -> None:
+    """Voltooide/geblokkeerde/dok-chauffeurs krijgen positie 0; actieve wachtrij wordt hernummerd 1..N."""
+    own = conn is None
+    conn = conn or get_connection()
+    try:
+        conn.execute(
+            "UPDATE drivers SET position_in_queue = 0 WHERE dc_id = ? AND status IN ('Actief_Dok', 'Voltooid', 'Geblokkeerd')",
+            (dc_id,),
+        )
+        rows = conn.execute(
+            "SELECT ticket_id FROM drivers WHERE dc_id = ? AND status IN ('Ingecheckt', 'Wachtend', 'Truckparking', 'Standby_Onderweg', 'Standby_Aangekomen') ORDER BY position_in_queue",
+            (dc_id,),
+        ).fetchall()
+        for i, row in enumerate(rows, start=1):
+            conn.execute(
+                "UPDATE drivers SET position_in_queue = ? WHERE ticket_id = ?",
+                (i, row[0]),
+            )
+        conn.commit()
+    finally:
+        if own:
             conn.close()
 
 
@@ -348,6 +373,7 @@ def complete_driver(ticket_id: str) -> dict | None:
                 "INSERT INTO driver_history (license_plate, dc_id, status) VALUES (?, ?, ?)",
                 (driver["license_plate"], dc_id, "Voltooid"),
             )
+            renumber_queue(dc_id, conn)
             conn.commit()
             return dict_from_row(conn.execute(
                 "SELECT * FROM drivers WHERE ticket_id = ?", (ticket_id,)

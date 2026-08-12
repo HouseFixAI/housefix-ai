@@ -128,7 +128,7 @@
             const tbody = document.querySelector('#drivers-table tbody');
             tbody.innerHTML = (d.drivers || []).map(dr => `
                 <tr>
-                    <td>${dr.position_in_queue}</td>
+                    <td>${['Actief_Dok','Voltooid','Geblokkeerd'].includes(dr.status) ? '-' : dr.position_in_queue}</td>
                     <td>${dr.name}</td>
                     <td>${dr.license_plate}</td>
                     <td><span class="status-badge status-${dr.status}">${dr.status}</span></td>
